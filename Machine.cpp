@@ -267,14 +267,14 @@ int Machine::Run()
 
         case OP_B:
             {
-                I16 offset = ReadI16( codePtr );
+                BranchInst::TOffset offset = BranchInst::ReadOffset( codePtr );
                 codePtr += offset;
             }
             break;
 
         case OP_BFALSE:
             {
-                I16 offset = ReadI16( codePtr );
+                BranchInst::TOffset offset = BranchInst::ReadOffset( codePtr );
                 mSP++;
                 CELL condition = *mSP;
                 if ( !condition )
@@ -284,7 +284,7 @@ int Machine::Run()
 
         case OP_BTRUE:
             {
-                I16 offset = ReadI16( codePtr );
+                BranchInst::TOffset offset = BranchInst::ReadOffset( codePtr );
                 mSP++;
                 CELL condition = *mSP;
                 if ( condition )

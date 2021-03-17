@@ -321,16 +321,12 @@ void Compiler::Generate( Element* elem, const GenConfig& config, GenStatus& stat
             PushPatch( config.trueChain );
 
             mCodeBinPtr[0] = (config.invert && status.kind != Expr_Comparison) ? OP_BFALSE : OP_BTRUE;
-            mCodeBinPtr[1] = 0;
-            mCodeBinPtr[2] = 0;
-            mCodeBinPtr += 3;
+            mCodeBinPtr += BranchInst::Size;
 
             PushPatch( config.falseChain );
 
             mCodeBinPtr[0] = OP_B;
-            mCodeBinPtr[1] = 0;
-            mCodeBinPtr[2] = 0;
-            mCodeBinPtr += 3;
+            mCodeBinPtr += BranchInst::Size;
         }
         else if ( config.invert && status.kind != Expr_Comparison )
         {
@@ -554,7 +550,7 @@ void Compiler::GenerateIf( Slist* list, const GenConfig& config, GenStatus& stat
     Generate( list->Elements[2].get(), statementConfig );
     mCodeBinPtr[0] = OP_B;
     leaveOffset = &mCodeBinPtr[1];
-    mCodeBinPtr += 3;
+    mCodeBinPtr += BranchInst::Size;
 
     ElideFalse( &newTrueChain, &newFalseChain );
 
@@ -575,19 +571,19 @@ void Compiler::GenerateIf( Slist* list, const GenConfig& config, GenStatus& stat
         }
     }
 
-    ptrdiff_t ptrOffset = mCodeBinPtr - leaveOffset - 2;
+    ptrdiff_t ptrOffset = mCodeBinPtr - leaveOffset - (BranchInst::Size - 1);
 
-    if ( ptrOffset < INT16_MIN || ptrOffset > INT16_MAX )
-        ThrowError( CERR_UNSUPPORTED, list, "Branch offset doesn't fit in 16 bits." );
+    if ( ptrOffset < BranchInst::OffsetMin || ptrOffset > BranchInst::OffsetMax )
+        ThrowError( CERR_UNSUPPORTED, list, "Branch target is too far." );
 
     if ( ptrOffset != 0 )
     {
-        StoreI16( leaveOffset, ptrOffset );
+        BranchInst::StoreOffset( leaveOffset, ptrOffset );
     }
     else
     {
         // Remove the uncoditional branch out of the True clause.
-        mCodeBinPtr -= 3;
+        mCodeBinPtr -= BranchInst::Size;
         falsePtr = mCodeBinPtr;
     }
 
@@ -668,7 +664,7 @@ void Compiler::GenerateCond( Slist* list, const GenConfig& config, GenStatus& st
             PushPatch( &leaveChain );
 
             mCodeBinPtr[0] = OP_BTRUE;
-            mCodeBinPtr += 3;
+            mCodeBinPtr += BranchInst::Size;
 
             if ( config.discard )
             {
@@ -692,7 +688,7 @@ void Compiler::GenerateCond( Slist* list, const GenConfig& config, GenStatus& st
             PushPatch( &leaveChain );
 
             mCodeBinPtr[0] = OP_B;
-            mCodeBinPtr += 3;
+            mCodeBinPtr += BranchInst::Size;
 
             ElideFalse( &trueChain, &falseChain );
             Patch( &falseChain );
@@ -1131,9 +1127,10 @@ void Compiler::Atomize( ConjSpec* spec, Slist* list, bool invert )
     mCodeBinPtr[0] = OP_LDC_S;
     mCodeBinPtr[1] = 1;
     mCodeBinPtr[2] = OP_B;
-    mCodeBinPtr[3] = 2;
-    mCodeBinPtr[4] = 0;
-    mCodeBinPtr += 5;
+    mCodeBinPtr += 3;
+
+    // Offset of 2 to jump over LDC.S below.
+    BranchInst::WriteOffset( mCodeBinPtr, 2 );
 
     Patch( &falseChain );
     mCodeBinPtr[0] = OP_LDC_S;
@@ -1177,11 +1174,11 @@ void Compiler::ElideTrue( PatchChain* trueChain, PatchChain* falseChain )
         return;
 
     U8* target = mCodeBinPtr;
-    size_t diff = target - (trueChain->Next->Inst + 3);
+    size_t diff = target - (trueChain->Next->Inst + BranchInst::Size);
 
-    if ( diff == 3
-        && mCodeBinPtr[-3] == OP_B
-        && &mCodeBinPtr[-3] == falseChain->Next->Inst
+    if ( diff == BranchInst::Size
+        && mCodeBinPtr[-BranchInst::Size] == OP_B
+        && &mCodeBinPtr[-BranchInst::Size] == falseChain->Next->Inst
         )
     {
         falseChain->Next->Inst = trueChain->Next->Inst;
@@ -1189,7 +1186,7 @@ void Compiler::ElideTrue( PatchChain* trueChain, PatchChain* falseChain )
 
         // Remove the branch instruction.
         PopPatch( trueChain );
-        mCodeBinPtr -= 3;
+        mCodeBinPtr -= BranchInst::Size;
     }
 }
 
@@ -1199,13 +1196,13 @@ void Compiler::ElideFalse( PatchChain* trueChain, PatchChain* falseChain )
         return;
 
     U8* target = mCodeBinPtr;
-    size_t diff = target - (falseChain->Next->Inst + 3);
+    size_t diff = target - (falseChain->Next->Inst + BranchInst::Size);
 
     if ( diff == 0 )
     {
         // Remove the branch instruction.
         PopPatch( falseChain );
-        mCodeBinPtr -= 3;
+        mCodeBinPtr -= BranchInst::Size;
     }
 }
 
@@ -1215,12 +1212,12 @@ void Compiler::Patch( PatchChain* chain, U8* targetPtr )
 
     for ( InstPatch* link = chain->Next; link != nullptr; link = link->Next )
     {
-        ptrdiff_t diff = target - (link->Inst + 3);
+        ptrdiff_t diff = target - (link->Inst + BranchInst::Size);
 
-        if ( diff < INT16_MIN || diff > INT16_MAX )
-            ThrowError( CERR_UNSUPPORTED, nullptr, "Branch offset doesn't fit in 16 bits." );
+        if ( diff < BranchInst::OffsetMin || diff > BranchInst::OffsetMax )
+            ThrowError( CERR_UNSUPPORTED, nullptr, "Branch target is too far." );
 
-        StoreI16( &link->Inst[1], diff );
+        BranchInst::StoreOffset( &link->Inst[1], diff );
     }
 }
 
