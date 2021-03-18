@@ -31,6 +31,7 @@ int NativeLatent1( Machine* machine, U8 argc, CELL* args, UserContext context )
     return machine->Yield( NativeLatent2, 1 );
 }
 
+
 class Env : public IEnvironment
 {
     ByteCode*   mByteCodes;
@@ -46,6 +47,11 @@ public:
 
     bool FindByteCode( U32 id, ByteCode* byteCode );
     bool FindNativeCode( U32 id, NativeCode* nativeCode );
+
+    virtual const Module* FindModule( U8 index ) override
+    {
+        return nullptr;
+    }
 };
 
 Env::Env()
@@ -86,6 +92,61 @@ bool Env::FindNativeCode( U32 id, NativeCode* nativeCode )
     return true;
 }
 
+
+class Env2 : public IEnvironment
+{
+    Module*     mModules;
+    U32         mModuleCount;
+    NativeCode* mNativeCodes;
+    U32         mNativeCodeCount;
+
+public:
+    Env2();
+
+    void SetModules( Module* modules, U32 count );
+    void SetNativeCodes( NativeCode* natives, U32 count );
+
+    bool FindNativeCode( U32 id, NativeCode* nativeCode );
+
+    virtual const Module* FindModule( U8 index ) override
+    {
+        if ( index < mModuleCount )
+            return &mModules[index];
+
+        return nullptr;
+    }
+};
+
+Env2::Env2() :
+    mModuleCount( 0 ),
+    mModules( nullptr ),
+    mNativeCodeCount( 0 ),
+    mNativeCodes( nullptr )
+{
+}
+
+void Env2::SetModules( Module* modules, U32 count )
+{
+    mModules = modules;
+    mModuleCount = count;
+}
+
+void Env2::SetNativeCodes( NativeCode* nativeCodes, U32 count )
+{
+    mNativeCodes = nativeCodes;
+    mNativeCodeCount = count;
+}
+
+bool Env2::FindNativeCode( U32 id, NativeCode* nativeCode )
+{
+    if ( id >= mNativeCodeCount )
+        return false;
+
+    *nativeCode = mNativeCodes[id];
+    return true;
+}
+
+
 class CompilerEnv : public ICompilerEnv, public IEnvironment
 {
     struct MachineFunc
@@ -121,6 +182,11 @@ public:
 
     bool AddGlobal( const std::string& name, int offset ) override;
     bool FindGlobal( const std::string& name, int& offset ) override;
+
+    virtual const Module* FindModule( U8 index ) override
+    {
+        return mCurMod;
+    }
 };
 
 CompilerEnv::CompilerEnv()
@@ -364,7 +430,7 @@ int Test1()
 
         b = env.FindExternal( "a", &external );
         b = env.FindByteCode( external.Id, &byteCode );
-        CELL* args = machine.Start( &byteCode, 1 );
+        CELL* args = machine.Start( 0, byteCode.Address, 1 );
         args[0] = 65;
 
         int err = 0;
@@ -411,7 +477,7 @@ int Test1()
         b = env.FindExternal( "a", &external );
         b = env.FindByteCode( external.Id, &byteCode );
 
-        machine.Start( &byteCode, 0 );
+        machine.Start( 0, byteCode.Address, 0 );
         int err = 0;
         do
         {
@@ -449,7 +515,7 @@ int Test1()
 #endif
         byteCode.Module = &mod;
 
-        machine.Start( &byteCode, 0 );
+        machine.Start( 0, byteCode.Address, 0 );
         int err = machine.Run();
     }
     return 0;
@@ -550,7 +616,7 @@ int Test1()
         OP_RET,
         1,
 #elif 0
-        OP_CALLN,
+        OP_CALLM,
         2,
         0,
         0,
@@ -616,7 +682,7 @@ int Test1()
 #endif
     env.SetNativeCodes( &native1, 1 );
 
-    machine.Start( &byteCode, 0 );
+    machine.Start( 0, byteCode.Address, 0 );
     int err = 0;
 
     do
@@ -627,44 +693,25 @@ int Test1()
 	return 0;
 }
 
-int _tmain( int argc, _TCHAR* argv[] )
+void Disassemble( const uint8_t* program, int size )
 {
-#if 1
-    U8 program2[] =
+    Disassembler disassembler( program );
+    int totalBytesDisasm = 0;
+    while ( totalBytesDisasm < size )
     {
-        OP_LDC,
-        0xFD,
-        0xFF,
-        0xFF,
-        0xFF,
-        OP_RET,
-    };
+        char disasm[256];
+        int bytesDisasm = disassembler.Disassemble( disasm, _countof( disasm ) );
+        if ( bytesDisasm <= 0 )
+            break;
+        totalBytesDisasm += bytesDisasm;
+        printf( "%s\n", disasm );
+    }
+}
 
-    CELL data[10];
-    Env env;
+void TestFarCall()
+{
+    constexpr int ModIndex = 1;
 
-    CELL stack[Machine::MIN_STACK];
-
-    Machine machine;
-    machine.Init( data, stack, _countof( stack ), &env );
-
-    Module mod;
-    mod.CodeBase = program2;
-
-    ByteCode byteCode;
-    byteCode.Address = 0;
-    byteCode.Module = &mod;
-
-    machine.Start( &byteCode, 0 );
-    int err = 0;
-
-    do
-    {
-        err = machine.Run();
-    } while ( err == ERR_YIELDED );
-#endif
-
-#if 0
 #if 0
     U8 program2[] =
     {
@@ -701,7 +748,7 @@ int _tmain( int argc, _TCHAR* argv[] )
     program2[1] = ((U8*) &addr)[0];
     program2[2] = ((U8*) &addr)[1];
     program2[3] = ((U8*) &addr)[2];
-    program2[4] = 0;
+    program2[4] = ModIndex;
     program2[5] = OP_CALLI;
     program2[6] = 0;
     program2[7] = OP_RET;
@@ -709,21 +756,15 @@ int _tmain( int argc, _TCHAR* argv[] )
     printf( "addr: $%06X (%d)\n", addr, addr );
 #endif
     CELL data[10];
-    Env env;
-
     CELL stack[Machine::MIN_STACK];
-
-    Machine machine;
-    machine.Init( data, stack, _countof( stack ), &env );
 
     Module mod;
     mod.CodeBase = program2;
 
-    ByteCode byteCode;
-    byteCode.Address = 0;
-    byteCode.Module = &mod;
+    Machine machine;
+    machine.Init( data, stack, _countof( stack ), ModIndex, &mod );
 
-    machine.Start( &byteCode, 0 );
+    machine.Start( ModIndex, 0, 0 );
     int err = 0;
 
     do
@@ -731,22 +772,110 @@ int _tmain( int argc, _TCHAR* argv[] )
         err = machine.Run();
     } while ( err == ERR_YIELDED );
 
-    {
-        Disassembler disassembler( program2 );
-        int totalBytesDisasm = 0;
-        while ( totalBytesDisasm < 8 )
-        {
-            char disasm[256];
-            int bytesDisasm = disassembler.Disassemble( disasm, _countof( disasm ) );
-            if ( bytesDisasm <= 0 )
-                break;
-            totalBytesDisasm += bytesDisasm;
-            printf( "%s\n", disasm );
-        }
-    }
+    Disassemble( program2, 8 );
 
     printf( "ret: %d\n", stack[_countof( stack ) - 1] );
     printf( "\n" );
+}
+
+void TestMin()
+{
+    U8 program2[] =
+    {
+        OP_LDC,
+        0xFD,
+        0xFF,
+        0xFF,
+        0xFF,
+        OP_RET,
+    };
+
+    CELL data[10];
+    CELL stack[Machine::MIN_STACK];
+
+    Module mod;
+    mod.CodeBase = program2;
+
+    Machine machine;
+    machine.Init( data, stack, _countof( stack ), 0, &mod );
+
+    machine.Start( 0, 0, 0 );
+    int err = 0;
+
+    do
+    {
+        err = machine.Run();
+    } while ( err == ERR_YIELDED );
+}
+
+void TestMultiMod()
+{
+    U8 bin1[] =
+    {
+        OP_CALLM,
+        0,
+        0,
+        0,
+        0,
+        2,
+        OP_LDC_S,
+        3,
+        OP_CALLP,
+        PRIM_MUL,
+        OP_RET,
+    };
+
+    U8 bin2[] =
+    {
+        OP_LDC_S,
+        5,
+        OP_RET,
+    };
+
+    Module modules[] =
+    {
+        { 0 },
+        { bin1 },
+        { bin2 },
+    };
+
+    Env2 env;
+    env.SetModules( modules, _countof( modules ) );
+
+    CELL data[10];
+    CELL stack[Machine::MIN_STACK];
+
+    Machine machine;
+    machine.Init( data, stack, _countof( stack ), &env );
+
+    machine.Start( 1, 0, 0 );
+    int err = 0;
+
+    do
+    {
+        err = machine.Run();
+    } while ( err == ERR_YIELDED );
+
+    Disassemble( bin1, sizeof bin1 );
+    Disassemble( bin2, sizeof bin2 );
+
+    printf( "ret: %d\n", stack[_countof( stack ) - 1] );
+    printf( "\n" );
+}
+
+
+int _tmain( int argc, _TCHAR* argv[] )
+{
+#if 1
+    TestMin();
+#endif
+
+#if 0
+    TestFarCall();
+#endif
+
+#if 0
+    TestMultiMod();
 #endif
 
 #if 0
@@ -801,7 +930,7 @@ int _tmain( int argc, _TCHAR* argv[] )
 
         b = env.FindExternal( "a", &external );
         b = env.FindByteCode( external.Id, &byteCode );
-        CELL* args = machine.Start( &byteCode, 1 );
+        CELL* args = machine.Start( 0, byteCode.Address, 1 );
         args[0] = 65;
 
         int err = 0;
