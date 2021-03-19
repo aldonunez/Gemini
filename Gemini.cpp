@@ -806,6 +806,11 @@ void TestMin()
     {
         err = machine.Run();
     } while ( err == ERR_YIELDED );
+
+    //Disassemble( program2, sizeof program2 );
+
+    //printf( "ret: %d\n", stack[_countof( stack ) - 1] );
+    //printf( "\n" );
 }
 
 void TestMultiMod()
@@ -821,7 +826,7 @@ void TestMultiMod()
         OP_LDC_S,
         2,
         OP_CALLM,
-        0,
+        1,
         0,
         0,
         0,
