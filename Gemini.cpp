@@ -812,6 +812,14 @@ void TestMultiMod()
 {
     U8 bin1[] =
     {
+        OP_PUSH,
+        1,
+        OP_LDC_S,
+        4,
+        OP_STLOC,
+        0,
+        OP_LDC_S,
+        2,
         OP_CALLM,
         0,
         0,
@@ -822,13 +830,21 @@ void TestMultiMod()
         3,
         OP_CALLP,
         PRIM_MUL,
+        OP_LDLOC,
+        0,
+        OP_CALLP,
+        PRIM_ADD,
         OP_RET,
     };
 
     U8 bin2[] =
     {
+        OP_LDARG,
+        0,
         OP_LDC_S,
         5,
+        OP_CALLP,
+        PRIM_ADD,
         OP_RET,
     };
 
