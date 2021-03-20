@@ -171,12 +171,11 @@ int Machine::Run()
     {
         NativeFunc continuation = mNativeContinuation;
         UserContext context = mNativeContinuationContext;
-        U8 count = CallFlags::GetCount( mNativeContinuationFlags );
 
         mNativeContinuation = nullptr;
         mNativeContinuationContext = 0;
 
-        int ret = CallNative( continuation, count, context );
+        int ret = CallNative( continuation, mNativeContinuationFlags, context );
         if ( ret != ERR_NONE )
             return ret;
     }
