@@ -423,7 +423,7 @@ int Test1()
         CELL data[100];
         CELL stack[Machine::MIN_STACK];
         Machine machine;
-        machine.Init( data, stack, _countof( stack ), &env );
+        machine.Init( data, sizeof data, stack, _countof( stack ), &env );
         ExternalFunc external = { 0 };
         ByteCode byteCode = { 0 };
         bool b = false;
@@ -469,7 +469,7 @@ int Test1()
         CELL data[100];
         CELL stack[Machine::MIN_STACK];
         Machine machine;
-        machine.Init( data, stack, _countof( stack ), &env );
+        machine.Init( data, sizeof data, stack, _countof( stack ), &env );
 
         ExternalFunc external = { 0 };
         ByteCode byteCode = { 0 };
@@ -500,7 +500,7 @@ int Test1()
         CELL data[100];
         CELL stack[Machine::MIN_STACK];
         Machine machine;
-        machine.Init( data, stack, _countof( stack ), nullptr );
+        machine.Init( data, sizeof data, stack, _countof( stack ), nullptr );
 
         Module mod;
         mod.CodeBase = bin;
@@ -660,7 +660,7 @@ int Test1()
 
     CELL stack[Machine::MIN_STACK];
     Machine machine;
-    machine.Init( data, stack, _countof( stack ), &env );
+    machine.Init( data, sizeof data, stack, _countof( stack ), &env );
 
     Module mod;
     mod.CodeBase = program2;
@@ -760,9 +760,10 @@ void TestFarCall()
 
     Module mod;
     mod.CodeBase = program2;
+    mod.CodeSize = Size;
 
     Machine machine;
-    machine.Init( data, stack, _countof( stack ), ModIndex, &mod );
+    machine.Init( data, sizeof data, stack, _countof( stack ), ModIndex, &mod );
 
     machine.Start( ModIndex, 0, 0 );
     int err = 0;
@@ -795,9 +796,10 @@ void TestMin()
 
     Module mod;
     mod.CodeBase = program2;
+    mod.CodeSize = sizeof program2;
 
     Machine machine;
-    machine.Init( data, stack, _countof( stack ), 0, &mod );
+    machine.Init( data, sizeof data, stack, _countof( stack ), 0, &mod );
 
     machine.Start( 0, 0, 0 );
     int err = 0;
@@ -856,8 +858,8 @@ void TestMultiMod()
     Module modules[] =
     {
         { 0 },
-        { bin1 },
-        { bin2 },
+        { bin1, sizeof bin1 },
+        { bin2, sizeof bin2 },
     };
 
     Env2 env;
@@ -867,7 +869,7 @@ void TestMultiMod()
     CELL stack[Machine::MIN_STACK];
 
     Machine machine;
-    machine.Init( data, stack, _countof( stack ), &env );
+    machine.Init( data, sizeof data, stack, _countof( stack ), &env );
 
     machine.Start( 1, 0, 0 );
     int err = 0;
@@ -908,8 +910,13 @@ int _tmain( int argc, _TCHAR* argv[] )
             //"(defun b () (if 2 3))"
             //"(defun a () (not (- (b))) )"
 
-            "(defun b () (if 2 3))"
-            "(defun a () (- (b)))"
+            //"(defun b () (if 2 3))"
+            //"(defun a () (- (b)))"
+
+            "(defun d () (and 1 2 3) 9)"
+            "(defun c () 99 9)"
+            "(defun b () (if 1 (c)) (if 3 4))"
+            "(defun a () (+ 1 2) (+ 3 4))"
             ;
 
         U8 bin1[512];
@@ -929,6 +936,8 @@ int _tmain( int argc, _TCHAR* argv[] )
         if ( compilerErr != CERR_OK )
             return 1;
 
+        mod1.CodeSize = stats.CodeBytesWritten;
+
         Disassembler disassembler( bin1 );
         int totalBytesDisasm = 0;
         while ( totalBytesDisasm < stats.CodeBytesWritten )
@@ -944,7 +953,7 @@ int _tmain( int argc, _TCHAR* argv[] )
         CELL data[100];
         CELL stack[Machine::MIN_STACK];
         Machine machine;
-        machine.Init( data, stack, _countof( stack ), &env );
+        machine.Init( data, sizeof data, stack, _countof( stack ), &env );
         ExternalFunc external = { 0 };
         ByteCode byteCode = { 0 };
         bool b = false;
