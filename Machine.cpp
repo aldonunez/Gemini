@@ -122,9 +122,11 @@ int Machine::CallNative( NativeFunc proc, U8 callFlags, UserContext context )
     bool  autoPop = CallFlags::GetAutoPop( callFlags );
     U8    argCount = CallFlags::GetCount( callFlags );
 
-    // Add one for the return value
-    if ( WouldUnderflow( argCount + 1 ) )
+    if ( WouldUnderflow( argCount ) )
         return ERR_STACK_UNDERFLOW;
+
+    if ( WouldOverflow() )
+        return ERR_STACK_OVERFLOW;
 
     CELL* args = mSP;
     CELL* oldSP = mSP;
