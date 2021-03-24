@@ -731,6 +731,12 @@ void TestFarCall()
         0xFF,
         0xFF,
         OP_RET,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
     };
     const size_t Size = 0x10000 * 3;
     U8* program2 = (U8*) malloc( Size );
@@ -789,7 +795,18 @@ void TestMin()
         0xFF,
         0xFF,
         OP_RET,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
     };
+
+    if ( rand() == 0 )
+        program2[sizeof program2 - 1] = 0;
+    if ( rand() == 0 )
+        program2[sizeof program2 - 2] = 0;
 
     CELL data[10];
     CELL stack[Machine::MIN_STACK];
@@ -797,6 +814,9 @@ void TestMin()
     Module mod;
     mod.CodeBase = program2;
     mod.CodeSize = sizeof program2;
+
+    if ( ERR_NONE != VerifyModule( &mod ) )
+        return;
 
     Machine machine;
     machine.Init( data, sizeof data, stack, _countof( stack ), 0, &mod );
@@ -842,6 +862,12 @@ void TestMultiMod()
         OP_CALLP,
         PRIM_ADD,
         OP_RET,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
     };
 
     U8 bin2[] =
@@ -853,6 +879,12 @@ void TestMultiMod()
         OP_CALLP,
         PRIM_ADD,
         OP_RET,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
     };
 
     Module modules[] =
@@ -913,10 +945,11 @@ int _tmain( int argc, _TCHAR* argv[] )
             //"(defun b () (if 2 3))"
             //"(defun a () (- (b)))"
 
-            "(defun d () (and 1 2 3) 9)"
-            "(defun c () 99 9)"
-            "(defun b () (if 1 (c)) (if 3 4))"
-            "(defun a () (+ 1 2) (+ 3 4))"
+            "(defun e () (< 1 2) 8 )\n"
+            "(defun d () (and 1 2 3) 9)\n"
+            "(defun c () 99 9)\n"
+            "(defun b () (if 1 (c)) (if 3 4))\n"
+            "(defun a () (+ 1 2) (+ 3 4))\n"
             ;
 
         U8 bin1[512];
