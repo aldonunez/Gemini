@@ -534,6 +534,9 @@ StackFrame* Machine::PushFrame( const U8* curCodePtr, U8 callFlags )
 
 int Machine::PopFrame()
 {
+    if ( (mFramePtr + FRAME_WORDS) > mStackSize )
+        return ERR_STACK_UNDERFLOW;
+
     auto  curFrame = (StackFrame*) &mStack[mFramePtr];
     bool  autoPop = CallFlags::GetAutoPop( curFrame->CallFlags );
     U8    argCount = CallFlags::GetCount( curFrame->CallFlags );
