@@ -352,6 +352,15 @@ int Machine::Run()
             }
             break;
 
+        case OP_PRIM:
+            {
+                U8 func = ReadU8( codePtr );
+                int err = CallPrimitive( func );
+                if ( err != ERR_NONE )
+                    return err;
+            }
+            break;
+
         case OP_B:
             {
                 BranchInst::TOffset offset = BranchInst::ReadOffset( codePtr );
@@ -410,15 +419,6 @@ int Machine::Run()
                     return ERR_BAD_ADDRESS;
 
                 codePtr = mMod->CodeBase + mPC;
-            }
-            break;
-
-        case OP_CALLP:
-            {
-                U8 func = ReadU8( codePtr );
-                int err = CallPrimitive( func );
-                if ( err != ERR_NONE )
-                    return err;
             }
             break;
 
