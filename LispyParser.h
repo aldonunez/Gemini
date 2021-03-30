@@ -43,6 +43,9 @@ private:
     void ReadSymbol();
     int GetColumn();
 
+    bool IsIdentifierInitial();
+    bool IsIdentifierCoda();
+
     // Parsing
 
     Compiler::Slist* ParseSlist();

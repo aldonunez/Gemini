@@ -3,6 +3,24 @@
 #include <stdarg.h>
 
 
+using Number  = Compiler::Number;
+using Symbol  = Compiler::Symbol;
+using Slist   = Compiler::Slist;
+
+
+static const uint8_t sIdentifierInitialCharMap[] =
+{
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1,
+    0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0,
+};
+
+
 LispyParser::LispyParser( const char* codeText, int codeTextLen, ICompilerLog* log ) :
     mCodeTextPtr( codeText ),
     mCodeTextEnd( codeText + codeTextLen ),
@@ -49,10 +67,14 @@ LispyParser::TokenCode LispyParser::NextToken()
         mCurToken = Token_Number;
         ReadNumber();
     }
-    else
+    else if ( IsIdentifierInitial() )
     {
         mCurToken = Token_Symbol;
         ReadSymbol();
+    }
+    else
+    {
+        ThrowSyntaxError( "Bad character: U+%02X", *mCodeTextPtr );
     }
 
     return mCurToken;
@@ -65,8 +87,16 @@ void LispyParser::SkipWhitespace()
         while ( mCodeTextPtr < mCodeTextEnd
             && isspace( *mCodeTextPtr ) )
         {
-            if ( *mCodeTextPtr == '\n' )
+            if ( *mCodeTextPtr == '\r'
+                || *mCodeTextPtr == '\n' )
             {
+                if ( *mCodeTextPtr == '\r'
+                    && (mCodeTextEnd - mCodeTextPtr) >= 2
+                    && mCodeTextPtr[1] == '\n' )
+                {
+                    mCodeTextPtr++;
+                }
+
                 mLine++;
                 mLineStart = mCodeTextPtr + 1;
             }
@@ -81,11 +111,23 @@ void LispyParser::SkipWhitespace()
         }
 
         while ( mCodeTextPtr < mCodeTextEnd
+            && *mCodeTextPtr != '\r'
             && *mCodeTextPtr != '\n' )
         {
             mCodeTextPtr++;
         }
     }
+}
+
+bool LispyParser::IsIdentifierInitial()
+{
+    return (*mCodeTextPtr < sizeof sIdentifierInitialCharMap)
+        && sIdentifierInitialCharMap[*mCodeTextPtr];
+}
+
+bool LispyParser::IsIdentifierCoda()
+{
+    return IsIdentifierInitial() || isdigit( *mCodeTextPtr );
 }
 
 void LispyParser::ReadNumber()
@@ -98,17 +140,13 @@ void LispyParser::ReadNumber()
         mCodeTextPtr++;
     }
 
-    while ( isdigit( *mCodeTextPtr ) )
+    while ( (mCodeTextPtr < mCodeTextEnd) && isdigit( *mCodeTextPtr ) )
     {
         mCurString.append( 1, *mCodeTextPtr );
         mCodeTextPtr++;
     }
 
-    if ( mCodeTextPtr < mCodeTextEnd
-        && !isspace( *mCodeTextPtr )
-        && (*mCodeTextPtr != '(')
-        && (*mCodeTextPtr != ')')
-        && (*mCodeTextPtr != ';') )
+    if ( (mCodeTextPtr < mCodeTextEnd) && IsIdentifierInitial() )
         ThrowSyntaxError( "syntax error : bad number" );
 
     mCurNumber = atoi( mCurString.c_str() );
@@ -118,10 +156,7 @@ void LispyParser::ReadNumber()
 
 void LispyParser::ReadSymbol()
 {
-    while ( (*mCodeTextPtr != '(')
-        && (*mCodeTextPtr != ')')
-        && (*mCodeTextPtr != ';')
-        && !isspace( *mCodeTextPtr ) )
+    while ( (mCodeTextPtr < mCodeTextEnd) && IsIdentifierCoda() )
     {
         mCurString.append( 1, *mCodeTextPtr );
         mCodeTextPtr++;
@@ -135,7 +170,7 @@ int LispyParser::GetColumn()
 
 Compiler::Slist* LispyParser::Parse()
 {
-    std::unique_ptr<Compiler::Slist> list( new Compiler::Slist() );
+    std::unique_ptr<Slist> list( new Slist() );
     list->Code = Compiler::Elem_Slist;
 
     while ( NextToken() != Token_Eof )
@@ -143,7 +178,7 @@ Compiler::Slist* LispyParser::Parse()
         if ( mCurToken != Token_LParen )
             ThrowSyntaxError( "syntax error : expected list" );
 
-        list->Elements.push_back( std::unique_ptr<Compiler::Slist>( ParseSlist() ) );
+        list->Elements.push_back( std::unique_ptr<Slist>( ParseSlist() ) );
     }
 
     return list.release();
@@ -151,7 +186,7 @@ Compiler::Slist* LispyParser::Parse()
 
 Compiler::Slist* LispyParser::ParseSlist()
 {
-    std::unique_ptr<Compiler::Slist> list( new Compiler::Slist() );
+    std::unique_ptr<Slist> list( new Slist() );
     list->Code = Compiler::Elem_Slist;
     list->Line = mTokLine;
     list->Column = mTokCol;
@@ -161,18 +196,18 @@ Compiler::Slist* LispyParser::ParseSlist()
         switch ( NextToken() )
         {
         case Token_LParen:
-            list->Elements.push_back( std::unique_ptr<Compiler::Slist>( ParseSlist() ) );
+            list->Elements.push_back( std::unique_ptr<Slist>( ParseSlist() ) );
             break;
 
         case Token_RParen:
             goto Done;
 
         case Token_Number:
-            list->Elements.push_back( std::unique_ptr<Compiler::Number>( ParseNumber() ) );
+            list->Elements.push_back( std::unique_ptr<Number>( ParseNumber() ) );
             break;
 
         case Token_Symbol:
-            list->Elements.push_back( std::unique_ptr<Compiler::Symbol>( ParseSymbol() ) );
+            list->Elements.push_back( std::unique_ptr<Symbol>( ParseSymbol() ) );
             break;
 
         case Token_Eof:
@@ -190,7 +225,7 @@ Done:
 
 Compiler::Number* LispyParser::ParseNumber()
 {
-    Compiler::Number* number = new Compiler::Number();
+    Number* number = new Number();
     number->Code = Compiler::Elem_Number;
     number->Value = mCurNumber;
     number->Line = mTokLine;
@@ -200,7 +235,7 @@ Compiler::Number* LispyParser::ParseNumber()
 
 Compiler::Symbol* LispyParser::ParseSymbol()
 {
-    Compiler::Symbol* symbol = new Compiler::Symbol();
+    Symbol* symbol = new Symbol();
     symbol->Code = Compiler::Elem_Symbol;
     symbol->String = mCurString;
     symbol->Line = mTokLine;
@@ -210,7 +245,7 @@ Compiler::Symbol* LispyParser::ParseSymbol()
 
 void LispyParser::ThrowError( CompilerErr exceptionCode, int line, int col, const char* format, va_list args )
 {
-    Compiler::Log( mLog, LOG_ERROR, line, col, format, args );
+    ::Log( mLog, LOG_ERROR, line, col, format, args );
     throw Compiler::CompilerException( exceptionCode );
 }
 
@@ -234,3 +269,34 @@ void LispyParser::ThrowInternalError()
 {
     ThrowInternalError( "Internal error" );
 }
+
+
+#if 0
+void GenerateIdCharTable()
+{
+    static const char sExtAlphaChars[] =
+    {
+        '_', '#', '@', '!',
+        '$', '%', '&', '*',
+        '+', '-', '.', '/',
+        ':', '<', '=', '>',
+        '?', '^', '~',
+    };
+
+    constexpr unsigned int TableSize = 128;
+    bool table[TableSize] = { false };
+
+    for ( int i = 0; i < _countof( sExtAlphaChars ); i++ )
+    {
+        table[sExtAlphaChars[i]] = true;
+    }
+
+    for ( unsigned int i = 0; i < TableSize; i++ )
+    {
+        printf( "%d, ", (bool) (table[i] || isalpha( i )) );
+
+        if ( (i % 16) == 15 )
+            printf( "\n" );
+    }
+}
+#endif
