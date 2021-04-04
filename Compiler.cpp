@@ -50,12 +50,6 @@ Compiler::Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog
 
 CompilerErr Compiler::Compile( Slist* progTree )
 {
-#if 0
-    while ( NextToken() != Token_Eof )
-    {
-        printf( "%3d %12d %s\n", mCurToken, mCurNumber, mCurString.c_str() );
-    }
-#else
     try
     {
         MakeStdEnv();
@@ -80,7 +74,6 @@ CompilerErr Compiler::Compile( Slist* progTree )
     {
         return ex.GetError();
     }
-#endif
 
     mCompiled = true;
 
