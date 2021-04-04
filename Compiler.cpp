@@ -1398,8 +1398,8 @@ Compiler::ConstDecl* Compiler::AddConst( const std::string& name, int value )
 
 void Compiler::MakeStdEnv()
 {
-    AddConst( "#f", 0 );
-    AddConst( "#t", 1 );
+    AddConst( "false", 0 );
+    AddConst( "true", 1 );
 }
 
 void Compiler::IncreaseExprDepth()
