@@ -437,6 +437,7 @@ Unique<Compiler::Slist> AlgolyParser::ParseProc( const char* head, bool hasName 
 
     // Read past "end"
     ScanToken( TokenCode::End );
+    SkipLineEndings();
 
     return list;
 }
@@ -855,7 +856,8 @@ Unique<Compiler::Slist> AlgolyParser::ParseElseClause()
     SkipLineSeparators();
 
     clause->Elements.push_back( MakeNumber( 1 ) );
-    clause->Elements.push_back( ParseStatement() );
+
+    ParseStatements( clause.get() );
 
     return clause;
 }
