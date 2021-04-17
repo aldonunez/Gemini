@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <map>
+#include <optional>
 #include <unordered_map>
 
 
@@ -291,6 +292,8 @@ private:
     typedef std::vector<DeferredLambda> LambdaVec;
     typedef std::vector<U8**> AddrRefVec;
 
+    using GlobalVec = std::vector<I32>;
+
     typedef void (Compiler::*CallGenerator)( Slist* list, const GenConfig& config, GenStatus& status );
     typedef std::unordered_map<std::string, CallGenerator> GeneratorMap;
 
@@ -298,6 +301,7 @@ private:
     U8*             mCodeBin;
     U8*             mCodeBinPtr;
     U8*             mCodeBinEnd;
+    GlobalVec       mGlobals;
 
     SymTable        mConstTable;
     SymTable        mGlobalTable;
@@ -327,6 +331,8 @@ public:
 
     CompilerErr Compile( Slist* progTree );
     void GetStats( CompilerStats& stats );
+    I32* GetData();
+    size_t GetDataSize();
 
 private:
     // Code generation
@@ -345,6 +351,10 @@ private:
     void GenerateEvalStar( Slist* list, const GenConfig& config, GenStatus& status );
     void GenerateAref( Slist* list, const GenConfig& config, GenStatus& status );
     void GenerateArrayElementRef( Slist* list );
+    void GenerateDefvar( Slist* list, const GenConfig& config, GenStatus& status );
+
+    void AddGlobalData( U32 offset, Element* valueElem );
+    void AddGlobalDataArray( Storage* global, Element* valueElem, size_t size );
 
     void EmitLoadConstant( int32_t value );
 
@@ -409,7 +419,7 @@ private:
     Storage* AddArg( SymTable& table, const std::string& name, int offset );
     Storage* AddLocal( SymTable& table, const std::string& name, int offset );
     Storage* AddLocal( const std::string& name );
-    Storage* AddGlobal( const std::string& name, int offset );
+    Storage* AddGlobal( const std::string& name, size_t size );
     Function* AddFunc( const std::string& name, int address );
     Function* AddForward( const std::string& name );
     ConstDecl* AddConst( const std::string& name, int value );
@@ -417,6 +427,8 @@ private:
     void CollectFunctionForwards( Slist* program );
 
     void MatchSymbol( Element* elem, const char* name, const char* message = nullptr );
+    I32 GetElementValue( Element* elem, const char* message = nullptr );
+    std::optional<I32> GetOptionalElementValue( Element* elem );
 
     // Stack usage
     void IncreaseExprDepth();
