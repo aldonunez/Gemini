@@ -29,6 +29,8 @@ enum
     OP_CALLM,
     OP_CALLNATIVE,
     OP_CALLNATIVE_S,
+    // TODO: Put LDLOCA after STMOD
+    OP_LDLOCA,
     OP_MAXOPCODE,
 
     // Having each module end with this unsupported opcode ensures that:
@@ -41,6 +43,7 @@ enum
 
     OP_SENTINEL = 0xFF
 };
+
 
 enum
 {
@@ -56,6 +59,12 @@ enum
     PRIM_GT,
     PRIM_GE,
     PRIM_MAXPRIMITIVE,
+};
+
+
+enum
+{
+    MODINDEX_STACK  = 0xFE,
 };
 
 

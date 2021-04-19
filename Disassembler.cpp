@@ -29,6 +29,8 @@ static const char* gOpCodes[] =
     "CALLM",
     "CALLNATIVE",
     "CALLNATIVE.S",
+    // TODO: Put LDLOCA after STLOC
+    "LDLOCA",
 };
 
 static const char* gPrimitives[] = 
@@ -95,6 +97,7 @@ int Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_STARG:
     case OP_LDLOC:
     case OP_STLOC:
+    case OP_LDLOCA:
         {
             int value = *(U8*) mCodePtr++;
             charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " %d", value );
