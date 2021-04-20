@@ -204,6 +204,22 @@ private:
         U8*     Patch;
     };
 
+    enum class AddrRefKind
+    {
+        Lambda,
+        Inst,
+    };
+
+    struct AddrRef
+    {
+        AddrRefKind Kind;
+        union
+        {
+            size_t  LambdaIndex;
+            U8**    InstPtr;
+        };
+    };
+
     enum ExprKind
     {
         Expr_Other,
@@ -290,7 +306,7 @@ private:
     typedef std::map<std::string, std::unique_ptr<Declaration>> SymTable;
     typedef std::vector<SymTable*> SymStack;
     typedef std::vector<DeferredLambda> LambdaVec;
-    typedef std::vector<U8**> AddrRefVec;
+    typedef std::vector<AddrRef> AddrRefVec;
 
     using GlobalVec = std::vector<I32>;
 

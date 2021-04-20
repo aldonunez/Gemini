@@ -785,7 +785,7 @@ void Compiler::GenerateLambda( Slist* list, const GenConfig& config, GenStatus& 
     mLambdas.push_back( lambda );
 
     // Add the reference to the deferred lambda just linked
-    mLocalAddrRefs.push_back( &mLambdas.back().Patch );
+    mLocalAddrRefs.push_back( { AddrRefKind::Lambda, mLambdas.size() - 1 } );
 
     WriteU32( mCodeBinPtr, 0 );
     IncreaseExprDepth();
@@ -1054,7 +1054,10 @@ void Compiler::GenerateCall( Slist* list, const GenConfig& config, GenStatus& st
         else if ( it->second->Kind == Decl_Forward )
         {
             PushPatch( &func->Patches );
-            mLocalAddrRefs.push_back( &func->Patches.First->Inst );
+
+            AddrRef ref = { AddrRefKind::Inst };
+            ref.InstPtr = &func->Patches.First->Inst;
+            mLocalAddrRefs.push_back( ref );
         }
         else
         {
@@ -2061,9 +2064,25 @@ void Compiler::GenerateProc( Slist* list, int startIndex, Function* func )
 
         // If local lambda references were generated, then shift them
         // This also includes references to any function
-        for ( auto refPtr : mLocalAddrRefs )
+        for ( auto ref : mLocalAddrRefs )
         {
-            *refPtr -= PushInstSize;
+            U8** ppInst = nullptr;
+
+            switch ( ref.Kind )
+            {
+            case AddrRefKind::Lambda:
+                ppInst = &mLambdas[ref.LambdaIndex].Patch;
+                break;
+
+            case AddrRefKind::Inst:
+                ppInst = ref.InstPtr;
+                break;
+
+            default:
+                ThrowInternalError();
+            }
+
+            *ppInst -= PushInstSize;
         }
     }
 
