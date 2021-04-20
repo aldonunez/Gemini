@@ -11,9 +11,12 @@ not
 
 ldarg, starg <uint8>
 ldloc, stloc <uint8>
+ldloca <uint8>
 ldmod, stmod <uint8> <uint16>
-ldc.s <int8>
 ldc <int32>
+ldc.s <int8>
+loadi
+storei
 prim <uint8>
 
 b <int16>

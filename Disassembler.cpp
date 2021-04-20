@@ -13,6 +13,7 @@ static const char* gOpCodes[] =
     "STARG",
     "LDLOC",
     "STLOC",
+    "LDLOCA",
     "LDMOD",
     "STMOD",
     "LDC",
@@ -29,8 +30,6 @@ static const char* gOpCodes[] =
     "CALLM",
     "CALLNATIVE",
     "CALLNATIVE.S",
-    // TODO: Put LDLOCA after STLOC
-    "LDLOCA",
 };
 
 static const char* gPrimitives[] = 

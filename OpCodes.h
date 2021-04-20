@@ -13,6 +13,7 @@ enum
     OP_STARG,
     OP_LDLOC,
     OP_STLOC,
+    OP_LDLOCA,
     OP_LDMOD,
     OP_STMOD,
     OP_LDC,
@@ -29,8 +30,6 @@ enum
     OP_CALLM,
     OP_CALLNATIVE,
     OP_CALLNATIVE_S,
-    // TODO: Put LDLOCA after STMOD
-    OP_LDLOCA,
     OP_MAXOPCODE,
 
     // Having each module end with this unsupported opcode ensures that:
