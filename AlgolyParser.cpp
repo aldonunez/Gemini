@@ -735,7 +735,7 @@ Unique<Compiler::Element> AlgolyParser::ParseUnary()
         ScanToken();
 
         list->Elements.push_back( MakeSymbol( "function" ) );
-        list->Elements.push_back( ParseSingle() );
+        list->Elements.push_back( ParseSymbol() );
 
         return list;
     }
