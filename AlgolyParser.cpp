@@ -173,15 +173,8 @@ AlgolyParser::TokenCode AlgolyParser::ScanToken()
         break;
 
     case '-':
-        if ( isdigit( PeekChar( 1 ) ) )
-        {
-            ReadNumber();
-        }
-        else
-        {
-            CollectChar();
-            mCurToken = TokenCode::Minus;
-        }
+        CollectChar();
+        mCurToken = TokenCode::Minus;
         break;
 
     case '*':
@@ -454,7 +447,11 @@ Compiler::Slist* AlgolyParser::Parse()
 
 Unique<Compiler::Slist> AlgolyParser::ParseFunction()
 {
-    return ParseProc( "defun", true );
+    auto proc = ParseProc( "defun", true );
+
+    SkipLineEndings();
+
+    return proc;
 }
 
 Unique<Compiler::Slist> AlgolyParser::ParseLambda()
@@ -487,7 +484,6 @@ Unique<Compiler::Slist> AlgolyParser::ParseProc( const char* head, bool hasName 
 
     // Read past "end"
     ScanToken( TokenCode::End );
-    SkipLineEndings();
 
     return list;
 }
@@ -725,6 +721,12 @@ Unique<Compiler::Element> AlgolyParser::ParseUnary()
 
         list->Elements.push_back( ParseAsSymbol() );
         list->Elements.push_back( ParseSingle() );
+
+        if ( ((Symbol*) list->Elements[0].get())->String == "-"
+            && list->Elements[1]->Code == Compiler::Elem_Number )
+        {
+            return MakeNumber( -((Number*) list->Elements[1].get())->Value );
+        }
 
         return list;
     }
