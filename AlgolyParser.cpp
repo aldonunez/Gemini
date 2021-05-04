@@ -822,6 +822,9 @@ Unique<Compiler::Slist> AlgolyParser::ParseCall( std::unique_ptr<Element>&& head
         first = false;
 
         list->Elements.push_back( ParseExpr() );
+
+        if ( parens )
+            SkipLineEndings();
     }
 
     if ( parens )
