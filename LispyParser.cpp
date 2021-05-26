@@ -27,7 +27,7 @@ static const char* gTokenNames[] =
 
 
 LispyParser::LispyParser( const char* codeText, int codeTextLen, const char* fileName, ICompilerLog* log ) :
-    mFileName( fileName ),
+    mFileName( fileName != nullptr ? fileName : "" ),
     mUnitFileName(),
     mCodeTextPtr( codeText ),
     mCodeTextEnd( codeText + codeTextLen ),

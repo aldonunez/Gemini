@@ -258,7 +258,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
     }
 
     if ( call->Arguments.size() != funcType->ParamTypes.size() )
-        mRep.ThrowError( CERR_SEMANTICS, call, "Too few arguments" );
+        mRep.ThrowError( CERR_SEMANTICS, call, "Function does not take %u arguments", call->Arguments.size() );
 
     int i = 0;
 
