@@ -327,6 +327,7 @@ private:
     void AddGlobalDataArray( GlobalStorage* global, Syntax* valueElem, size_t size );
 
     void EmitLoadConstant( int32_t value );
+    void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
 
     // Level 3 - functions and special operators
     void GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status );
@@ -341,7 +342,7 @@ private:
     void GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateLet( LetStatement* letStmt, const GenConfig& config, GenStatus& status );
     void GenerateLetBinding( DataDecl* binding );
-    void AddLocalDataArray( LocalStorage* global, Syntax* valueElem, size_t size );
+    void AddLocalDataArray( LocalStorage* local, Syntax* valueElem, size_t size );
 
     void GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status );

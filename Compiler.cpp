@@ -1538,24 +1538,22 @@ void Compiler::GenerateBinaryPrimitive( BinaryExpr* binary, int primitive, const
     }
 }
 
-void Compiler::GenerateArrayElementRef( IndexExpr* indexExpr )
+void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset )
 {
-    Generate( indexExpr->Index.get() );
-
-    uint32_t addrWord;
-
-    auto decl = indexExpr->Head->GetDecl();
-
-    if ( decl == nullptr )
+    if ( baseDecl == nullptr )
     {
         mRep.ThrowInternalError( "Missing declaration" );
     }
     else
     {
-        switch ( decl->Kind )
+        uint32_t addrWord;
+
+        switch ( baseDecl->Kind )
         {
         case DeclKind::Global:
-            addrWord = CodeAddr::Build( ((GlobalStorage*) decl)->Offset, ((GlobalStorage*) decl)->ModIndex );
+            addrWord = CodeAddr::Build(
+                ((GlobalStorage*) baseDecl)->Offset + offset,
+                ((GlobalStorage*) baseDecl)->ModIndex );
             mCodeBinPtr[0] = OP_LDC;
             mCodeBinPtr++;
             WriteU32( mCodeBinPtr, addrWord );
@@ -1563,16 +1561,23 @@ void Compiler::GenerateArrayElementRef( IndexExpr* indexExpr )
 
         case DeclKind::Local:
             mCodeBinPtr[0] = OP_LDLOCA;
-            mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset;
+            mCodeBinPtr[1] = ((LocalStorage*) baseDecl)->Offset - offset;
             mCodeBinPtr += 2;
             break;
 
         default:
-            mRep.ThrowError( CERR_SEMANTICS, indexExpr->Head.get(), "'aref' supports only globals and locals" );
+            mRep.ThrowError( CERR_SEMANTICS, node, "'aref' supports only globals and locals" );
         }
     }
 
     IncreaseExprDepth();
+}
+
+void Compiler::GenerateArrayElementRef( IndexExpr* indexExpr )
+{
+    Generate( indexExpr->Index.get() );
+
+    EmitLoadAddress( indexExpr->Head.get(), indexExpr->Head->GetDecl(), 0 );
 
     mCodeBinPtr[0] = OP_PRIM;
     mCodeBinPtr[1] = PRIM_ADD;
