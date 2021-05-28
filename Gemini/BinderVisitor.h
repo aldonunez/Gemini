@@ -106,7 +106,7 @@ private:
     void VisitLetBinding( DataDecl* varDecl );
     void VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind );
     void VisitStorage( DataDecl* varDecl, DeclKind declKind );
-    std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef );
+    std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamMode mode );
 
     int32_t Evaluate( Syntax* node, const char* message = nullptr );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );

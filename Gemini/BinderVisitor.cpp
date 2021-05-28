@@ -123,8 +123,11 @@ static bool IsAllowedPointerTarget( TypeKind kind )
     return kind == TypeKind::Func;
 }
 
-static bool IsAllowedParamType( TypeKind kind )
+static bool IsAllowedParamType( TypeKind kind, ParamMode mode )
 {
+    if ( kind == TypeKind::Array )
+        return mode == ParamMode::InOutRef;
+
     return IsScalarType( kind )
         ;
 }
@@ -971,12 +974,12 @@ void BinderVisitor::VisitNumberExpr( NumberExpr* numberExpr )
 
 void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
-    auto type = VisitParamTypeRef( paramDecl->TypeRef );
+    auto type = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Mode );
 
     paramDecl->Decl = AddParam( paramDecl, type, paramDecl->Mode );
 }
 
-std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef )
+std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamMode mode )
 {
     std::shared_ptr<Type> type;
 
@@ -984,7 +987,7 @@ std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef
     {
         typeRef->Accept( this );
 
-        if ( !IsAllowedParamType( typeRef->ReferentType->GetKind() ) )
+        if ( !IsAllowedParamType( typeRef->ReferentType->GetKind(), mode ) )
             mRep.ThrowSemanticsError( typeRef.get(), "This type is not allowed for parameters" );
 
         type = typeRef->ReferentType;
@@ -1526,9 +1529,9 @@ std::shared_ptr<FuncType> BinderVisitor::MakeFuncType( ProcDeclBase* procDecl )
 
     for ( auto& paramDataDecl : procDecl->Params )
     {
-        auto type = VisitParamTypeRef( paramDataDecl->TypeRef );
-
         auto paramDecl = (ParamDecl*) paramDataDecl.get();
+
+        auto type = VisitParamTypeRef( paramDataDecl->TypeRef, paramDecl->Mode );
 
         ParamSpec paramSpec;
         paramSpec.Mode = paramDecl->Mode;

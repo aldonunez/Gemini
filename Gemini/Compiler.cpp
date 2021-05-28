@@ -1664,6 +1664,23 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 EmitSpilledAddrOffset( offset );
             break;
 
+        case DeclKind::Arg:
+            {
+                auto arg = (LocalStorage*) baseDecl;
+
+                if ( arg->Mode == ParamMode::InOutRef )
+                {
+                    mCodeBinPtr[0] = OP_LDARG;
+                    mCodeBinPtr[1] = arg->Offset;
+                    mCodeBinPtr += 2;
+                }
+                else
+                {
+                    mRep.ThrowError( CERR_SEMANTICS, node, "Bad parameter mode" );
+                }
+            }
+            break;
+
         default:
             mRep.ThrowSemanticsError( node, "'aref' supports only globals and locals" );
         }
