@@ -142,10 +142,34 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+enum class ParamMode
+{
+    Value,
+    InOutRef,
+};
+
+struct ParamSpecRef
+{
+    Unique<TypeRef> TypeRef;
+    ParamMode       Mode = ParamMode::Value;
+
+    ParamSpecRef()
+    {
+    }
+
+    ParamSpecRef( ParamSpecRef&& other ) noexcept :
+        TypeRef( std::move( other.TypeRef ) ),
+        Mode( other.Mode )
+    {
+    }
+
+    ParamSpecRef( const ParamSpecRef& ) = delete;
+};
+
 class ProcTypeRef : public TypeRef
 {
 public:
-    std::vector<Unique<TypeRef>> Params;
+    std::vector<ParamSpecRef> Params;
     Unique<TypeRef>              ReturnTypeRef;
 
     virtual void Accept( Visitor* visitor ) override;
@@ -210,12 +234,6 @@ public:
     VarDecl( std::string_view name );
 
     virtual void Accept( Visitor* visitor ) override;
-};
-
-enum class ParamMode
-{
-    Value,
-    InOutRef,
 };
 
 class ParamDecl : public DataDecl

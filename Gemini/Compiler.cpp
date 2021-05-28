@@ -774,7 +774,10 @@ void Compiler::VisitAddrOfExpr( AddrOfExpr* addrOf )
 
 void Compiler::GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status )
 {
-    GenerateCallArgs( call->Arguments );
+    auto ptrType = (PointerType*) call->Head->Type.get();
+    auto funcType = (FuncType*) ptrType->TargetType.get();
+
+    GenerateCallArgs( call->Arguments, funcType );
 
     Generate( call->Head.get() );
 
@@ -932,10 +935,8 @@ void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus&
     GenerateCall( call->Head->GetDecl(), call->Arguments, config, status );
 }
 
-void Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments )
+void Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType )
 {
-    auto funcType = (FuncType*) decl->Type.get();
-
     for ( auto i = static_cast<ptrdiff_t>(arguments.size()) - 1; i >= 0; i-- )
     {
         GenerateArg( *arguments[i], funcType->Params[i] );
@@ -944,7 +945,9 @@ void Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments )
 
 void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status )
 {
-    GenerateCallArgs( arguments );
+    auto funcType = (FuncType*) decl->Type.get();
+
+    GenerateCallArgs( arguments, funcType );
 
     ParamSize argCount = static_cast<ParamSize>( arguments.size() );
     U8 callFlags = CallFlags::Build( argCount, config.discard );
@@ -1740,6 +1743,8 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
 void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status )
 {
+    assert( config.calcAddr );
+
     Generate( indexExpr->Head.get(), config, status );
 
     if ( !status.spilledAddr )

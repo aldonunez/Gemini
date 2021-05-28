@@ -1387,7 +1387,7 @@ Unique<TypeRef> AlgolyParser::ParsePtrFuncTypeRef()
 
             first = false;
 
-            procTypeRef->Params.push_back( ParseTypeRef() );
+            procTypeRef->Params.push_back( ParseBareParameter() );
 
             SkipLineEndings();
         }
@@ -1407,6 +1407,22 @@ Unique<TypeRef> AlgolyParser::ParsePtrFuncTypeRef()
     pointerTypeRef->Target = std::move( procTypeRef );
 
     return pointerTypeRef;
+}
+
+// TODO: move
+ParamSpecRef AlgolyParser::ParseBareParameter()
+{
+    ParamSpecRef param;
+
+    if ( mCurToken == TokenCode::Var )
+    {
+        ScanToken();
+        param.Mode = ParamMode::InOutRef;
+    }
+
+    param.TypeRef = ParseTypeRef();
+
+    return param;
 }
 
 Unique<TypeRef> AlgolyParser::ParseArrayTypeRef()

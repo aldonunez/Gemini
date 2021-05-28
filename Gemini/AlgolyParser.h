@@ -146,6 +146,7 @@ private:
     Unique<ProcDecl> ParseProc( bool hasName );
     std::vector<Unique<DataDecl>> ParseParamList();
     Unique<DataDecl> ParseParameter();
+    ParamSpecRef ParseBareParameter();
     Unique<Syntax> ParseCall( Unique<Syntax>&& head, bool indirect, bool parens = true );
     Unique<Syntax> ParseLet();
 

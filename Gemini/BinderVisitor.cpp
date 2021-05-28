@@ -1095,12 +1095,11 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 
     for ( auto& param : procTypeRef->Params )
     {
-        param->Accept( this );
+        param.TypeRef->Accept( this );
 
-        // TODO: parameter mode
         ParamSpec paramSpec;
-        paramSpec.Mode = ParamMode::Value;
-        paramSpec.Type = param->ReferentType;
+        paramSpec.Mode = param.Mode;
+        paramSpec.Type = param.TypeRef->ReferentType;
 
         funcType->Params.push_back( paramSpec );
     }
@@ -1531,7 +1530,7 @@ std::shared_ptr<FuncType> BinderVisitor::MakeFuncType( ProcDeclBase* procDecl )
     {
         auto paramDecl = (ParamDecl*) paramDataDecl.get();
 
-        auto type = VisitParamTypeRef( paramDataDecl->TypeRef, paramDecl->Mode );
+        auto type = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Mode );
 
         ParamSpec paramSpec;
         paramSpec.Mode = paramDecl->Mode;
