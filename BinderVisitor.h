@@ -110,11 +110,11 @@ private:
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );
-    std::shared_ptr<Storage> AddArg( const std::string& name );
-    std::shared_ptr<Storage> AddLocal( SymTable& table, const std::string& name, int offset );
-    std::shared_ptr<Storage> AddLocal( const std::string& name, size_t size );
-    std::shared_ptr<Storage> AddGlobal( const std::string& name, size_t size );
-    std::shared_ptr<Storage> AddStorage( const std::string& name, size_t size, DeclKind declKind );
+    std::shared_ptr<ParamStorage> AddParam( const std::string& name );
+    std::shared_ptr<LocalStorage> AddLocal( SymTable& table, const std::string& name, int offset );
+    std::shared_ptr<LocalStorage> AddLocal( const std::string& name, size_t size );
+    std::shared_ptr<GlobalStorage> AddGlobal( const std::string& name, size_t size );
+    std::shared_ptr<Declaration> AddStorage( const std::string& name, size_t size, DeclKind declKind );
     std::shared_ptr<Constant> AddConst( const std::string& name, int32_t value, bool isPublic );
     std::shared_ptr<Function> AddFunc( const std::string& name, int address );
     std::shared_ptr<Function> AddForward( const std::string& name );

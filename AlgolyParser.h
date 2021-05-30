@@ -128,6 +128,7 @@ private:
     Unique<NativeDecl> ParseNative();
     Unique<ProcDecl> ParseProc( bool hasName );
     std::vector<Unique<DataDecl>> ParseParamList();
+    Unique<DataDecl> ParseParameter();
     Unique<Syntax> ParseCall( Unique<Syntax>&& head, bool indirect, bool parens = true );
     Unique<Syntax> ParseLet();
 

@@ -618,7 +618,7 @@ std::vector<Unique<DataDecl>> AlgolyParser::ParseParamList()
 
         first = false;
 
-        paramList.push_back( ParseVar( Make<ParamDecl>(), std::nullopt ) );
+        paramList.push_back( ParseParameter() );
 
         SkipLineEndings();
     }
@@ -627,6 +627,11 @@ std::vector<Unique<DataDecl>> AlgolyParser::ParseParamList()
     ScanToken();
 
     return paramList;
+}
+
+Unique<DataDecl> AlgolyParser::ParseParameter()
+{
+    return ParseVar( Make<ParamDecl>(), std::nullopt );
 }
 
 void AlgolyParser::ParseStatements( StatementList& container )

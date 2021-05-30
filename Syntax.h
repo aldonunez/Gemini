@@ -368,7 +368,7 @@ public:
 class ProcDeclBase : public DeclSyntax
 {
 public:
-    constexpr static int16_t MaxArgs = 127;
+    constexpr static int16_t MaxParams = 127;
     constexpr static int16_t MaxLocals = 127;
 
     std::vector<Unique<DataDecl>> Params;
@@ -468,7 +468,7 @@ enum class DeclKind
     Const,
     Global,
     Local,
-    Arg,
+    Param,
     Func,
     Forward,
     NativeFunc,
@@ -495,10 +495,20 @@ struct Constant : public Declaration
     int Value;
 };
 
-struct Storage : public Declaration
+struct GlobalStorage : public Declaration
 {
     int Offset;
     int ModIndex;
+};
+
+struct LocalStorage : public Declaration
+{
+    int Offset;
+};
+
+struct ParamStorage : public Declaration
+{
+    int Offset;
 };
 
 struct Function : public Declaration
@@ -508,7 +518,7 @@ struct Function : public Declaration
     int         ModIndex;
 
     int16_t     LocalCount;
-    int16_t     ArgCount;
+    int16_t     ParamCount;
     int16_t     ExprDepth;
 
     int16_t     CallDepth;

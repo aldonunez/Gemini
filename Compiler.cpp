@@ -269,22 +269,22 @@ void Compiler::GenerateSymbol( Syntax* node, Declaration* decl, const GenConfig&
     {
     case DeclKind::Global:
         mCodeBinPtr[0] = OP_LDMOD;
-        mCodeBinPtr[1] = ((Storage*) decl)->ModIndex;
+        mCodeBinPtr[1] = ((GlobalStorage*) decl)->ModIndex;
         mCodeBinPtr += 2;
-        WriteU16( mCodeBinPtr, ((Storage*) decl)->Offset );
+        WriteU16( mCodeBinPtr, ((GlobalStorage*) decl)->Offset );
         IncreaseExprDepth();
         break;
 
     case DeclKind::Local:
         mCodeBinPtr[0] = OP_LDLOC;
-        mCodeBinPtr[1] = ((Storage*) decl)->Offset;
+        mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset;
         mCodeBinPtr += 2;
         IncreaseExprDepth();
         break;
 
-    case DeclKind::Arg:
+    case DeclKind::Param:
         mCodeBinPtr[0] = OP_LDARG;
-        mCodeBinPtr[1] = ((Storage*) decl)->Offset;
+        mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset;
         mCodeBinPtr += 2;
         IncreaseExprDepth();
         break;
@@ -550,20 +550,20 @@ void Compiler::GenerateSet( AssignmentExpr* assignment, const GenConfig& config,
     {
     case DeclKind::Global:
         mCodeBinPtr[0] = OP_STMOD;
-        mCodeBinPtr[1] = ((Storage*) decl)->ModIndex;
+        mCodeBinPtr[1] = ((GlobalStorage*) decl)->ModIndex;
         mCodeBinPtr += 2;
-        WriteU16( mCodeBinPtr, ((Storage*) decl)->Offset );
+        WriteU16( mCodeBinPtr, ((GlobalStorage*) decl)->Offset );
         break;
 
     case DeclKind::Local:
         mCodeBinPtr[0] = OP_STLOC;
-        mCodeBinPtr[1] = ((Storage*) decl)->Offset;
+        mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset;
         mCodeBinPtr += 2;
         break;
 
-    case DeclKind::Arg:
+    case DeclKind::Param:
         mCodeBinPtr[0] = OP_STARG;
-        mCodeBinPtr[1] = ((Storage*) decl)->Offset;
+        mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset;
         mCodeBinPtr += 2;
         break;
 
@@ -716,7 +716,7 @@ void Compiler::GenerateLet( LetStatement* letStmt, const GenConfig& config, GenS
 
 void Compiler::GenerateLetBinding( DataDecl* binding )
 {
-    auto local = (Storage*) binding->GetDecl();
+    auto local = (LocalStorage*) binding->GetDecl();
     auto type = local->Type.get();
 
     if ( type->GetKind() == TypeKind::Int
@@ -753,7 +753,7 @@ void Compiler::VisitLetStatement( LetStatement* letStmt )
 
 // TODO: try to merge this with AddGlobalDataArray. Separate the array processing from the code generation
 
-void Compiler::AddLocalDataArray( Storage* local, Syntax* valueElem, size_t size )
+void Compiler::AddLocalDataArray( LocalStorage* local, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
@@ -924,7 +924,7 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
 {
     // Variable name
 
-    auto local = (Storage*) forStmt->IndexDecl.get();
+    auto local = (LocalStorage*) forStmt->IndexDecl.get();
 
     int primitive;
     int step;
@@ -1148,7 +1148,7 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
 
     if ( caseExpr->TestKeyDecl != nullptr )
     {
-        auto local = (Storage*) caseExpr->TestKeyDecl.get();
+        auto local = (LocalStorage*) caseExpr->TestKeyDecl.get();
 
         Generate( caseExpr->TestKey.get() );
         mCodeBinPtr[0] = OP_STLOC;
@@ -1552,7 +1552,7 @@ void Compiler::GenerateArrayElementRef( IndexExpr* indexExpr )
         switch ( decl->Kind )
         {
         case DeclKind::Global:
-            addrWord = CodeAddr::Build( ((Storage*) decl)->Offset, ((Storage*) decl)->ModIndex );
+            addrWord = CodeAddr::Build( ((GlobalStorage*) decl)->Offset, ((GlobalStorage*) decl)->ModIndex );
             mCodeBinPtr[0] = OP_LDC;
             mCodeBinPtr++;
             WriteU32( mCodeBinPtr, addrWord );
@@ -1560,7 +1560,7 @@ void Compiler::GenerateArrayElementRef( IndexExpr* indexExpr )
 
         case DeclKind::Local:
             mCodeBinPtr[0] = OP_LDLOCA;
-            mCodeBinPtr[1] = ((Storage*) decl)->Offset;
+            mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset;
             mCodeBinPtr += 2;
             break;
 
@@ -1607,7 +1607,7 @@ void Compiler::VisitDotExpr( DotExpr* dotExpr )
 
 void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status )
 {
-    auto global = (Storage*) varDecl->GetDecl();
+    auto global = (GlobalStorage*) varDecl->GetDecl();
     auto type = global->Type.get();
 
     if ( type->GetKind() == TypeKind::Int
@@ -1643,7 +1643,7 @@ void Compiler::AddGlobalData( U32 offset, Syntax* valueElem )
     mGlobals[offset] = GetSyntaxValue( valueElem, "Globals must be initialized with constant data" );
 }
 
-void Compiler::AddGlobalDataArray( Storage* global, Syntax* valueElem, size_t size )
+void Compiler::AddGlobalDataArray( GlobalStorage* global, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
@@ -1926,7 +1926,7 @@ void Compiler::CalculateStackDepth()
 
             // Only count parameters of publics, if that's ever a distinction
 
-            int16_t stackUsage = func->TreeStackUsage + func->ArgCount;
+            int16_t stackUsage = func->TreeStackUsage + func->ParamCount;
 
             callStats->MaxCallDepth  = std::max( callStats->MaxCallDepth,  func->CallDepth );
             callStats->MaxStackUsage = std::max( callStats->MaxStackUsage, stackUsage );
@@ -2037,7 +2037,7 @@ void Reporter::ThrowInternalError( const char* format, ... )
 {
     va_list args;
     va_start( args, format );
-    ThrowError( CERR_INTERNAL, 0, 0, format, args );
+    ThrowError( CERR_INTERNAL, "", 0, 0, format, args );
     va_end( args );
 }
 

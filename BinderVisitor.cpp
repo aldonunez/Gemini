@@ -47,7 +47,7 @@ static bool IsCallableDeclaration( DeclKind kind )
 
 static bool IsVarDeclaration( DeclKind kind )
 {
-    return kind == DeclKind::Arg
+    return kind == DeclKind::Param
         || kind == DeclKind::Global
         || kind == DeclKind::Local;
 }
@@ -68,13 +68,15 @@ static bool IsAssignableType( TypeKind kind )
 {
     return kind == TypeKind::Int
         || kind == TypeKind::Pointer
-        || kind == TypeKind::Xfer;
+        || kind == TypeKind::Xfer
+        ;
 }
 
 static bool IsEquatable( TypeKind kind )
 {
     return kind == TypeKind::Int
-        || kind == TypeKind::Pointer;
+        || kind == TypeKind::Pointer
+        ;
 }
 
 static bool IsBoolean( TypeKind kind )
@@ -90,7 +92,8 @@ static bool IsAllowedPointerTarget( TypeKind kind )
 static bool IsAllowedParamType( TypeKind kind )
 {
     return kind == TypeKind::Int
-        || kind == TypeKind::Pointer;
+        || kind == TypeKind::Pointer
+        ;
 }
 
 template <typename T, typename... Args>
@@ -696,7 +699,7 @@ void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
     auto type = VisitParamTypeRef( paramDecl->TypeRef );
 
-    paramDecl->Decl = AddArg( paramDecl->Name );
+    paramDecl->Decl = AddParam( paramDecl->Name );
     paramDecl->Decl->Type = type;
 }
 
@@ -781,14 +784,14 @@ void BinderVisitor::BindNamedProc( ProcDecl* procDecl )
 
 void BinderVisitor::VisitProc( ProcDecl* procDecl )
 {
-    LocalScope argScope( *this );
+    LocalScope paramScope( *this );
 
     auto func = (Function*) procDecl->Decl.get();
 
-    if ( procDecl->Params.size() > ProcDecl::MaxArgs )
+    if ( procDecl->Params.size() > ProcDecl::MaxParams )
     {
-        mRep.ThrowError( CERR_SEMANTICS, procDecl, "'%s' has too many arguments. Max is %d",
-            procDecl->Name.c_str(), ProcDecl::MaxArgs );
+        mRep.ThrowError( CERR_SEMANTICS, procDecl, "'%s' has too many parameters. Max is %d",
+            procDecl->Name.c_str(), ProcDecl::MaxParams );
     }
 
     for ( auto& parameter : procDecl->Params )
@@ -812,7 +815,7 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
     }
 
     func->LocalCount = mMaxLocalCount;
-    func->ArgCount = (int16_t) procDecl->Params.size();
+    func->ParamCount = (int16_t) procDecl->Params.size();
 
     auto funcType = (FuncType*) func->Type.get();
 
@@ -1001,27 +1004,27 @@ std::shared_ptr<Declaration> BinderVisitor::FindSymbol( const std::string& symbo
     return nullptr;
 }
 
-std::shared_ptr<Storage> BinderVisitor::AddArg( const std::string& name )
+std::shared_ptr<ParamStorage> BinderVisitor::AddParam( const std::string& name )
 {
     auto& table = *mSymStack.back();
 
-    std::shared_ptr<Storage> arg( new Storage() );
-    arg->Kind = DeclKind::Arg;
-    arg->Offset = table.size();
-    table.insert( SymTable::value_type( name, arg ) );
-    return arg;
+    std::shared_ptr<ParamStorage> param( new ParamStorage() );
+    param->Kind = DeclKind::Param;
+    param->Offset = table.size();
+    table.insert( SymTable::value_type( name, param ) );
+    return param;
 }
 
-std::shared_ptr<Storage> BinderVisitor::AddLocal( SymTable& table, const std::string& name, int offset )
+std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( SymTable& table, const std::string& name, int offset )
 {
-    std::shared_ptr<Storage> local( new Storage() );
+    std::shared_ptr<LocalStorage> local( new LocalStorage() );
     local->Kind = DeclKind::Local;
     local->Offset = offset;
     table.insert( SymTable::value_type( name, local ) );
     return local;
 }
 
-std::shared_ptr<Storage> BinderVisitor::AddLocal( const std::string& name, size_t size )
+std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( const std::string& name, size_t size )
 {
     assert( size >= 1 );
 
@@ -1039,11 +1042,11 @@ std::shared_ptr<Storage> BinderVisitor::AddLocal( const std::string& name, size_
     return local;
 }
 
-std::shared_ptr<Storage> BinderVisitor::AddGlobal( const std::string& name, size_t size )
+std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name, size_t size )
 {
     CheckDuplicateGlobalSymbol( name );
 
-    std::shared_ptr<Storage> global( new Storage() );
+    std::shared_ptr<GlobalStorage> global( new GlobalStorage() );
     global->Kind = DeclKind::Global;
     global->Offset = mGlobalSize;
     global->ModIndex = mModIndex;
@@ -1056,7 +1059,7 @@ std::shared_ptr<Storage> BinderVisitor::AddGlobal( const std::string& name, size
     return global;
 }
 
-std::shared_ptr<Storage> BinderVisitor::AddStorage( const std::string& name, size_t size, DeclKind declKind )
+std::shared_ptr<Declaration> BinderVisitor::AddStorage( const std::string& name, size_t size, DeclKind declKind )
 {
     switch ( declKind )
     {
