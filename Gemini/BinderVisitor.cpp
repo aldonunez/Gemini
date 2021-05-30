@@ -337,7 +337,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
             && arg->Kind != SyntaxKind::Index )
             mRep.ThrowError( CERR_SEMANTICS, arg.get(), "Cannot pass this expression as var arg" );
 
-        CheckType( funcType->Params[i].Type, arg->Type, arg.get() );
+        CheckParamType( funcType->Params[i].Mode, funcType->Params[i].Type, arg->Type, arg.get() );
         i++;
     }
 
@@ -1278,6 +1278,20 @@ void BinderVisitor::CheckStatementType( Syntax* node )
 {
     if ( !IsStatementType( node->Type->GetKind() ) )
         mRep.ThrowSemanticsError( node, "Expected scalar type" );
+}
+
+void BinderVisitor::CheckParamType(
+    ParamMode mode,
+    const std::shared_ptr<Type>& site,
+    const std::shared_ptr<Type>& type,
+    Syntax* node )
+{
+    if ( site->GetKind() != TypeKind::Xfer
+        && type->GetKind() != TypeKind::Xfer
+        && !site->IsPassableFrom( type.get(), mode ) )
+    {
+        mRep.ThrowError( CERR_SEMANTICS, node, "Incompatible argument type" );
+    }
 }
 
 void BinderVisitor::CheckAndConsolidateClauseType( StatementList& clause, std::shared_ptr<Type>& bodyType )

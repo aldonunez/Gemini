@@ -738,6 +738,7 @@ public:
     TypeKind GetKind() const;
     virtual bool IsEqual( Type* other ) const;
     virtual bool IsAssignableFrom( Type* other ) const;
+    virtual bool IsPassableFrom( Type* other, ParamMode mode ) const;
     virtual DataSize GetSize() const;
 };
 
@@ -781,6 +782,7 @@ public:
 
     virtual bool IsEqual( Type* other ) const override;
     virtual bool IsAssignableFrom( Type* other ) const override;
+    virtual bool IsPassableFrom( Type* other, ParamMode mode ) const override;
     virtual DataSize GetSize() const override;
 };
 

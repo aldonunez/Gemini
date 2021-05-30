@@ -567,6 +567,11 @@ bool Type::IsAssignableFrom( Type* other ) const
     return IsEqual( other );
 }
 
+bool Type::IsPassableFrom( Type* other, ParamMode mode ) const
+{
+    return IsAssignableFrom( other );
+}
+
 DataSize Type::GetSize() const
 {
     return 0;
@@ -656,6 +661,28 @@ bool ArrayType::IsAssignableFrom( Type* other ) const
         return Count == otherArray->Count;
 
     return Count >= otherArray->Count;
+}
+
+bool ArrayType::IsPassableFrom( Type* other, ParamMode mode ) const
+{
+    if ( mode == ParamMode::Value )
+        return IsAssignableFrom( other );
+
+    // Otherwise, it's a reference.
+
+    if ( other == nullptr || other->GetKind() != TypeKind::Array )
+        return false;
+
+    if ( mode != ParamMode::InOutRef )
+        return false;
+
+    auto otherArray = (ArrayType*) other;
+
+    // In contrast to assignability, passability requires the destination array
+    // be equal size or greater, because it's a reference.
+
+    return Size <= otherArray->Size
+        && ElemType->IsAssignableFrom( otherArray->ElemType.get() );
 }
 
 DataSize ArrayType::GetSize() const
