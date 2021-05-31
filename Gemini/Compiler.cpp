@@ -466,6 +466,33 @@ void Compiler::VisitReturnStatement( ReturnStatement* retStmt )
     GenerateReturn( retStmt, Config(), Status() );
 }
 
+void Compiler::VisitSizeofExpr( SizeofExpr* sizeofExpr )
+{
+    if ( Config().discard )
+    {
+        Status().discarded = true;
+        return;
+    }
+
+    auto& arrayType = (ArrayType&) *sizeofExpr->Head->Type;
+
+    if ( arrayType.Size != 0 )
+    {
+        EmitLoadConstant( arrayType.Size );
+    }
+    else
+    {
+        // Only ref params are allowed to take open array types
+        auto param = (ParamStorage*) sizeofExpr->Head->GetDecl();
+
+        mCodeBinPtr[0] = OP_LDARG;
+        mCodeBinPtr[1] = param->Offset + 1 + sizeofExpr->Dimension;
+        mCodeBinPtr += 2;
+
+        IncreaseExprDepth();
+    }
+}
+
 void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
 {
     if ( Config().discard )
@@ -482,7 +509,14 @@ void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
     }
     else
     {
-        THROW_INTERNAL_ERROR( "" );
+        // Only ref params are allowed to take open array types
+        auto param = (ParamStorage*) countofExpr->Expr->GetDecl();
+
+        mCodeBinPtr[0] = OP_LDARG;
+        mCodeBinPtr[1] = param->Offset + 1;
+        mCodeBinPtr += 2;
+
+        IncreaseExprDepth();
     }
 }
 

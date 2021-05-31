@@ -323,6 +323,20 @@ void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
     mLastValue.reset();
 }
 
+void FolderVisitor::VisitSizeofExpr( SizeofExpr* sizeofExpr )
+{
+    auto& arrayType = (ArrayType&) *sizeofExpr->Head->Type;
+
+    if ( arrayType.Size != 0 )
+    {
+        mLastValue = arrayType.Size;
+    }
+    else
+    {
+        mLastValue.reset();
+    }
+}
+
 void FolderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 {
     sliceExpr->Head->Accept( this );

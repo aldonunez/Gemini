@@ -447,6 +447,7 @@ private:
     virtual void VisitProcDecl( ProcDecl* procDecl ) override;
     virtual void VisitRangeExpr( RangeExpr* rangeExpr ) override;
     virtual void VisitReturnStatement( ReturnStatement* retStmt ) override;
+    virtual void VisitSizeofExpr( SizeofExpr* sizeofExpr ) override;
     virtual void VisitSliceExpr( SliceExpr* sliceExpr ) override;
     virtual void VisitStatementList( StatementList* stmtList ) override;
     virtual void VisitUnaryExpr( UnaryExpr* unary ) override;

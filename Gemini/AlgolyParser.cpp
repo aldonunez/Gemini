@@ -71,6 +71,7 @@ static const char* gTokenNames[] =
     "or",
     "proc",
     "return",
+    "sizeof",
     "then",
     "to",
     "type",
@@ -485,6 +486,7 @@ void AlgolyParser::ReadSymbolOrKeyword()
         { "or",     TokenCode::Or },
         { "proc",   TokenCode::Proc },
         { "return", TokenCode::Return },
+        { "sizeof", TokenCode::Sizeof },
         { "then",   TokenCode::Then },
         { "to",     TokenCode::To },
         { "type",   TokenCode::Type },
@@ -996,6 +998,9 @@ Unique<Syntax> AlgolyParser::ParseSingle()
         elem = ParseNumber();
         break;
 
+    case TokenCode::Sizeof:
+        elem = ParseSizeof();
+
     case TokenCode::Countof:
         elem = ParseCountof();
         break;
@@ -1163,6 +1168,24 @@ Unique<Syntax> AlgolyParser::ParseRangeOrExpr()
     }
 
     return expr;
+}
+
+Unique<Syntax> AlgolyParser::ParseSizeof()
+{
+    auto sizeofExpr = Make<SizeofExpr>();
+
+    ScanToken();
+    ScanToken( TokenCode::LParen );
+
+    sizeofExpr->Head = ParseSymbol();
+
+    ScanToken( TokenCode::Comma );
+
+    sizeofExpr->Dimension = ParseRawNumber();
+
+    ScanToken( TokenCode::RParen );
+
+    return sizeofExpr;
 }
 
 Unique<Syntax> AlgolyParser::ParseCountof()

@@ -286,6 +286,11 @@ void ReturnStatement::Accept( Visitor* visitor )
     visitor->VisitReturnStatement( this );
 }
 
+void SizeofExpr::Accept( IVisitor* visitor )
+{
+    visitor->VisitSizeofExpr( this );
+}
+
 void SliceExpr::Accept( Visitor* visitor )
 {
     visitor->VisitSliceExpr( this );
@@ -465,6 +470,10 @@ void IVisitor::VisitRangeExpr( RangeExpr* rangeExpr )
 }
 
 void Visitor::VisitReturnStatement( ReturnStatement* retStmt )
+{
+}
+
+void IVisitor::VisitSizeofExpr( SizeofExpr* sizeofExpr )
 {
 }
 

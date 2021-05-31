@@ -408,6 +408,15 @@ public:
     virtual void Accept( IVisitor* visitor ) override;
 };
 
+class SizeofExpr : public Syntax
+{
+public:
+    Unique<NameExpr>    Head;
+    int32_t             Dimension;
+
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
 class CountofExpr : public Syntax
 {
 public:
@@ -581,6 +590,7 @@ public:
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef );
     virtual void VisitRangeExpr( RangeExpr* rangeExpr );
     virtual void VisitReturnStatement( ReturnStatement* retStmt );
+    virtual void VisitSizeofExpr( SizeofExpr* sizeofExpr );
     virtual void VisitSliceExpr( SliceExpr* sliceExpr );
     virtual void VisitStatementList( StatementList* stmtmList );
     virtual void VisitTypeDecl( TypeDecl* typeDecl );
