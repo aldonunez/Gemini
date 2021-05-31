@@ -811,11 +811,9 @@ void Compiler::GenerateFuncall( CallExpr* call, const GenConfig& config, GenStat
     auto ptrType = (PointerType*) call->Head->Type.get();
     auto funcType = (FuncType*) ptrType->TargetType.get();
 
-    GenerateCallArgs( call->Arguments, funcType );
+    int argCount = GenerateCallArgs( call->Arguments, funcType );
 
     Generate( call->Head.get() );
-
-    ParamSize argCount = static_cast<ParamSize>( call->Arguments.size() );
 
     EmitU8( OP_CALLI, CallFlags::Build( argCount, config.discard ) );
 
@@ -982,21 +980,32 @@ void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus&
     GenerateCall( call->Head->GetDecl(), call->Arguments, config, status );
 }
 
-void Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType )
+int Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType )
 {
+    int argCount = arguments.size();
+
     for ( auto i = static_cast<ptrdiff_t>(arguments.size()) - 1; i >= 0; i-- )
     {
         GenerateArg( *arguments[i], funcType->Params[i] );
+
+        auto& argType = *arguments[i]->Type;
+
+        if ( argType.GetKind() == TypeKind::Array
+            && ((ArrayType&) argType).Size == 0 )
+        {
+            argCount++;
+        }
     }
+
+    return argCount;
 }
 
 void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status )
 {
     auto funcType = (FuncType*) decl->Type.get();
 
-    GenerateCallArgs( arguments, funcType );
+    int argCount = GenerateCallArgs( arguments, funcType );
 
-    ParamSize argCount = static_cast<ParamSize>( arguments.size() );
     U8 callFlags = CallFlags::Build( argCount, config.discard );
 
     if ( decl == nullptr )
@@ -1727,6 +1736,17 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                     mCodeBinPtr[0] = OP_LDARG;
                     mCodeBinPtr[1] = param->Offset;
                     mCodeBinPtr += 2;
+
+                    if ( offset != 0 )
+                    {
+                        EmitLoadConstant( offset );
+
+                        mCodeBinPtr[0] = OP_PRIM;
+                        mCodeBinPtr[1] = PRIM_ADD;
+                        mCodeBinPtr += 2;
+
+                        DecreaseExprDepth();
+                    }
                 }
                 else
                 {
