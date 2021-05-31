@@ -36,6 +36,7 @@ class BinderVisitor final : public Visitor
     LocalSize       mCurLevelLocalCount = 0;
     LocalSize       mCurLocalCount = 0;
     LocalSize       mMaxLocalCount = 0;
+    ParamSize       mParamCount = 0;
     GlobalSize      mGlobalSize = 0;
     int32_t         mPrevNativeId = -1;
 
@@ -136,7 +137,7 @@ private:
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );
-    std::shared_ptr<ParamStorage> AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type, ParamMode mode );
+    std::shared_ptr<ParamStorage> AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type, ParamMode mode, size_t size );
     std::shared_ptr<LocalStorage> AddLocal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<GlobalStorage> AddGlobal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<Declaration> AddStorage( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size, DeclKind declKind );

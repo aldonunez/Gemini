@@ -360,6 +360,7 @@ private:
     void GenerateLocalInit( LocalSize offset, Syntax* initializer );
     void AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size );
 
+    void GenerateDopeVector( Syntax& node, ParamSpec& paramSpec );
     void GenerateArg( Syntax& node, ParamSpec& paramSpec );
     void GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status );

@@ -908,6 +908,17 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
     }
 }
 
+void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
+{
+    if ( paramSpec.Type->GetKind() == TypeKind::Array
+        && ((ArrayType&) *paramSpec.Type).Size == 0 )
+    {
+        auto& srcArray = (ArrayType&) *node.Type;
+
+        EmitLoadConstant( srcArray.Size );
+    }
+}
+
 void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
 {
     GenConfig config{};
@@ -920,6 +931,8 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
         break;
 
     case ParamMode::InOutRef:
+        GenerateDopeVector( node, paramSpec );
+
         config.calcAddr = true;
 
         Generate( &node, config, status );

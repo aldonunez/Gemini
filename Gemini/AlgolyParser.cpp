@@ -1450,7 +1450,10 @@ Unique<TypeRef> AlgolyParser::ParseArrayTypeRef()
 
     ScanToken( TokenCode::LBracket );
 
-    arrayTypeRef->SizeExpr = ParseExpr();
+    if ( mCurToken != TokenCode::RBracket )
+    {
+        arrayTypeRef->SizeExpr = ParseExpr();
+    }
 
     ScanToken( TokenCode::RBracket );
 

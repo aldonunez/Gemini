@@ -218,7 +218,7 @@ void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 
 void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 {
-    Visit( typeRef->SizeExpr );
+    DataSize size = 0;
 
     std::shared_ptr<Type> elemType;
 
@@ -233,12 +233,18 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
         elemType = mIntType;
     }
 
-    int32_t rawSize = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
+    if ( typeRef->SizeExpr )
+    {
+        Visit( typeRef->SizeExpr );
 
-    if ( rawSize <= 0 )
-        mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Array size must be positive" );
+        int32_t rawSize = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
 
-    DataSize size = CheckArraySize( static_cast<size_t>(rawSize), elemType.get(), typeRef->SizeExpr.get() );
+        if ( rawSize <= 0 )
+            mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Array size must be positive" );
+
+        size = CheckArraySize( static_cast<size_t>(rawSize), elemType.get(), typeRef->SizeExpr.get() );
+    }
+    // Else, it's an open array
 
     if ( !IsStorageType( elemType->GetKind() ) )
         mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Element type is not allowed" );
@@ -1000,7 +1006,16 @@ void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
     auto type = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Mode );
 
-    paramDecl->Decl = AddParam( paramDecl, type, paramDecl->Mode );
+    int32_t size = 1;
+
+    if ( paramDecl->Mode == ParamMode::InOutRef
+        && type->GetKind() == TypeKind::Array
+        && ((ArrayType&) *type).Size == 0 )
+    {
+        size = 2;
+    }
+
+    paramDecl->Decl = AddParam( paramDecl, type, paramDecl->Mode, size );
 }
 
 std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamMode mode )
@@ -1090,6 +1105,7 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
 
     mMaxLocalCount = 0;
     mCurLocalCount = 0;
+    mParamCount = 0;
 
     mCurFunc = func;
 
@@ -1104,7 +1120,7 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
     }
 
     func->LocalCount = mMaxLocalCount;
-    func->ParamCount = static_cast<ParamSize>(procDecl->Params.size());
+    func->ParamCount = mParamCount;
 
     auto funcType = (FuncType*) func->Type.get();
 
@@ -1384,17 +1400,19 @@ std::shared_ptr<Declaration> BinderVisitor::FindSymbol( const std::string& symbo
     return nullptr;
 }
 
-std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type, ParamMode mode )
+std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type, ParamMode mode, size_t size )
 {
     auto& table = *mSymStack.back();
 
     CheckDuplicateSymbol( declNode, table );
 
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
-    param->Offset = static_cast<ParamSize>( table.size() );
+    param->Offset = mParamCount;
     param->Type = type;
     param->Mode = mode;
     table.insert( SymTable::value_type( declNode->Name, param ) );
+
+    mParamCount += size;
     return param;
 }
 
