@@ -678,10 +678,7 @@ void Compiler::VisitAddrOfExpr( AddrOfExpr* addrOf )
 
 void Compiler::GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status )
 {
-    for ( int i = call->Arguments.size() - 1; i >= 0; i-- )
-    {
-        Generate( call->Arguments[i].get() );
-    }
+    GenerateCallArgs( call->Arguments );
 
     Generate( call->Head.get() );
 
@@ -816,12 +813,17 @@ void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus&
     GenerateCall( call->Head->GetDecl(), call->Arguments, config, status );
 }
 
-void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status )
+void Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments )
 {
     for ( int i = arguments.size() - 1; i >= 0; i-- )
     {
         Generate( arguments[i].get() );
     }
+}
+
+void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status )
+{
+    GenerateCallArgs( arguments );
 
     int argCount = arguments.size();
     U8 callFlags = CallFlags::Build( argCount, config.discard );
