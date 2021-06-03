@@ -402,6 +402,11 @@ void BinderVisitor::VisitConstDecl( ConstDecl* constDecl )
 
     mGlobalTable.erase( constDecl->Name );
 
+    VisitConstBinding( constDecl, ScopeKind::Global );
+}
+
+void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind )
+{
     // No need to make the type ref accept this visitor,
     // because only integer constants are supported
 
@@ -420,7 +425,12 @@ void BinderVisitor::VisitConstDecl( ConstDecl* constDecl )
             mRep.ThrowInternalError( "Missing constant initializer" );
         }
 
-        std::shared_ptr<Constant> constant = AddConst( constDecl->Name, value, true );
+        std::shared_ptr<Constant> constant;
+
+        if ( scopeKind == ScopeKind::Global )
+            constant = AddConst( constDecl->Name, value, true );
+        else
+            constant = AddConst( constDecl->Name, value, *mSymStack.back() );
 
         constDecl->Decl = constant;
         constDecl->Decl->Type = mIntType;
@@ -564,7 +574,14 @@ void BinderVisitor::VisitLetStatement( LetStatement* letStmt )
 
     for ( auto& binding : letStmt->Variables )
     {
-        VisitLetBinding( binding.get() );
+        if ( binding->Kind == SyntaxKind::VarDecl )
+        {
+            VisitLetBinding( binding.get() );
+        }
+        else if ( binding->Kind == SyntaxKind::ConstDecl )
+        {
+            VisitConstBinding( (ConstDecl*) binding.get(), ScopeKind::Local );
+        }
     }
 
     letStmt->Body.Accept( this );
@@ -1070,14 +1087,20 @@ std::shared_ptr<Declaration> BinderVisitor::AddStorage( const std::string& name,
     }
 }
 
+std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, int32_t value, SymTable& table )
+{
+    std::shared_ptr<Constant> constant( new Constant() );
+    constant->Kind = DeclKind::Const;
+    constant->Value = value;
+    table.insert( SymTable::value_type( name, constant ) );
+    return constant;
+}
+
 std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, int32_t value, bool isPublic )
 {
     CheckDuplicateGlobalSymbol( name );
 
-    std::shared_ptr<Constant> constant( new Constant() );
-    constant->Kind = DeclKind::Const;
-    constant->Value = value;
-    mGlobalTable.insert( SymTable::value_type( name, constant ) );
+    auto constant = AddConst( name, value, mGlobalTable );
 
     if ( isPublic )
         mPublicTable.insert( SymTable::value_type( name, constant ) );

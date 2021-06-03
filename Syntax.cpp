@@ -55,6 +55,16 @@ Declaration* DeclSyntax::GetDecl()
     return Decl.get();
 }
 
+ConstDecl::ConstDecl()
+{
+    Kind = SyntaxKind::ConstDecl;
+}
+
+VarDecl::VarDecl()
+{
+    Kind = SyntaxKind::VarDecl;
+}
+
 IndexExpr::IndexExpr()
 {
     Kind = SyntaxKind::Index;

@@ -487,26 +487,28 @@ Unique<Unit> AlgolyParser::Parse()
 
     while ( mCurToken != TokenCode::Eof )
     {
-        if ( mCurToken == TokenCode::Def )
+        switch ( mCurToken )
         {
+        case TokenCode::Def:
             unit->FuncDeclarations.push_back( ParseFunction() );
-        }
-        else if ( mCurToken == TokenCode::Native )
-        {
+            break;
+
+        case TokenCode::Native:
             unit->DataDeclarations.push_back( ParseNative() );
-        }
-        else if ( mCurToken == TokenCode::Var
-            || mCurToken == TokenCode::Const )
-        {
+            break;
+
+        case TokenCode::Var:
+        case TokenCode::Const:
             ParseGlobalVars( unit.get() );
-        }
-        else if ( mCurToken == TokenCode::Import )
-        {
+            break;
+
+        case TokenCode::Import:
             unit->DataDeclarations.push_back( ParseImport() );
-        }
-        else
-        {
+            break;
+
+        default:
             ThrowSyntaxError( "syntax error : expected function" );
+            break;
         }
 
         SkipLineSeparators();
@@ -651,6 +653,7 @@ Unique<Syntax> AlgolyParser::ParseStatement()
 
     switch ( mCurToken )
     {
+    case TokenCode::Const:
     case TokenCode::Var:
         elem = ParseLet();
         break;
@@ -1006,33 +1009,44 @@ Unique<Syntax> AlgolyParser::ParseLet()
 {
     auto letNode = Make<LetStatement>();
 
-    ScanToken();
-    SkipLineEndings();
-
-    bool first = true;
-
     do
     {
-        if ( !first )
+        TokenCode keyword = mCurToken;
+
+        ScanToken();
+        SkipLineEndings();
+
+        bool first = true;
+
+        do
         {
-            if ( mCurToken != TokenCode::Comma )
-                ThrowSyntaxError( "Expected , or line separator" );
+            if ( !first )
+            {
+                if ( mCurToken != TokenCode::Comma )
+                    ThrowSyntaxError( "Expected , or line separator" );
 
-            ScanToken();
-            SkipLineEndings();
-        }
+                ScanToken();
+                SkipLineEndings();
+            }
 
-        first = false;
+            first = false;
 
-        auto varDecl = ParseVar( Make<VarDecl>(), TokenCode::Assign );
+            Unique<DataDecl> varDecl;
 
-        letNode->Variables.push_back( std::move( varDecl ) );
+            if ( keyword == TokenCode::Var )
+                varDecl = ParseVarDecl();
+            else
+                varDecl = ParseConstDecl();
 
-    } while ( mCurToken != TokenCode::Eol
-        && mCurToken != TokenCode::Separator
-        && mCurToken != TokenCode::End );
+            letNode->Variables.push_back( std::move( varDecl ) );
 
-    SkipLineSeparators();
+        } while ( mCurToken != TokenCode::Eol
+            && mCurToken != TokenCode::Separator
+            && mCurToken != TokenCode::End );
+
+        SkipLineSeparators();
+
+    } while ( mCurToken == TokenCode::Var || mCurToken == TokenCode::Const );
 
     while ( mCurToken != TokenCode::End )
     {
@@ -1063,11 +1077,11 @@ void AlgolyParser::ParseGlobalVars( Unit* unit )
 
         if ( declToken == TokenCode::Var )
         {
-            unit->DataDeclarations.push_back( ParseVar( Make<VarDecl>(), TokenCode::Assign ) );
+            unit->DataDeclarations.push_back( ParseVarDecl() );
         }
         else if ( declToken == TokenCode::Const )
         {
-            unit->DataDeclarations.push_back( ParseVar( Make<ConstDecl>(), TokenCode::EQ ) );
+            unit->DataDeclarations.push_back( ParseConstDecl() );
         }
         else
         {
@@ -1104,6 +1118,16 @@ Unique<DataDecl> AlgolyParser::ParseVar( Unique<DataDecl>&& varDecl, std::option
     }
 
     return varDecl;
+}
+
+Unique<DataDecl> AlgolyParser::ParseVarDecl()
+{
+    return ParseVar( Make<VarDecl>(), TokenCode::Assign );
+}
+
+Unique<DataDecl> AlgolyParser::ParseConstDecl()
+{
+    return ParseVar( Make<ConstDecl>(), TokenCode::EQ );
 }
 
 Unique<TypeRef> AlgolyParser::ParseTypeRef()

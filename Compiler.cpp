@@ -705,7 +705,8 @@ void Compiler::GenerateLet( LetStatement* letStmt, const GenConfig& config, GenS
 {
     for ( auto& binding : letStmt->Variables )
     {
-        GenerateLetBinding( binding.get() );
+        if ( binding->Kind == SyntaxKind::VarDecl )
+            GenerateLetBinding( binding.get() );
     }
 
     GenerateImplicitProgn( &letStmt->Body, config, status );

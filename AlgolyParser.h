@@ -134,6 +134,8 @@ private:
 
     void ParseGlobalVars( Unit* unit );
     Unique<DataDecl> ParseVar( Unique<DataDecl>&& newVarDecl, std::optional<TokenCode> assignToken );
+    Unique<DataDecl> ParseVarDecl();
+    Unique<DataDecl> ParseConstDecl();
 
     Unique<TypeRef> ParseTypeRef();
     Unique<TypeRef> ParseNameTypeRef();

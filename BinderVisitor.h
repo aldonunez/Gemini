@@ -92,6 +92,7 @@ private:
 
     void VisitProc( ProcDecl* procDecl );
     void VisitLetBinding( DataDecl* varDecl );
+    void VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind );
     void VisitStorage( DataDecl* varDecl, DeclKind declKind );
     std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef );
 
@@ -115,6 +116,7 @@ private:
     std::shared_ptr<LocalStorage> AddLocal( const std::string& name, size_t size );
     std::shared_ptr<GlobalStorage> AddGlobal( const std::string& name, size_t size );
     std::shared_ptr<Declaration> AddStorage( const std::string& name, size_t size, DeclKind declKind );
+    std::shared_ptr<Constant> AddConst( const std::string& name, int32_t value, SymTable& table );
     std::shared_ptr<Constant> AddConst( const std::string& name, int32_t value, bool isPublic );
     std::shared_ptr<Function> AddFunc( const std::string& name, int address );
     std::shared_ptr<Function> AddForward( const std::string& name );

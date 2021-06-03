@@ -6,6 +6,13 @@
 #include <vector>
 
 
+enum class ScopeKind
+{
+    Global,
+    Local,
+};
+
+
 enum class SyntaxKind
 {
     Number,
@@ -14,6 +21,8 @@ enum class SyntaxKind
     DotExpr,
     ArrayTypeRef,
     ArrayInitializer,
+    ConstDecl,
+    VarDecl,
     Other,
 };
 
@@ -154,12 +163,16 @@ public:
 class ConstDecl : public DataDecl
 {
 public:
+    ConstDecl();
+
     virtual void Accept( IVisitor* visitor ) override;
 };
 
 class VarDecl : public DataDecl
 {
 public:
+    VarDecl();
+
     virtual void Accept( IVisitor* visitor ) override;
 };
 
