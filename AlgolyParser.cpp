@@ -3,6 +3,8 @@
 #include <stdarg.h>
 
 
+// TODO: Make the keywords here lowercase
+
 static const char* gTokenNames[] =
 {
     "<Bof>",
@@ -55,6 +57,7 @@ static const char* gTokenNames[] =
     "Native",
     "Next",
     "Not",
+    "Of",
     "Or",
     "Proc",
     "Return",
@@ -443,6 +446,7 @@ void AlgolyParser::ReadSymbolOrKeyword()
         { "native", TokenCode::Native },
         { "next",   TokenCode::Next },
         { "not",    TokenCode::Not },
+        { "of",     TokenCode::Of },
         { "or",     TokenCode::Or },
         { "proc",   TokenCode::Proc },
         { "return", TokenCode::Return },
@@ -1223,6 +1227,13 @@ Unique<TypeRef> AlgolyParser::ParseArrayTypeRef()
     arrayTypeRef->SizeExpr = ParseExpr();
 
     ScanToken( TokenCode::RBracket );
+
+    if ( mCurToken == TokenCode::Of )
+    {
+        ScanToken();
+
+        arrayTypeRef->ElementTypeRef = ParseTypeRef();
+    }
 
     return arrayTypeRef;
 }

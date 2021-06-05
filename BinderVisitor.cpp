@@ -173,13 +173,31 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 {
     typeRef->SizeExpr->Accept( this );
 
+    std::shared_ptr<Type> elemType;
+
+    if ( typeRef->ElementTypeRef )
+    {
+        typeRef->ElementTypeRef->Accept( this );
+
+        elemType = typeRef->ElementTypeRef->ReferentType;
+    }
+    else
+    {
+        elemType = mIntType;
+    }
+
     int32_t size = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
 
     if ( size <= 0 )
         mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Array size must be positive" );
 
+    // We don't support multidimensional arrays yet
+
+    if ( !IsScalarType( elemType->GetKind() ) )
+        mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Only scalar elements are allowed" );
+
     typeRef->Type = mTypeType;
-    typeRef->ReferentType = Make<ArrayType>( size, mIntType );
+    typeRef->ReferentType = Make<ArrayType>( size, elemType );
 }
 
 void BinderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )

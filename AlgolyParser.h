@@ -59,6 +59,7 @@ class AlgolyParser
         Native,
         Next,
         Not,
+        Of,
         Or,
         Proc,
         Return,

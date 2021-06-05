@@ -328,6 +328,7 @@ private:
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
+    void EmitFuncAddress( Function* func, uint8_t*& dstPtr );
 
     // Level 3 - functions and special operators
     void GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status );
@@ -380,9 +381,10 @@ private:
     // Backpatching
     void Patch( PatchChain* chain, U8* targetPtr = nullptr );
     void PatchCalls( PatchChain* chain, U32 addr );
+    void PushPatch( PatchChain* chain, U8* patchPtr );
     void PushPatch( PatchChain* chain );
     void PopPatch( PatchChain* chain );
-    PatchChain* PushFuncPatch( const std::string& name );
+    PatchChain* PushFuncPatch( const std::string& name, U8* patchPtr );
 
     I32 GetSyntaxValue( Syntax* node, const char* message = nullptr );
 

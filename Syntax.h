@@ -17,6 +17,7 @@ enum class SyntaxKind
 {
     Number,
     Name,
+    AddrOfExpr,
     Index,
     DotExpr,
     ArrayTypeRef,
@@ -108,7 +109,8 @@ public:
 class ArrayTypeRef : public TypeRef
 {
 public:
-    Unique<Syntax> SizeExpr;
+    Unique<Syntax>  SizeExpr;
+    Unique<TypeRef> ElementTypeRef;
 
     ArrayTypeRef();
 
@@ -261,6 +263,8 @@ class AddrOfExpr : public Syntax
 {
 public:
     Unique<Syntax> Inner;
+
+    AddrOfExpr();
 
     virtual void Accept( IVisitor* visitor ) override;
 };

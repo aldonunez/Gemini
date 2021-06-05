@@ -65,6 +65,11 @@ VarDecl::VarDecl()
     Kind = SyntaxKind::VarDecl;
 }
 
+AddrOfExpr::AddrOfExpr()
+{
+    Kind = SyntaxKind::AddrOfExpr;
+}
+
 IndexExpr::IndexExpr()
 {
     Kind = SyntaxKind::Index;
@@ -512,8 +517,13 @@ bool ArrayType::IsAssignableFrom( Type* other ) const
 
     auto otherArray = (ArrayType*) other;
 
-    return Size >= otherArray->Size
-        && ElemType->IsAssignableFrom( otherArray->ElemType.get() );
+    if ( !ElemType->IsAssignableFrom( otherArray->ElemType.get() ) )
+        return false;
+
+    if ( ElemType->GetKind() == TypeKind::Pointer )
+        return Size == otherArray->Size;
+
+    return Size >= otherArray->Size;
 }
 
 int32_t ArrayType::GetSize() const

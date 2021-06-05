@@ -643,12 +643,19 @@ void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, Ge
         return;
     }
 
-    U32 addr = 0, modIndex = 0;
-
     auto func = (Function*) addrOf->Inner->GetDecl();
 
     mCodeBinPtr[0] = OP_LDC;
     mCodeBinPtr++;
+
+    EmitFuncAddress( (Function*) addrOf->Inner->GetDecl(), mCodeBinPtr );
+
+    IncreaseExprDepth();
+}
+
+void Compiler::EmitFuncAddress( Function* func, uint8_t*& dstPtr )
+{
+    U32 addr = 0, modIndex = 0;
 
     if ( func->Address != INT32_MAX )
     {
@@ -657,19 +664,21 @@ void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, Ge
     }
     else
     {
-        PatchChain* chain = PushFuncPatch( func->Name );
+        PatchChain* chain = PushFuncPatch( func->Name, dstPtr );
 
-        AddrRef ref = { AddrRefKind::Inst };
-        ref.InstPtr = &chain->First->Inst;
-        mLocalAddrRefs.push_back( ref );
+        if ( mInFunc )
+        {
+            AddrRef ref = { AddrRefKind::Inst };
+            ref.InstPtr = &chain->First->Inst;
+            mLocalAddrRefs.push_back( ref );
+        }
+
         modIndex = mModIndex;
     }
 
-    WriteU24( mCodeBinPtr, addr );
-    mCodeBinPtr[0] = modIndex;
-    mCodeBinPtr++;
-
-    IncreaseExprDepth();
+    WriteU24( dstPtr, addr );
+    dstPtr[0] = modIndex;
+    dstPtr++;
 }
 
 void Compiler::VisitAddrOfExpr( AddrOfExpr* addrOf )
@@ -850,7 +859,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         }
         else
         {
-            PatchChain* chain = PushFuncPatch( func->Name );
+            PatchChain* chain = PushFuncPatch( func->Name, mCodeBinPtr );
 
             AddrRef ref = { AddrRefKind::Inst };
             ref.InstPtr = &chain->First->Inst;
@@ -1394,8 +1403,13 @@ U8 Compiler::InvertJump( U8 opCode )
 
 void Compiler::PushPatch( PatchChain* chain )
 {
+    PushPatch( chain, mCodeBinPtr );
+}
+
+void Compiler::PushPatch( PatchChain* chain, U8* patchPtr )
+{
     InstPatch* link = new InstPatch;
-    link->Inst = mCodeBinPtr;
+    link->Inst = patchPtr;
     link->Next = chain->First;
     chain->First = link;
 }
@@ -1409,7 +1423,7 @@ void Compiler::PopPatch( PatchChain* chain )
     delete link;
 }
 
-Compiler::PatchChain* Compiler::PushFuncPatch( const std::string& name )
+Compiler::PatchChain* Compiler::PushFuncPatch( const std::string& name, U8* patchPtr )
 {
     auto patchIt = mPatchMap.find( name );
     if ( patchIt == mPatchMap.end() )
@@ -1418,7 +1432,7 @@ Compiler::PatchChain* Compiler::PushFuncPatch( const std::string& name )
         patchIt = std::move( result.first );
     }
 
-    PushPatch( &patchIt->second );
+    PushPatch( &patchIt->second, patchPtr );
 
     return &patchIt->second;
 }
@@ -1641,7 +1655,25 @@ void Compiler::VisitVarDecl( VarDecl* varDecl )
 
 void Compiler::AddGlobalData( U32 offset, Syntax* valueElem )
 {
-    mGlobals[offset] = GetSyntaxValue( valueElem, "Globals must be initialized with constant data" );
+    if ( valueElem->Type->GetKind() == TypeKind::Pointer )
+    {
+        if ( valueElem->Kind == SyntaxKind::AddrOfExpr )
+        {
+            auto addrOf = (AddrOfExpr*) valueElem;
+
+            uint8_t* dstPtr = (uint8_t*) &mGlobals[offset];
+
+            EmitFuncAddress( (Function*) addrOf->Inner->GetDecl(), dstPtr );
+        }
+        else
+        {
+            mRep.ThrowInternalError();
+        }
+    }
+    else
+    {
+        mGlobals[offset] = GetSyntaxValue( valueElem, "Globals must be initialized with constant data" );
+    }
 }
 
 void Compiler::AddGlobalDataArray( GlobalStorage* global, Syntax* valueElem, size_t size )
