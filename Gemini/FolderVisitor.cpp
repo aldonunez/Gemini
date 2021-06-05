@@ -42,6 +42,11 @@ void FolderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
     mLastValue.reset();
 }
 
+void FolderVisitor::VisitAsExpr( AsExpr* asExpr )
+{
+    Fold( asExpr->Inner );
+}
+
 void FolderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
 {
     assignment->Left->Accept( this );

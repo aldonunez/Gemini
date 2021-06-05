@@ -29,6 +29,7 @@ enum class SyntaxKind
     Number,
     Name,
     AddrOfExpr,
+    AsExpr,
     Index,
     DotExpr,
     ArrayInitializer,
@@ -244,6 +245,15 @@ public:
     Unique<Gemini::TypeRef>     TypeRef;
 
     virtual void Accept( Visitor* visitor ) override;
+};
+
+class AsExpr : public Syntax
+{
+public:
+    Unique<Syntax>      Inner;
+    Unique<NameExpr>    TargetTypeName;
+
+    virtual void Accept( IVisitor* visitor ) override;
 };
 
 class LambdaExpr : public Syntax
@@ -535,6 +545,7 @@ public:
 
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf );
     virtual void VisitArrayTypeRef( ArrayTypeRef* typeRef );
+    virtual void VisitAsExpr( AsExpr* asExpr );
     virtual void VisitAssignmentExpr( AssignmentExpr* assignment );
     virtual void VisitBinaryExpr( BinaryExpr* binary );
     virtual void VisitBreakStatement( BreakStatement* breakStmt );
@@ -850,6 +861,7 @@ public:
 class EnumType : public Type
 {
 public:
+    // TODO: Rename MembersByName
     SymTable    ByNameTable;
 
     EnumType();

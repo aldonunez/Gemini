@@ -153,6 +153,13 @@ static bool IsAllowedParamType( TypeKind kind )
         ;
 }
 
+static bool IsNumericCompatible( TypeKind kind )
+{
+    return kind == TypeKind::Int
+        || kind == TypeKind::Enum
+        ;
+}
+
 static bool IsStorageType( TypeKind kind )
 {
     return IsScalarType( kind )
@@ -266,6 +273,28 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 
     typeRef->Type = mTypeType;
     typeRef->ReferentType = Make<ArrayType>( size, elemType );
+}
+
+void BinderVisitor::VisitAsExpr( AsExpr* asExpr )
+{
+    asExpr->Inner->Accept( this );
+    asExpr->TargetTypeName->Accept( this );
+
+    auto decl = asExpr->TargetTypeName->GetDecl();
+
+    if ( decl->Kind != DeclKind::Type )
+        mRep.ThrowError( CERR_SEMANTICS, asExpr->TargetTypeName.get(), "Expected named type" );
+
+    auto srcType = asExpr->Inner->Type;
+    auto dstType = ((TypeDeclaration*) decl)->ReferentType;
+
+    if ( !IsNumericCompatible( srcType->GetKind() ) )
+        mRep.ThrowError( CERR_SEMANTICS, asExpr->Inner.get(), "Type is not numeric compatible" );
+
+    if ( !IsNumericCompatible( dstType->GetKind() ) )
+        mRep.ThrowError( CERR_SEMANTICS, asExpr->TargetTypeName.get(), "Type is not numeric compatible" );
+
+    asExpr->Type = dstType;
 }
 
 void BinderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )

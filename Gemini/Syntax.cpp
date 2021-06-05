@@ -123,6 +123,11 @@ void ArrayTypeRef::Accept( Visitor* visitor )
     visitor->VisitArrayTypeRef( this );
 }
 
+void AsExpr::Accept( IVisitor* visitor )
+{
+    visitor->VisitAsExpr( this );
+}
+
 void AssignmentExpr::Accept( Visitor* visitor )
 {
     visitor->VisitAssignmentExpr( this );
@@ -353,6 +358,10 @@ void Visitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 }
 
 void Visitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
+{
+}
+
+void IVisitor::VisitAsExpr( AsExpr* asExpr )
 {
 }
 

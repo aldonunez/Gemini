@@ -187,6 +187,7 @@ private:
     Unique<Syntax> ParseAssignment();
     Unique<Syntax> ParseBinaryPart( int level );
     Unique<Syntax> ParseBinary( int level );
+    Unique<Syntax> ParseAsExpr();
     Unique<Syntax> ParseUnary();
     Unique<Syntax> ParseSingle();
     Unique<Syntax> ParseIndexing( Unique<Syntax>&& head );
