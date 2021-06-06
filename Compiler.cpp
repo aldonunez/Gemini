@@ -647,6 +647,9 @@ void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, Ge
 
     auto func = (Function*) addrOf->Inner->GetDecl();
 
+    mCodeBinPtr[0] = OP_LDC;
+    mCodeBinPtr++;
+
     if ( func->Address != INT32_MAX )
     {
         addr = func->Address;
@@ -662,8 +665,6 @@ void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, Ge
         modIndex = mModIndex;
     }
 
-    mCodeBinPtr[0] = OP_LDC;
-    mCodeBinPtr++;
     WriteU24( mCodeBinPtr, addr );
     mCodeBinPtr[0] = modIndex;
     mCodeBinPtr++;
@@ -839,6 +840,10 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         Function* func = (Function*) decl;
         U32 addr = 0;
 
+        mCodeBinPtr[0] = OP_CALL;
+        mCodeBinPtr[1] = callFlags;
+        mCodeBinPtr += 2;
+
         if ( func->Address != INT32_MAX )
         {
             addr = func->Address;
@@ -852,9 +857,6 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
             mLocalAddrRefs.push_back( ref );
         }
 
-        mCodeBinPtr[0] = OP_CALL;
-        mCodeBinPtr[1] = callFlags;
-        mCodeBinPtr += 2;
         WriteU24( mCodeBinPtr, addr );
 
         if ( mInFunc )
@@ -1481,16 +1483,7 @@ void Compiler::PatchCalls( PatchChain* chain, U32 addr )
 {
     for ( InstPatch* link = chain->First; link != nullptr; link = link->Next )
     {
-        int offset = 0;
-
-        switch ( link->Inst[0] )
-        {
-        case OP_CALL:   offset = 2; break;
-        case OP_LDC:    offset = 1; break;
-        default:        assert( false ); break;
-        }
-
-        StoreU24( &link->Inst[offset], addr );
+        StoreU24( link->Inst, addr );
     }
 }
 
