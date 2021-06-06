@@ -11,6 +11,8 @@ class FolderVisitor : public IVisitor
     std::optional<int32_t>  mLastValue;
     bool                    mFoldNodes;
 
+    std::shared_ptr<IntType>    mIntType;
+
 public:
     FolderVisitor( ICompilerLog* log );
 

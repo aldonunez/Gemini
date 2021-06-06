@@ -364,10 +364,14 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
 {
     child->Accept( this );
 
-    if ( mFoldNodes && mLastValue.has_value() )
+    if ( mFoldNodes && mLastValue.has_value() && child->Kind != SyntaxKind::Number )
     {
         Unique<NumberExpr> number( new NumberExpr( mLastValue.value() ) );
 
+        if ( !mIntType )
+            mIntType = std::shared_ptr<IntType>( new IntType() );
+
         child = std::move( number );
+        child->Type = mIntType;
     }
 }
