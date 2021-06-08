@@ -402,4 +402,57 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
     }
 }
 
+
+//----------------------------------------------------------------------------
+//  FuncAddrVisitor
+//----------------------------------------------------------------------------
+
+FuncAddrVisitor::FuncAddrVisitor( ICompilerLog* log ) :
+    mRep( log )
+{
+}
+
+std::shared_ptr<Function> FuncAddrVisitor::Evaluate( Syntax* node )
+{
+    node->Accept( this );
+
+    return mLastValue;
+}
+
+void FuncAddrVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
+{
+    auto decl = addrOf->Inner->GetSharedDecl();
+
+    if ( decl->Kind != DeclKind::Func && decl->Kind != DeclKind::Forward )
+        mRep.ThrowError( CERR_SEMANTICS, addrOf, "Expected function" );
+
+    mLastValue = std::static_pointer_cast<Function>(decl);
+}
+
+void FuncAddrVisitor::VisitDotExpr( DotExpr* dotExpr )
+{
+    if ( dotExpr->GetDecl()->Kind == DeclKind::Const
+        && ((Constant*) dotExpr->GetDecl())->Value.GetKind() == ValueKind::Function )
+    {
+        mLastValue = ((Constant*) dotExpr->GetDecl())->Value.GetFunction();
+    }
+    else
+    {
+        mLastValue.reset();
+    }
+}
+
+void FuncAddrVisitor::VisitNameExpr( NameExpr* nameExpr )
+{
+    if ( nameExpr->Decl->Kind == DeclKind::Const
+        && ((Constant*) nameExpr->GetDecl())->Value.GetKind() == ValueKind::Function )
+    {
+        mLastValue = ((Constant*) nameExpr->Decl.get())->Value.GetFunction();
+    }
+    else
+    {
+        mLastValue.reset();
+    }
+}
+
 }
