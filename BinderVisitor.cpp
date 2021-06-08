@@ -407,23 +407,23 @@ void BinderVisitor::VisitConstDecl( ConstDecl* constDecl )
 
 void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind )
 {
-    // No need to make the type ref accept this visitor,
-    // because only integer constants are supported
+    if ( !constDecl->Initializer )
+        mRep.ThrowInternalError( "Missing constant initializer" );
 
-    if ( constDecl->TypeRef == nullptr )
+    constDecl->Initializer->Accept( this );
+
+    if ( constDecl->TypeRef )
     {
-        int32_t value = 0;
+        constDecl->TypeRef->Accept( this );
 
-        if ( constDecl->Initializer != nullptr )
-        {
-            constDecl->Initializer->Accept( this );
+        CheckType( constDecl->TypeRef->ReferentType, constDecl->Initializer->Type, constDecl->Initializer.get() );
+    }
 
-            value = Evaluate( constDecl->Initializer.get(), "Constant initializer is not constant" );
-        }
-        else
-        {
-            mRep.ThrowInternalError( "Missing constant initializer" );
-        }
+    std::shared_ptr<Type> type = constDecl->Initializer->Type;
+
+    if ( type->GetKind() == TypeKind::Int )
+    {
+        int32_t value = Evaluate( constDecl->Initializer.get(), "Constant initializer is not constant" );
 
         std::shared_ptr<Constant> constant;
 
@@ -437,7 +437,7 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, constDecl->TypeRef.get(), "Only integer constants are supported" );
+        mRep.ThrowError( CERR_SEMANTICS, constDecl, "Only integer constants are supported" );
     }
 }
 
