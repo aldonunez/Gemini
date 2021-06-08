@@ -84,6 +84,7 @@ public:
     virtual ~Syntax() {}
     virtual void Accept( Visitor* visitor ) = 0;
     virtual Declaration* GetDecl();
+    virtual std::shared_ptr<Declaration> GetSharedDecl();
 };
 
 class StatementList : public Syntax
@@ -106,6 +107,7 @@ public:
 
     virtual void Accept( Visitor* visitor ) override;
     virtual Declaration* GetDecl() override;
+    virtual std::shared_ptr<Declaration> GetSharedDecl() override;
 };
 
 class NumberExpr : public Syntax
@@ -186,6 +188,7 @@ public:
     std::string Name;
 
     virtual Declaration* GetDecl() override;
+    virtual std::shared_ptr<Declaration> GetSharedDecl() override;
 };
 
 class DataDecl : public DeclSyntax
@@ -341,6 +344,7 @@ public:
 
     virtual void Accept( Visitor* visitor ) override;
     virtual Declaration* GetDecl() override;
+    virtual std::shared_ptr<Declaration> GetSharedDecl() override;
 };
 
 class CallExpr : public Syntax

@@ -18,6 +18,11 @@ Declaration* Syntax::GetDecl()
     return nullptr;
 }
 
+std::shared_ptr<Declaration> Syntax::GetSharedDecl()
+{
+    return std::shared_ptr<Declaration>();
+}
+
 NameExpr::NameExpr()
 {
     Kind = SyntaxKind::Name;
@@ -40,6 +45,11 @@ Declaration* NameExpr::GetDecl()
     return Decl.get();
 }
 
+std::shared_ptr<Declaration> NameExpr::GetSharedDecl()
+{
+    return Decl;
+}
+
 NumberExpr::NumberExpr() :
     NumberExpr( 0 )
 {
@@ -59,6 +69,11 @@ InitList::InitList()
 Declaration* DeclSyntax::GetDecl()
 {
     return Decl.get();
+}
+
+std::shared_ptr<Declaration> DeclSyntax::GetSharedDecl()
+{
+    return Decl;
 }
 
 ConstDecl::ConstDecl()
@@ -95,6 +110,11 @@ DotExpr::DotExpr()
 Declaration* DotExpr::GetDecl()
 {
     return Decl.get();
+}
+
+std::shared_ptr<Declaration> DotExpr::GetSharedDecl()
+{
+    return Decl;
 }
 
 Unit::Unit( const std::string& fileName )
