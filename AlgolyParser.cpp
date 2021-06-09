@@ -14,6 +14,7 @@ static const char* gTokenNames[] =
     "(",
     ")",
     ",",
+    "->",
     ".",
     "&",
     "[",
@@ -229,7 +230,16 @@ AlgolyParser::TokenCode AlgolyParser::ScanToken()
 
     case '-':
         CollectChar();
-        mCurToken = TokenCode::Minus;
+
+        if ( PeekChar() == '>' )
+        {
+            NextChar();
+            mCurToken = TokenCode::RArrow;
+        }
+        else
+        {
+            mCurToken = TokenCode::Minus;
+        }
         break;
 
     case '*':
@@ -384,6 +394,7 @@ void AlgolyParser::ReadNumber()
 {
     bool negate = false;
 
+    // TODO: I think this is obsolete. So, delete it.
     if ( PeekChar() == '-' )
     {
         negate = true;
@@ -585,6 +596,13 @@ Unique<ProcDecl> AlgolyParser::ParseProc( bool hasName )
     if ( mCurToken == TokenCode::LParen )
     {
         proc->Params = ParseParamList();
+    }
+
+    if ( mCurToken == TokenCode::RArrow )
+    {
+        ScanToken();
+
+        proc->ReturnTypeRef = ParseTypeRef();
     }
 
     SkipLineSeparators();
@@ -1180,6 +1198,13 @@ Unique<TypeRef> AlgolyParser::ParsePtrFuncTypeRef()
         }
 
         ScanToken();
+    }
+
+    if ( mCurToken == TokenCode::RArrow )
+    {
+        ScanToken();
+
+        procTypeRef->ReturnTypeRef = ParseTypeRef();
     }
 
     Unique<PointerTypeRef> pointerTypeRef( new PointerTypeRef() );

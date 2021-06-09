@@ -119,6 +119,7 @@ class ProcTypeRef : public TypeRef
 {
 public:
     std::vector<Unique<TypeRef>> Params;
+    Unique<TypeRef>              ReturnTypeRef;
 
     virtual void Accept( IVisitor* visitor ) override;
 };
@@ -384,7 +385,8 @@ public:
     constexpr static int16_t MaxParams = 127;
     constexpr static int16_t MaxLocals = 127;
 
-    std::vector<Unique<DataDecl>> Params;
+    std::vector<Unique<DataDecl>>   Params;
+    Unique<TypeRef>                 ReturnTypeRef;
 };
 
 class ProcDecl : public ProcDeclBase

@@ -59,6 +59,13 @@ static bool IsAddressableDeclaration( DeclKind kind )
         ;
 }
 
+bool IsScalarType( TypeKind kind )
+{
+    return kind == TypeKind::Int
+        || kind == TypeKind::Pointer
+        ;
+}
+
 static bool IsAddressableType( TypeKind kind )
 {
     return kind == TypeKind::Func;
@@ -841,7 +848,9 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
 
 void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 {
-    auto funcType = Make<FuncType>( mIntType );
+    std::shared_ptr<Type> returnType = VisitFuncReturnType( procTypeRef->ReturnTypeRef );
+
+    auto funcType = Make<FuncType>( returnType );
 
     for ( auto& param : procTypeRef->Params )
     {
@@ -1207,7 +1216,9 @@ std::shared_ptr<Declaration> BinderVisitor::DefineNode( const std::string& name,
 
 std::shared_ptr<FuncType> BinderVisitor::MakeFuncType( ProcDeclBase* procDecl )
 {
-    auto funcType = Make<FuncType>( mIntType );
+    std::shared_ptr<Type> returnType = VisitFuncReturnType( procDecl->ReturnTypeRef );
+
+    auto funcType = Make<FuncType>( returnType );
 
     for ( auto& paramDecl : procDecl->Params )
     {
@@ -1217,4 +1228,19 @@ std::shared_ptr<FuncType> BinderVisitor::MakeFuncType( ProcDeclBase* procDecl )
     }
 
     return funcType;
+}
+
+std::shared_ptr<Type> BinderVisitor::VisitFuncReturnType( Unique<TypeRef>& typeRef )
+{
+    if ( typeRef )
+    {
+        typeRef->Accept( this );
+
+        if ( !IsScalarType( typeRef->ReferentType->GetKind() ) )
+            mRep.ThrowError( CERR_SEMANTICS, typeRef.get(), "Only scalar types can be returned" );
+
+        return typeRef->ReferentType;
+    }
+
+    return mIntType;
 }

@@ -131,4 +131,8 @@ private:
     void DeclareNode( DeclSyntax* node );
     std::shared_ptr<Declaration> DefineNode( const std::string& name, UndefinedDeclaration* decl );
     std::shared_ptr<FuncType> MakeFuncType( ProcDeclBase* procDecl );
+    std::shared_ptr<Type> VisitFuncReturnType( Unique<TypeRef>& typeRef );
 };
+
+
+bool IsScalarType( TypeKind kind );

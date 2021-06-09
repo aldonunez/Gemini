@@ -18,6 +18,7 @@ class AlgolyParser
         LParen,
         RParen,
         Comma,
+        RArrow,
         Dot,
         Ampersand,
         LBracket,
