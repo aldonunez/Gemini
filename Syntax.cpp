@@ -300,6 +300,143 @@ std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node )
 
 
 //----------------------------------------------------------------------------
+//  Visitors
+//----------------------------------------------------------------------------
+
+void IVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
+{
+}
+
+void IVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
+{
+}
+
+void IVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
+{
+}
+
+void IVisitor::VisitBinaryExpr( BinaryExpr* binary )
+{
+}
+
+void IVisitor::VisitBreakStatement( BreakStatement* breakStmt )
+{
+}
+
+void IVisitor::VisitCallExpr( CallExpr* call )
+{
+}
+
+void IVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
+{
+}
+
+void IVisitor::VisitCaseExpr( CaseExpr* caseExpr )
+{
+}
+
+void IVisitor::VisitCondExpr( CondExpr* condExpr )
+{
+}
+
+void IVisitor::VisitConstDecl( ConstDecl* constDecl )
+{
+}
+
+void IVisitor::VisitDotExpr( DotExpr* dotExpr )
+{
+}
+
+void IVisitor::VisitForStatement( ForStatement* forStmt )
+{
+}
+
+void IVisitor::VisitImportDecl( ImportDecl* importDecl )
+{
+}
+
+void IVisitor::VisitIndexExpr( IndexExpr* indexExpr )
+{
+}
+
+void IVisitor::VisitInitList( InitList* initList )
+{
+}
+
+void IVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
+{
+}
+
+void IVisitor::VisitLetStatement( LetStatement* letStmt )
+{
+}
+
+void IVisitor::VisitLoopStatement( LoopStatement* loopStmt )
+{
+}
+
+void IVisitor::VisitNameExpr( NameExpr* nameExpr )
+{
+}
+
+void IVisitor::VisitNameTypeRef( NameTypeRef* nameTypeRef )
+{
+}
+
+void IVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
+{
+}
+
+void IVisitor::VisitNextStatement( NextStatement* nextStmt )
+{
+}
+
+void IVisitor::VisitNumberExpr( NumberExpr* numberExpr )
+{
+}
+
+void IVisitor::VisitParamDecl( ParamDecl* paramDecl )
+{
+}
+
+void IVisitor::VisitPointerTypeRef( PointerTypeRef* pointerTypeRef )
+{
+}
+
+void IVisitor::VisitProcDecl( ProcDecl* procDecl )
+{
+}
+
+void IVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
+{
+}
+
+void IVisitor::VisitReturnStatement( ReturnStatement* retStmt )
+{
+}
+
+void IVisitor::VisitStatementList( StatementList* stmtmList )
+{
+}
+
+void IVisitor::VisitUnaryExpr( UnaryExpr* unary )
+{
+}
+
+void IVisitor::VisitUnit( Unit* unit )
+{
+}
+
+void IVisitor::VisitVarDecl( VarDecl* varDecl )
+{
+}
+
+void IVisitor::VisitWhileStatement( WhileStatement* whileStmt )
+{
+}
+
+
+//----------------------------------------------------------------------------
 //  Types
 //----------------------------------------------------------------------------
 
