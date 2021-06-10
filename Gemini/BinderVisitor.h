@@ -109,6 +109,7 @@ private:
     std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef );
 
     int32_t Evaluate( Syntax* node, const char* message = nullptr );
+    ValueVariant EvaluateVariant( Syntax* node );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
 
     void CheckType(
@@ -134,8 +135,8 @@ private:
     std::shared_ptr<LocalStorage> AddLocal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<GlobalStorage> AddGlobal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<Declaration> AddStorage( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size, DeclKind declKind );
-    std::shared_ptr<Constant> AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, SymTable& table );
-    std::shared_ptr<Constant> AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, bool isPublic );
+    std::shared_ptr<Constant> AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, ValueVariant value, SymTable& table );
+    std::shared_ptr<Constant> AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, ValueVariant value, bool isPublic );
     std::shared_ptr<Function> AddFunc( DeclSyntax* declNode, bool isPublic );
     std::shared_ptr<TypeDeclaration> AddType( DeclSyntax* declNode, std::shared_ptr<Type> type, bool isPublic );
     void AddModule( DeclSyntax* declNode, std::shared_ptr<ModuleDeclaration> moduleDecl );
