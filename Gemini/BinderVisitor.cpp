@@ -566,23 +566,16 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
 
     std::shared_ptr<Type> type = constDecl->Initializer->Type;
 
-    if ( IsIntegralType( type->GetKind() ) )
-    {
-        int32_t value = Evaluate( constDecl->Initializer.get(), "Constant initializer is not constant" );
+    ValueVariant value = EvaluateVariant( constDecl->Initializer.get() );
 
-        std::shared_ptr<Constant> constant;
+    std::shared_ptr<Constant> constant;
 
-        if ( scopeKind == ScopeKind::Global )
-            constant = AddConst( constDecl, type, value, true );
-        else
-            constant = AddConst( constDecl, type, value, *mSymStack.back() );
-
-        constDecl->Decl = constant;
-    }
+    if ( scopeKind == ScopeKind::Global )
+        constant = AddConst( constDecl, type, value, true );
     else
-    {
-        mRep.ThrowSemanticsError( constDecl, "Only integer constants are supported" );
-    }
+        constant = AddConst( constDecl, type, value, *mSymStack.back() );
+
+    constDecl->Decl = constant;
 }
 
 void BinderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
@@ -1559,6 +1552,43 @@ int32_t BinderVisitor::Evaluate( Syntax* node, const char* message )
         mRep.ThrowSemanticsError( node, "Expected a constant value" );
 }
 
+ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
+{
+    ValueVariant value;
+
+    std::shared_ptr<Type> type = node->Type;
+
+    if ( IsIntegralType( type->GetKind() ) )
+    {
+        int32_t iValue = Evaluate( node, "Expected constant value" );
+
+        value.SetInteger( iValue );
+    }
+    else if ( type->GetKind() == TypeKind::Pointer )
+    {
+        auto& ptrType = (PointerType&) *type;
+
+        if ( ptrType.TargetType->GetKind() == TypeKind::Func )
+        {
+            FuncAddrVisitor visitor( mRep.GetLog() );
+
+            std::shared_ptr<Function> func = visitor.Evaluate( node );
+
+            value.SetFunction( func );
+        }
+        else
+        {
+            mRep.ThrowError( CERR_SEMANTICS, node, "Only pointers to functions are allowed" );
+        }
+    }
+    else
+    {
+        mRep.ThrowError( CERR_SEMANTICS, node, "Expected constant value" );
+    }
+
+    return value;
+}
+
 std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
 {
     FolderVisitor folder( mRep.GetLog() );
@@ -1657,18 +1687,18 @@ std::shared_ptr<Declaration> BinderVisitor::AddStorage( DeclSyntax* declNode, st
     }
 }
 
-std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, SymTable& table )
+std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, ValueVariant value, SymTable& table )
 {
     CheckDuplicateSymbol( declNode, table );
 
     std::shared_ptr<SimpleConstant> constant( new SimpleConstant() );
     constant->Type = type;
-    constant->Value.SetInteger( value );
+    constant->Value = value;
     table.insert( SymTable::value_type( declNode->Name, constant ) );
     return constant;
 }
 
-std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, bool isPublic )
+std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, ValueVariant value, bool isPublic )
 {
     auto constant = AddConst( declNode, type, value, mGlobalTable );
 

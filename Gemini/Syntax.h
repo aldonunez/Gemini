@@ -730,53 +730,29 @@ class ValueVariant
     } mValue = { 0 };
 
 public:
-    ValueKind GetKind() const
-    {
-        return mKind;
-    }
+    ValueVariant();
+    ~ValueVariant();
 
-    int32_t GetInteger() const
-    {
-        assert( mKind == ValueKind::Integer );
-        return mValue.Integer;
-    }
+    ValueVariant( const ValueVariant& other );
+    ValueVariant& operator=( const ValueVariant& other );
 
-    std::shared_ptr<Function> GetFunction() const
-    {
-        assert( mKind == ValueKind::Function );
-        return mValue.Function;
-    }
+    ValueVariant( ValueVariant&& other ) noexcept;
+    ValueVariant& operator=( ValueVariant&& other ) noexcept;
 
-    void SetInteger( int32_t value )
-    {
-        Destroy();
+    ValueVariant( int32_t iValue );
 
-        mValue.Integer = value;
-        mKind = ValueKind::Integer;
-    }
+    ValueKind GetKind() const;
+    int32_t GetInteger() const;
+    std::shared_ptr<Function> GetFunction() const;
 
-    void SetFunction( std::shared_ptr<Function> function )
-    {
-        Destroy();
-
-        new (&mValue.Function) std::shared_ptr<Function>( function );
-        mKind = ValueKind::Function;
-    }
-
-    ~ValueVariant()
-    {
-        Destroy();
-    }
+    void SetInteger( int32_t value ) noexcept;
+    void SetFunction( const std::shared_ptr<Function>& function ) noexcept;
+    void SetFunction( std::shared_ptr<Function>&& function ) noexcept;
 
 private:
-    void Destroy()
-    {
-        if ( mKind == ValueKind::Function )
-        {
-            mValue.Function.~shared_ptr<Function>();
-            mKind = ValueKind::Integer;
-        }
-    }
+    void Copy( const ValueVariant& other ) noexcept;
+    void Move( ValueVariant&& other ) noexcept;
+    void Destroy() noexcept;
 };
 
 struct Constant : public Declaration
