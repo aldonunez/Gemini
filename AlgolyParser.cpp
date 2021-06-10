@@ -3,8 +3,6 @@
 #include <stdarg.h>
 
 
-// TODO: Make the keywords here lowercase
-
 static const char* gTokenNames[] =
 {
     "<Bof>",
@@ -35,37 +33,37 @@ static const char* gTokenNames[] =
     "<=",
     ">",
     ">=",
-    "Above",
-    "And",
-    "As",
-    "Below",
-    "Break",
-    "By",
-    "Case",
-    "Const",
-    "Def",
-    "Do",
-    "Downto",
-    "Else",
-    "Elsif",
-    "End",
-    "For",
-    "If",
-    "Import",
-    "Lambda",
-    "Loop",
-    "Native",
-    "Next",
-    "Not",
-    "Of",
-    "Or",
-    "Proc",
-    "Return",
-    "Then",
-    "To",
-    "Var",
-    "When",
-    "While",
+    "above",
+    "and",
+    "as",
+    "below",
+    "break",
+    "by",
+    "case",
+    "const",
+    "def",
+    "do",
+    "downto",
+    "else",
+    "elsif",
+    "end",
+    "for",
+    "if",
+    "import",
+    "lambda",
+    "loop",
+    "native",
+    "next",
+    "not",
+    "of",
+    "or",
+    "proc",
+    "return",
+    "then",
+    "to",
+    "var",
+    "when",
+    "while",
 };
 
 
@@ -395,15 +393,6 @@ bool AlgolyParser::IsIdentifierCoda( int c )
 
 void AlgolyParser::ReadNumber()
 {
-    bool negate = false;
-
-    // TODO: I think this is obsolete. So, delete it.
-    if ( PeekChar() == '-' )
-    {
-        negate = true;
-        NextChar();
-    }
-
     while ( isdigit( PeekChar() ) )
     {
         mCurString.append( 1, PeekChar() );
@@ -414,8 +403,6 @@ void AlgolyParser::ReadNumber()
         ThrowSyntaxError( "syntax error : bad number" );
 
     mCurNumber = atoi( mCurString.c_str() );
-    if ( negate )
-        mCurNumber = -mCurNumber;
 
     mCurToken = TokenCode::Number;
 }

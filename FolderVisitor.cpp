@@ -185,11 +185,6 @@ void FolderVisitor::VisitForStatement( ForStatement* forStmt )
     mLastValue.reset();
 }
 
-void FolderVisitor::VisitImportDecl( ImportDecl* importDecl )
-{
-    // Nothing
-}
-
 void FolderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 {
     indexExpr->Head->Accept( this );
@@ -252,16 +247,6 @@ void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
     }
 }
 
-void FolderVisitor::VisitNameTypeRef( NameTypeRef* nameTypeRef )
-{
-    // Nothing
-}
-
-void FolderVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
-{
-    // Nothing
-}
-
 void FolderVisitor::VisitNextStatement( NextStatement* nextStmt )
 {
     mLastValue.reset();
@@ -275,11 +260,6 @@ void FolderVisitor::VisitNumberExpr( NumberExpr* numberExpr )
 void FolderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
     mLastValue.reset();
-}
-
-void FolderVisitor::VisitPointerTypeRef( PointerTypeRef* pointerTypeRef )
-{
-    // Nothing
 }
 
 void FolderVisitor::VisitProcDecl( ProcDecl* procDecl )
@@ -297,11 +277,6 @@ void FolderVisitor::VisitProc( ProcDecl* procDecl )
 
     procDecl->Body.Accept( this );
     mLastValue.reset();
-}
-
-void FolderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
-{
-    // Nothing
 }
 
 void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )

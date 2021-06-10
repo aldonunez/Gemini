@@ -120,23 +120,6 @@ void Compiler::VisitUnit( Unit* unit )
         funcNode->Accept( this );
 }
 
-void Compiler::VisitImportDecl( ImportDecl* importDecl )
-{
-    // Nothing
-}
-
-void Compiler::VisitArrayTypeRef( ArrayTypeRef* typeRef )
-{
-}
-
-void Compiler::VisitInitList( InitList* initList )
-{
-}
-
-void Compiler::VisitParamDecl( ParamDecl* paramDecl )
-{
-}
-
 void Compiler::Generate( Syntax* elem )
 {
     GenStatus status = { ExprKind::Other };
@@ -1713,31 +1696,6 @@ void Compiler::AddGlobalDataArray( GlobalStorage* global, Syntax* valueElem, siz
         mGlobals[global->Offset + i] = newValue;
         prevValue = newValue;
     }
-}
-
-void Compiler::VisitConstDecl( ConstDecl* constDecl )
-{
-    // Nothing
-}
-
-void Compiler::VisitNativeDecl( NativeDecl* nativeDecl )
-{
-    // Nothing
-}
-
-void Compiler::VisitNameTypeRef( NameTypeRef* nameTypeRef )
-{
-    // Nothing
-}
-
-void Compiler::VisitPointerTypeRef( PointerTypeRef* pointerTypeRef )
-{
-    // Nothing
-}
-
-void Compiler::VisitProcTypeRef( ProcTypeRef* procTypeRef )
-{
-    // Nothing
 }
 
 void Compiler::GenerateLambdas()
