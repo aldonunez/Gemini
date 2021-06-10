@@ -109,6 +109,7 @@ private:
     std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef );
 
     int32_t Evaluate( Syntax* node, const char* message = nullptr );
+    ValueVariant EvaluateVariant( Syntax* node );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
 
     void CheckType(
@@ -135,8 +136,8 @@ private:
     std::shared_ptr<LocalStorage> AddLocal( const std::string& name, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<GlobalStorage> AddGlobal( const std::string& name, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<Declaration> AddStorage( const std::string& name, std::shared_ptr<Type> type, size_t size, DeclKind declKind );
-    std::shared_ptr<Constant> AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, SymTable& table );
-    std::shared_ptr<Constant> AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, bool isPublic );
+    std::shared_ptr<Constant> AddConst( const std::string& name, std::shared_ptr<Type> type, ValueVariant value, SymTable& table );
+    std::shared_ptr<Constant> AddConst( const std::string& name, std::shared_ptr<Type> type, ValueVariant value, bool isPublic );
     std::shared_ptr<Function> AddFunc( const std::string& name, bool isPublic );
     std::shared_ptr<TypeDeclaration> AddType( const std::string& name, std::shared_ptr<Type> type, bool isPublic );
     void AddModule( const std::string& name, std::shared_ptr<ModuleDeclaration> moduleDecl );
