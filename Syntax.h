@@ -101,7 +101,7 @@ public:
 class NameTypeRef : public TypeRef
 {
 public:
-    Unique<NameExpr> Symbol;
+    Unique<Syntax>  QualifiedName;
 
     virtual void Accept( IVisitor* visitor ) override;
 };

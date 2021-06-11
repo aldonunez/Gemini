@@ -667,7 +667,7 @@ Unique<TypeRef> LispyParser::ParseNameTypeRef( bool embedded )
 {
     auto nameTypeRef = Make<NameTypeRef>();
 
-    nameTypeRef->Symbol = ParseSymbol();
+    nameTypeRef->QualifiedName = ParseSymbol();
 
     if ( embedded )
         ScanRParen();

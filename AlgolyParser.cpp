@@ -1165,10 +1165,8 @@ Unique<TypeRef> AlgolyParser::ParseTypeDef()
     switch ( mCurToken )
     {
     default:
-        ThrowSyntaxError( "Expected type denoter" );
+        return ParseTypeRef();
     }
-
-    // TODO: where to skip line endings or separators?
 }
 
 Unique<TypeRef> AlgolyParser::ParseTypeRef()
@@ -1187,7 +1185,16 @@ Unique<TypeRef> AlgolyParser::ParseNameTypeRef()
 {
     auto nameTypeRef = Make<NameTypeRef>();
 
-    nameTypeRef->Symbol = ParseSymbol();
+    auto name = ParseSymbol();
+
+    if ( mCurToken == TokenCode::Dot )
+    {
+        nameTypeRef->QualifiedName = ParseDotExpr( std::move( name ) );
+    }
+    else
+    {
+        nameTypeRef->QualifiedName = std::move( name );
+    }
 
     return nameTypeRef;
 }

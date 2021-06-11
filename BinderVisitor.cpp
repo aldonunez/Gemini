@@ -693,9 +693,9 @@ void BinderVisitor::VisitNameExpr( NameExpr* nameExpr )
 
 void BinderVisitor::VisitNameTypeRef( NameTypeRef* nameTypeRef )
 {
-    nameTypeRef->Symbol->Accept( this );
+    nameTypeRef->QualifiedName->Accept( this );
 
-    auto decl = nameTypeRef->Symbol->GetDecl();
+    auto decl = nameTypeRef->QualifiedName->GetDecl();
 
     if ( decl->Kind != DeclKind::Type )
         mRep.ThrowError( CERR_SEMANTICS, nameTypeRef, "Expected a type name" );
