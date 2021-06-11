@@ -551,7 +551,7 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
 
     std::shared_ptr<Type> type = constDecl->Initializer->Type;
 
-    if ( type->GetKind() == TypeKind::Int )
+    if ( IsNumericCompatible( type->GetKind() ) )
     {
         int32_t value = Evaluate( constDecl->Initializer.get(), "Constant initializer is not constant" );
 
