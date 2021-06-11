@@ -335,8 +335,7 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
         && caseExpr->TestKey->Kind != SyntaxKind::Number )
     {
         // TODO: Ideally simplify a complex test key in one place
-        caseExpr->TestKeyDecl = AddLocal( "$testKey", 1 );
-        caseExpr->TestKeyDecl->Type = caseExpr->TestKey->Type;
+        caseExpr->TestKeyDecl = AddLocal( "$testKey", caseExpr->TestKey->Type, 1 );
     }
 
     std::shared_ptr<Type> bodyType;
@@ -453,12 +452,11 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
         std::shared_ptr<Constant> constant;
 
         if ( scopeKind == ScopeKind::Global )
-            constant = AddConst( constDecl->Name, value, true );
+            constant = AddConst( constDecl->Name, type, value, true );
         else
-            constant = AddConst( constDecl->Name, value, *mSymStack.back() );
+            constant = AddConst( constDecl->Name, type, value, *mSymStack.back() );
 
         constDecl->Decl = constant;
-        constDecl->Decl->Type = mIntType;
     }
     else
     {
@@ -496,8 +494,7 @@ void BinderVisitor::VisitForStatement( ForStatement* forStmt )
 {
     LocalScope localScope( *this );
 
-    auto local = AddLocal( forStmt->IndexName, 1 );
-    local->Type = mIntType;
+    auto local = AddLocal( forStmt->IndexName, mIntType, 1 );
 
     forStmt->IndexDecl = local;
 
@@ -656,8 +653,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
         mRep.ThrowInternalError( "Bad type" );
     }
 
-    varDecl->Decl = AddStorage( varDecl->Name, size, declKind );
-    varDecl->Decl->Type = type;
+    varDecl->Decl = AddStorage( varDecl->Name, type, size, declKind );
     varDecl->Type = type;
 }
 
@@ -741,8 +737,7 @@ void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
     auto type = VisitParamTypeRef( paramDecl->TypeRef );
 
-    paramDecl->Decl = AddParam( paramDecl->Name );
-    paramDecl->Decl->Type = type;
+    paramDecl->Decl = AddParam( paramDecl->Name, type );
 }
 
 std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef )
@@ -1048,31 +1043,33 @@ std::shared_ptr<Declaration> BinderVisitor::FindSymbol( const std::string& symbo
     return nullptr;
 }
 
-std::shared_ptr<ParamStorage> BinderVisitor::AddParam( const std::string& name )
+std::shared_ptr<ParamStorage> BinderVisitor::AddParam( const std::string& name, std::shared_ptr<Type> type )
 {
     auto& table = *mSymStack.back();
 
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
     param->Kind = DeclKind::Param;
     param->Offset = table.size();
+    param->Type = type;
     table.insert( SymTable::value_type( name, param ) );
     return param;
 }
 
-std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( SymTable& table, const std::string& name, int offset )
+std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( SymTable& table, const std::string& name, std::shared_ptr<Type> type, int offset )
 {
     std::shared_ptr<LocalStorage> local( new LocalStorage() );
     local->Kind = DeclKind::Local;
     local->Offset = offset;
+    local->Type = type;
     table.insert( SymTable::value_type( name, local ) );
     return local;
 }
 
-std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( const std::string& name, size_t size )
+std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( const std::string& name, std::shared_ptr<Type> type, size_t size )
 {
     assert( size >= 1 );
 
-    auto local = AddLocal( *mSymStack.back(), name, mCurLocalCount + size - 1 );
+    auto local = AddLocal( *mSymStack.back(), name, type, mCurLocalCount + size - 1 );
 
     mCurLocalCount += size;
     mCurLevelLocalCount += size;
@@ -1086,7 +1083,7 @@ std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( const std::string& name, 
     return local;
 }
 
-std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name, size_t size )
+std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name, std::shared_ptr<Type> type, size_t size )
 {
     CheckDuplicateGlobalSymbol( name );
 
@@ -1094,6 +1091,7 @@ std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name
     global->Kind = DeclKind::Global;
     global->Offset = mGlobalSize;
     global->ModIndex = mModIndex;
+    global->Type = type;
     mGlobalTable.insert( SymTable::value_type( name, global ) );
 
     mGlobalSize += size;
@@ -1103,31 +1101,32 @@ std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name
     return global;
 }
 
-std::shared_ptr<Declaration> BinderVisitor::AddStorage( const std::string& name, size_t size, DeclKind declKind )
+std::shared_ptr<Declaration> BinderVisitor::AddStorage( const std::string& name, std::shared_ptr<Type> type, size_t size, DeclKind declKind )
 {
     switch ( declKind )
     {
-    case DeclKind::Global:  return AddGlobal( name, size );
-    case DeclKind::Local:   return AddLocal( name, size );
+    case DeclKind::Global:  return AddGlobal( name, type, size );
+    case DeclKind::Local:   return AddLocal( name, type, size );
     default:
         mRep.ThrowInternalError();
     }
 }
 
-std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, int32_t value, SymTable& table )
+std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, SymTable& table )
 {
     std::shared_ptr<Constant> constant( new Constant() );
     constant->Kind = DeclKind::Const;
+    constant->Type = type;
     constant->Value = value;
     table.insert( SymTable::value_type( name, constant ) );
     return constant;
 }
 
-std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, int32_t value, bool isPublic )
+std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, bool isPublic )
 {
     CheckDuplicateGlobalSymbol( name );
 
-    auto constant = AddConst( name, value, mGlobalTable );
+    auto constant = AddConst( name, type, value, mGlobalTable );
 
     if ( isPublic )
         mPublicTable.insert( SymTable::value_type( name, constant ) );
@@ -1197,8 +1196,8 @@ void BinderVisitor::MakeStdEnv()
     mIntType.reset( new IntType() );
 
     AddType( "int", mIntType );
-    AddConst( "false", 0, false )->Type = mIntType;
-    AddConst( "true", 1, false )->Type = mIntType;
+    AddConst( "false", mIntType, 0, false );
+    AddConst( "true", mIntType, 1, false );
 }
 
 void BinderVisitor::BindProcs( Unit* program )
