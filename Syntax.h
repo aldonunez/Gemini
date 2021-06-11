@@ -185,6 +185,14 @@ public:
     virtual void Accept( IVisitor* visitor ) override;
 };
 
+class TypeDecl : public DeclSyntax
+{
+public:
+    Unique<TypeRef>    TypeRef;
+
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
 class LambdaExpr : public Syntax
 {
 public:
@@ -470,6 +478,7 @@ public:
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef );
     virtual void VisitReturnStatement( ReturnStatement* retStmt );
     virtual void VisitStatementList( StatementList* stmtmList );
+    virtual void VisitTypeDecl( TypeDecl* typeDecl );
     virtual void VisitUnaryExpr( UnaryExpr* unary );
     virtual void VisitUnit( Unit* unit );
     virtual void VisitVarDecl( VarDecl* varDecl );
@@ -499,6 +508,7 @@ struct Declaration
 {
     DeclKind  Kind;
     std::shared_ptr<Type>   Type;
+
     virtual ~Declaration() { }
 };
 

@@ -65,6 +65,7 @@ class AlgolyParser
         Return,
         Then,
         To,
+        Type,
         Var,
         When,
         While,
@@ -138,7 +139,9 @@ private:
     Unique<DataDecl> ParseVar( Unique<DataDecl>&& newVarDecl, std::optional<TokenCode> assignToken );
     Unique<DataDecl> ParseVarDecl();
     Unique<DataDecl> ParseConstDecl();
+    Unique<DeclSyntax> ParseTypeDecl();
 
+    Unique<TypeRef> ParseTypeDef();
     Unique<TypeRef> ParseTypeRef();
     Unique<TypeRef> ParseNameTypeRef();
     Unique<TypeRef> ParsePtrFuncTypeRef();

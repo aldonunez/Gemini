@@ -902,6 +902,18 @@ void BinderVisitor::VisitStatementList( StatementList* stmtList )
         stmtList->Type = stmtList->Statements.back()->Type;
 }
 
+void BinderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
+{
+    if ( typeDecl->Decl )
+        return;
+
+    mGlobalTable.erase( typeDecl->Name );
+
+    typeDecl->TypeRef->Accept( this );
+
+    AddType( typeDecl->Name, typeDecl->TypeRef->ReferentType );
+}
+
 void BinderVisitor::VisitUnaryExpr( UnaryExpr* unary )
 {
     unary->Inner->Accept( this );

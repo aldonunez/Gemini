@@ -61,6 +61,7 @@ static const char* gTokenNames[] =
     "return",
     "then",
     "to",
+    "type",
     "var",
     "when",
     "while",
@@ -439,6 +440,7 @@ void AlgolyParser::ReadSymbolOrKeyword()
         { "return", TokenCode::Return },
         { "then",   TokenCode::Then },
         { "to",     TokenCode::To },
+        { "type",   TokenCode::Type },
         { "var",    TokenCode::Var },
         { "when",   TokenCode::When },
         { "while",  TokenCode::While },
@@ -506,6 +508,10 @@ Unique<Unit> AlgolyParser::Parse()
 
         case TokenCode::Import:
             unit->DataDeclarations.push_back( ParseImport() );
+            break;
+
+        case TokenCode::Type:
+            unit->DataDeclarations.push_back( ParseTypeDecl() );
             break;
 
         default:
@@ -1137,6 +1143,32 @@ Unique<DataDecl> AlgolyParser::ParseVarDecl()
 Unique<DataDecl> AlgolyParser::ParseConstDecl()
 {
     return ParseVar( Make<ConstDecl>(), TokenCode::EQ );
+}
+
+Unique<DeclSyntax> AlgolyParser::ParseTypeDecl()
+{
+    auto typeDecl = Make<TypeDecl>();
+
+    ScanToken();
+
+    typeDecl->Name = ParseRawSymbol();
+
+    ScanToken( TokenCode::EQ );
+
+    typeDecl->TypeRef = ParseTypeDef();
+
+    return typeDecl;
+}
+
+Unique<TypeRef> AlgolyParser::ParseTypeDef()
+{
+    switch ( mCurToken )
+    {
+    default:
+        ThrowSyntaxError( "Expected type denoter" );
+    }
+
+    // TODO: where to skip line endings or separators?
 }
 
 Unique<TypeRef> AlgolyParser::ParseTypeRef()

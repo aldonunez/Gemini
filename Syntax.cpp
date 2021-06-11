@@ -261,6 +261,11 @@ void StatementList::Accept( IVisitor* visitor )
     visitor->VisitStatementList( this );
 }
 
+void TypeDecl::Accept( IVisitor* visitor )
+{
+    visitor->VisitTypeDecl( this );
+}
+
 void UnaryExpr::Accept( IVisitor* visitor )
 {
     visitor->VisitUnaryExpr( this );
@@ -424,6 +429,10 @@ void IVisitor::VisitStatementList( StatementList* stmtmList )
 {
 }
 
+void IVisitor::VisitTypeDecl( TypeDecl* typeDecl )
+{
+}
+
 void IVisitor::VisitUnaryExpr( UnaryExpr* unary )
 {
 }
@@ -495,7 +504,8 @@ bool IntType::IsAssignableFrom( Type* other ) const
 {
     return other != nullptr
         && (other->GetKind() == TypeKind::Int
-            || other->GetKind() == TypeKind::Xfer);
+            || other->GetKind() == TypeKind::Xfer
+            );
 }
 
 int32_t IntType::GetSize() const

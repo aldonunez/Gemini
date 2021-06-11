@@ -295,6 +295,10 @@ void FolderVisitor::VisitStatementList( StatementList* stmtList )
     mLastValue.reset();
 }
 
+void FolderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
+{
+}
+
 void FolderVisitor::VisitUnaryExpr( UnaryExpr* unary )
 {
     Fold( unary->Inner );
