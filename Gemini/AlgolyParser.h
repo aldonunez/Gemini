@@ -76,6 +76,7 @@ class AlgolyParser
         Of,
         Or,
         Proc,
+        Record,
         Return,
         Then,
         To,
@@ -159,6 +160,7 @@ private:
 
     Unique<TypeRef> ParseTypeDef();
     Unique<TypeRef> ParseTypeRef();
+    Unique<TypeRef> ParseRecordTypeDef();
     Unique<TypeRef> ParseNameTypeRef();
     Unique<TypeRef> ParsePtrFuncTypeRef();
     Unique<TypeRef> ParseArrayTypeRef();

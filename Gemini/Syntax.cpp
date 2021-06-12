@@ -191,6 +191,11 @@ void DotExpr::Accept( Visitor* visitor )
     visitor->VisitDotExpr( this );
 }
 
+void FieldDecl::Accept( IVisitor* visitor )
+{
+    visitor->VisitFieldDecl( this );
+}
+
 void ForStatement::Accept( Visitor* visitor )
 {
     visitor->VisitForStatement( this );
@@ -269,6 +274,11 @@ void ProcDecl::Accept( Visitor* visitor )
 void ProcTypeRef::Accept( Visitor* visitor )
 {
     visitor->VisitProcTypeRef( this );
+}
+
+void RecordTypeRef::Accept( IVisitor* visitor )
+{
+    visitor->VisitRecordTypeRef( this );
 }
 
 void ReturnStatement::Accept( Visitor* visitor )
@@ -386,6 +396,10 @@ void Visitor::VisitDotExpr( DotExpr* dotExpr )
 {
 }
 
+void IVisitor::VisitFieldDecl( FieldDecl* fieldDecl )
+{
+}
+
 void Visitor::VisitForStatement( ForStatement* forStmt )
 {
 }
@@ -447,6 +461,10 @@ void Visitor::VisitProcDecl( ProcDecl* procDecl )
 }
 
 void Visitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
+{
+}
+
+void IVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 {
 }
 

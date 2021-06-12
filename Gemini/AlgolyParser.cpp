@@ -70,6 +70,7 @@ static const char* gTokenNames[] =
     "of",
     "or",
     "proc",
+    "record",
     "return",
     "then",
     "to",
@@ -484,6 +485,7 @@ void AlgolyParser::ReadSymbolOrKeyword()
         { "of",     TokenCode::Of },
         { "or",     TokenCode::Or },
         { "proc",   TokenCode::Proc },
+        { "record", TokenCode::Record },
         { "return", TokenCode::Return },
         { "then",   TokenCode::Then },
         { "to",     TokenCode::To },
@@ -1328,6 +1330,7 @@ Unique<TypeRef> AlgolyParser::ParseTypeDef()
 {
     switch ( mCurToken )
     {
+    case TokenCode::Record: return ParseRecordTypeDef();
     default:
         return ParseTypeRef();
     }
@@ -1344,6 +1347,31 @@ Unique<TypeRef> AlgolyParser::ParseTypeRef()
     default:
         ThrowSyntaxError( "Expected type denoter" );
     }
+}
+
+Unique<TypeRef> AlgolyParser::ParseRecordTypeDef()
+{
+    auto recordTypeRef = Make<RecordTypeRef>();
+
+    ScanToken();
+    SkipLineEndings();
+
+    while ( mCurToken != TokenCode::End )
+    {
+        recordTypeRef->Fields.push_back( ParseVar( Make<FieldDecl>(), std::nullopt ) );
+
+        SkipLineEndings();
+
+        if ( mCurToken == TokenCode::Comma )
+        {
+            ScanToken();
+            SkipLineEndings();
+        }
+    }
+
+    ScanToken();
+
+    return recordTypeRef;
 }
 
 Unique<TypeRef> AlgolyParser::ParseNameTypeRef()

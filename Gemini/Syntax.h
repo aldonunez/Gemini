@@ -159,6 +159,16 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+class DataDecl;
+
+class RecordTypeRef : public TypeRef
+{
+public:
+    std::vector<Unique<DataDecl>> Fields;
+
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
 enum class ArrayFill
 {
     None,
@@ -216,6 +226,12 @@ class ParamDecl : public DataDecl
 {
 public:
     virtual void Accept( Visitor* visitor ) override;
+};
+
+class FieldDecl : public DataDecl
+{
+public:
+    virtual void Accept( IVisitor* visitor ) override;
 };
 
 class TypeDecl : public DeclSyntax
@@ -525,6 +541,7 @@ public:
     virtual void VisitConstDecl( ConstDecl* constDecl );
     virtual void VisitCountofExpr( CountofExpr* countofExpr );
     virtual void VisitDotExpr( DotExpr* dotExpr );
+    virtual void VisitFieldDecl( FieldDecl* fieldDecl );
     virtual void VisitForStatement( ForStatement* forStmt );
     virtual void VisitImportDecl( ImportDecl* importDecl );
     virtual void VisitIndexExpr( IndexExpr* indexExpr );
@@ -541,6 +558,7 @@ public:
     virtual void VisitPointerTypeRef( PointerTypeRef* pointerTypeRef );
     virtual void VisitProcDecl( ProcDecl* procDecl );
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef );
+    virtual void VisitRecordTypeRef( RecordTypeRef* recordTypeRef );
     virtual void VisitReturnStatement( ReturnStatement* retStmt );
     virtual void VisitSliceExpr( SliceExpr* sliceExpr );
     virtual void VisitStatementList( StatementList* stmtmList );
