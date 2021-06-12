@@ -553,10 +553,42 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
         dotExpr->Decl = it->second;
         dotExpr->Type = dotExpr->Decl->Type;
     }
+    else if ( dotExpr->Head->Type->GetKind() == TypeKind::Type )
+    {
+        auto decl = dotExpr->Head->GetDecl();
+
+        auto recType = (RecordType&) *((TypeDeclaration*) decl)->ReferentType;
+
+        auto it = recType.Fields.find( dotExpr->Member );
+
+        if ( it == recType.Fields.end() )
+            mRep.ThrowError( CERR_SEMANTICS, dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
+
+        dotExpr->Decl = it->second;
+        dotExpr->Type = dotExpr->Decl->Type;
+    }
     else
     {
         mRep.ThrowSemanticsError( dotExpr->Head.get(), "Can only access members of a module" );
     }
+}
+
+void BinderVisitor::VisitFieldDecl( FieldDecl* fieldDecl )
+{
+    std::shared_ptr<Type> type;
+
+    if ( fieldDecl->TypeRef )
+    {
+        fieldDecl->TypeRef->Accept( this );
+
+        type = fieldDecl->TypeRef->ReferentType;
+    }
+    else
+    {
+        type = mIntType;
+    }
+
+    fieldDecl->Type = type;
 }
 
 void BinderVisitor::VisitForStatement( ForStatement* forStmt )
@@ -1092,6 +1124,31 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 
     procTypeRef->Type = mTypeType;
     procTypeRef->ReferentType = funcType;
+}
+
+void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
+{
+    auto recordType = Make<RecordType>();
+
+    int32_t offset = 0;
+
+    for ( auto& fieldDef : recordTypeRef->Fields )
+    {
+        fieldDef->Accept( this );
+
+        auto field = Make<FieldStorage>();
+
+        field->Kind = DeclKind::Field;
+        field->Offset = offset;
+        field->Type = fieldDef->Type;
+
+        offset += field->Type->GetSize();
+
+        recordType->Fields.insert( SymTable::value_type( fieldDef->Name, field ) );
+    }
+
+    recordTypeRef->Type = mTypeType;
+    recordTypeRef->ReferentType = recordType;
 }
 
 void BinderVisitor::VisitReturnStatement( ReturnStatement* retStmt )

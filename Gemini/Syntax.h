@@ -581,6 +581,7 @@ enum class DeclKind
     Global,
     Local,
     Param,
+    Field,
     Func,
     NativeFunc,
     Type,
@@ -638,6 +639,11 @@ struct ParamStorage : public Declaration
     ParamSize   Offset = 0;
 
     ParamStorage();
+};
+
+struct FieldStorage : public Declaration
+{
+    int Offset;
 };
 
 struct CallSite
@@ -714,6 +720,7 @@ enum class TypeKind
     Array,
     Func,
     Pointer,
+    Record,
 };
 
 class Type
@@ -795,6 +802,20 @@ public:
 
     virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;
+};
+
+
+class RecordType : public Type
+{
+    mutable int32_t mSize = 0;
+
+public:
+    SymTable    Fields;
+
+    RecordType();
+
+    virtual bool IsAssignableFrom( Type* other ) const override;
+    virtual int32_t GetSize() const override;
 };
 
 }

@@ -730,4 +730,28 @@ DataSize PointerType::GetSize() const
     return 1;
 }
 
+
+RecordType::RecordType() :
+    Type( TypeKind::Record )
+{
+}
+
+bool RecordType::IsAssignableFrom( Type* other ) const
+{
+    return other == this;
+}
+
+int32_t RecordType::GetSize() const
+{
+    if ( mSize == 0 )
+    {
+        for ( auto& [_, field] : Fields )
+        {
+            mSize += field->Type->GetSize();
+        }
+    }
+
+    return mSize;
+}
+
 }
