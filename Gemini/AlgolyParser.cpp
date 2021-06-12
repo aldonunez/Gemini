@@ -1405,9 +1405,6 @@ Unique<TypeRef> AlgolyParser::ParseEnumTypeDef()
 
     ScanToken();
 
-    // TODO: where to skip line endings or separators?
-    SkipLineEndings();
-
     return enumTypeRef;
 }
 
