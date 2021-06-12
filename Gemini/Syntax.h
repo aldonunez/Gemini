@@ -33,6 +33,7 @@ enum class SyntaxKind
     Slice,
     DotExpr,
     ArrayInitializer,
+    RecordInitializer,
     ConstDecl,
     VarDecl,
     ParamDecl,
@@ -186,6 +187,16 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+class DataDecl;
+
+class RecordTypeRef : public TypeRef
+{
+public:
+    std::vector<Unique<DataDecl>> Fields;
+
+    virtual void Accept( Visitor* visitor ) override;
+};
+
 enum class ArrayFill
 {
     None,
@@ -201,6 +212,18 @@ public:
     std::vector<Unique<Syntax>> Values;
 
     InitList();
+
+    virtual void Accept( Visitor* visitor ) override;
+};
+
+class FieldInitializer;
+
+class RecordInitializer : public Syntax
+{
+public:
+    RecordInitializer();
+
+    std::vector<Unique<FieldInitializer>> Fields;
 
     virtual void Accept( Visitor* visitor ) override;
 };
@@ -246,6 +269,18 @@ public:
 
     ParamDecl();
 
+    virtual void Accept( Visitor* visitor ) override;
+};
+
+class FieldDecl : public DataDecl
+{
+public:
+    virtual void Accept( Visitor* visitor ) override;
+};
+
+class FieldInitializer : public DataDecl
+{
+public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
@@ -558,6 +593,8 @@ public:
     virtual void VisitConstDecl( ConstDecl* constDecl );
     virtual void VisitCountofExpr( CountofExpr* countofExpr );
     virtual void VisitDotExpr( DotExpr* dotExpr );
+    virtual void VisitFieldDecl( FieldDecl* fieldDecl );
+    virtual void VisitFieldInitializer( FieldInitializer* fieldInit );
     virtual void VisitForStatement( ForStatement* forStmt );
     virtual void VisitImportDecl( ImportDecl* importDecl );
     virtual void VisitIndexExpr( IndexExpr* indexExpr );
@@ -574,6 +611,8 @@ public:
     virtual void VisitPointerTypeRef( PointerTypeRef* pointerTypeRef );
     virtual void VisitProcDecl( ProcDecl* procDecl );
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef );
+    virtual void VisitRecordInitializer( RecordInitializer* recordInitializer );
+    virtual void VisitRecordTypeRef( RecordTypeRef* recordTypeRef );
     virtual void VisitReturnStatement( ReturnStatement* retStmt );
     virtual void VisitSliceExpr( SliceExpr* sliceExpr );
     virtual void VisitStatementList( StatementList* stmtmList );
@@ -596,6 +635,7 @@ enum class DeclKind
     Global,
     Local,
     Param,
+    Field,
     Func,
     NativeFunc,
     Type,
@@ -655,6 +695,13 @@ struct ParamStorage : public Declaration
     ParamSize   Size = 0;
 
     ParamStorage();
+};
+
+struct FieldStorage : public Declaration
+{
+    DataSize    Offset = 0;
+
+    FieldStorage();
 };
 
 struct CallSite
@@ -731,6 +778,7 @@ enum class TypeKind
     Array,
     Func,
     Pointer,
+    Record,
 };
 
 class Type
@@ -818,6 +866,20 @@ public:
     std::shared_ptr<Type>   TargetType;
 
     PointerType( std::shared_ptr<Type> target );
+
+    virtual bool IsEqual( Type* other ) const override;
+    virtual DataSize GetSize() const override;
+};
+
+
+class RecordType : public Type
+{
+    mutable DataSize mSize = 0;
+
+public:
+    SymTable    Fields;
+
+    RecordType();
 
     virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;

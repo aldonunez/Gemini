@@ -9,6 +9,7 @@
 #include "FolderVisitor.h"
 #include <assert.h>
 #include <inttypes.h>
+#include <set>
 #include <stdio.h>
 
 
@@ -137,6 +138,7 @@ static bool IsStorageType( TypeKind kind )
 {
     return IsScalarType( kind )
         || kind == TypeKind::Array
+        || kind == TypeKind::Record
         ;
 }
 
@@ -563,10 +565,40 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
         dotExpr->Decl = it->second;
         dotExpr->Type = dotExpr->Decl->Type;
     }
+    else if ( dotExpr->Head->Type->GetKind() == TypeKind::Record )
+    {
+        auto& recType = (RecordType&) *dotExpr->Head->Type;
+
+        auto it = recType.Fields.find( dotExpr->Member );
+
+        if ( it == recType.Fields.end() )
+            mRep.ThrowSemanticsError( dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
+
+        dotExpr->Decl = it->second;
+        dotExpr->Type = dotExpr->Decl->Type;
+    }
     else
     {
         mRep.ThrowSemanticsError( dotExpr->Head.get(), "Can only access members of a module" );
     }
+}
+
+void BinderVisitor::VisitFieldDecl( FieldDecl* fieldDecl )
+{
+    std::shared_ptr<Type> type;
+
+    if ( fieldDecl->TypeRef )
+    {
+        fieldDecl->TypeRef->Accept( this );
+
+        type = fieldDecl->TypeRef->ReferentType;
+    }
+    else
+    {
+        type = mIntType;
+    }
+
+    fieldDecl->Type = type;
 }
 
 void BinderVisitor::VisitForStatement( ForStatement* forStmt )
@@ -818,6 +850,44 @@ void BinderVisitor::CheckInitializer(
 
         initializer->Type = type;
     }
+    else if ( initializer->Kind == SyntaxKind::RecordInitializer )
+    {
+        if ( type->GetKind() != TypeKind::Record )
+            mRep.ThrowSemanticsError( initializer.get(), "Record initializer is invalid here" );
+
+        auto& recordInit = (RecordInitializer&) *initializer;
+        auto& recordType = (RecordType&) *type;
+
+        std::set<std::string> alreadyInit;
+        SymTable notInit = recordType.Fields;
+
+        for ( auto& fieldInit : recordInit.Fields )
+        {
+            if ( alreadyInit.find( fieldInit->Name ) != alreadyInit.end() )
+                mRep.ThrowSemanticsError( fieldInit.get(), "Field already initialized" );
+
+            auto it = notInit.find( fieldInit->Name );
+
+            if ( it == notInit.end() )
+                mRep.ThrowSemanticsError( fieldInit.get(), "Field not found: %s", fieldInit->Name.c_str() );
+
+            auto fieldDecl = it->second;
+
+            CheckInitializer( fieldDecl->Type, fieldInit->Initializer );
+
+            fieldInit->Decl = fieldDecl;
+
+            alreadyInit.insert( fieldInit->Name );
+            notInit.erase( it );
+        }
+
+        for ( auto& [_, decl] : notInit )
+        {
+            CheckAllDescendantsHaveDefault( decl->Type.get(), initializer.get() );
+        }
+
+        initializer->Type = type;
+    }
     else
     {
         initializer->Accept( this );
@@ -833,6 +903,15 @@ void BinderVisitor::CheckAllDescendantsHaveDefault( Type* type, Syntax* node )
         auto arrayType = (ArrayType*) type;
 
         CheckAllDescendantsHaveDefault( arrayType->ElemType.get(), node );
+    }
+    else if ( type->GetKind() == TypeKind::Record )
+    {
+        auto recordType = (RecordType*) type;
+
+        for ( auto& [_, decl] : recordType->Fields )
+        {
+            CheckAllDescendantsHaveDefault( decl->Type.get(), node );
+        }
     }
     else if ( type->GetKind() == TypeKind::Pointer )
     {
@@ -1111,6 +1190,33 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 
     procTypeRef->Type = mTypeType;
     procTypeRef->ReferentType = funcType;
+}
+
+void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
+{
+    auto recordType = Make<RecordType>();
+
+    DataSize offset = 0;
+
+    for ( auto& fieldDef : recordTypeRef->Fields )
+    {
+        fieldDef->Accept( this );
+
+        if ( fieldDef->Type->GetSize() > (DataSizeMax - offset) )
+            mRep.ThrowSemanticsError( fieldDef.get(), "Record type is too big" );
+
+        auto field = Make<FieldStorage>();
+
+        field->Offset = offset;
+        field->Type = fieldDef->Type;
+
+        offset += field->Type->GetSize();
+
+        recordType->Fields.insert( SymTable::value_type( fieldDef->Name, field ) );
+    }
+
+    recordTypeRef->Type = mTypeType;
+    recordTypeRef->ReferentType = recordType;
 }
 
 void BinderVisitor::VisitReturnStatement( ReturnStatement* retStmt )

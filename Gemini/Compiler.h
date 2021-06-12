@@ -339,6 +339,7 @@ private:
     void GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status );
     void GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
+    void GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status );
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
     void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );
 
@@ -346,6 +347,7 @@ private:
 
     void AddGlobalData( GlobalSize offset, Syntax* valueElem );
     void AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t size );
+    void AddGlobalDataRecord( GlobalSize offset, Syntax* recordValue );
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
@@ -373,6 +375,7 @@ private:
     void GenerateLetBinding( DataDecl* binding );
     void GenerateLocalInit( LocalSize offset, Syntax* initializer );
     void AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size );
+    void AddLocalDataRecord( LocalSize offset, Syntax* recordValue );
 
     void GenerateDopeVector( Syntax& node, ParamSpec& paramSpec );
     void GenerateArg( Syntax& node, ParamSpec& paramSpec );

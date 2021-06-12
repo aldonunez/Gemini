@@ -56,6 +56,11 @@ InitList::InitList()
     Kind = SyntaxKind::ArrayInitializer;
 }
 
+RecordInitializer::RecordInitializer()
+{
+    Kind = SyntaxKind::RecordInitializer;
+}
+
 Declaration* DeclSyntax::GetDecl()
 {
     return Decl.get();
@@ -201,6 +206,16 @@ void DotExpr::Accept( Visitor* visitor )
     visitor->VisitDotExpr( this );
 }
 
+void FieldDecl::Accept( Visitor* visitor )
+{
+    visitor->VisitFieldDecl( this );
+}
+
+void FieldInitializer::Accept( Visitor* visitor )
+{
+    visitor->VisitFieldInitializer( this );
+}
+
 void ForStatement::Accept( Visitor* visitor )
 {
     visitor->VisitForStatement( this );
@@ -279,6 +294,16 @@ void ProcDecl::Accept( Visitor* visitor )
 void ProcTypeRef::Accept( Visitor* visitor )
 {
     visitor->VisitProcTypeRef( this );
+}
+
+void RecordInitializer::Accept( Visitor* visitor )
+{
+    visitor->VisitRecordInitializer( this );
+}
+
+void RecordTypeRef::Accept( Visitor* visitor )
+{
+    visitor->VisitRecordTypeRef( this );
 }
 
 void ReturnStatement::Accept( Visitor* visitor )
@@ -396,6 +421,14 @@ void Visitor::VisitDotExpr( DotExpr* dotExpr )
 {
 }
 
+void Visitor::VisitFieldDecl( FieldDecl* fieldDecl )
+{
+}
+
+void Visitor::VisitFieldInitializer( FieldInitializer* fieldInit )
+{
+}
+
 void Visitor::VisitForStatement( ForStatement* forStmt )
 {
 }
@@ -457,6 +490,14 @@ void Visitor::VisitProcDecl( ProcDecl* procDecl )
 }
 
 void Visitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
+{
+}
+
+void Visitor::VisitRecordInitializer( RecordInitializer* recordInitializer )
+{
+}
+
+void Visitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 {
 }
 
@@ -524,6 +565,11 @@ LocalStorage::LocalStorage() :
 
 ParamStorage::ParamStorage() :
     Declaration( DeclKind::Param )
+{
+}
+
+FieldStorage::FieldStorage() :
+    Declaration( DeclKind::Field )
 {
 }
 
@@ -750,6 +796,30 @@ bool PointerType::IsEqual( Type* other ) const
 DataSize PointerType::GetSize() const
 {
     return 1;
+}
+
+
+RecordType::RecordType() :
+    Type( TypeKind::Record )
+{
+}
+
+bool RecordType::IsEqual( Type* other ) const
+{
+    return other == this;
+}
+
+DataSize RecordType::GetSize() const
+{
+    if ( mSize == 0 )
+    {
+        for ( auto& [_, field] : Fields )
+        {
+            mSize += field->Type->GetSize();
+        }
+    }
+
+    return mSize;
 }
 
 }

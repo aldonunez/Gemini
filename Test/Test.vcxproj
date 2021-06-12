@@ -28,6 +28,7 @@
     <ClCompile Include="TestAlgolyCopyArray.cpp" />
     <ClCompile Include="TestAlgolyMultiArray.cpp" />
     <ClCompile Include="TestAlgolyPassRef.cpp" />
+    <ClCompile Include="TestAlgolyRecord.cpp" />
     <ClCompile Include="TestAlgolyStack.cpp" />
     <ClCompile Include="TestBase.cpp" />
     <ClCompile Include="TestAlgoly.cpp" />

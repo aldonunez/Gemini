@@ -71,6 +71,7 @@ public:
     virtual void VisitConstDecl( ConstDecl* constDecl ) override;
     virtual void VisitCountofExpr( CountofExpr* countofExpr ) override;
     virtual void VisitDotExpr( DotExpr* dotExpr ) override;
+    virtual void VisitFieldDecl( FieldDecl* fieldDecl ) override;
     virtual void VisitForStatement( ForStatement* forStmt ) override;
     virtual void VisitImportDecl( ImportDecl* importDecl ) override;
     virtual void VisitIndexExpr( IndexExpr* indexExpr ) override;
@@ -87,6 +88,7 @@ public:
     virtual void VisitPointerTypeRef( PointerTypeRef* pointerTypeRef ) override;
     virtual void VisitProcDecl( ProcDecl* procDecl ) override;
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef ) override;
+    virtual void VisitRecordTypeRef( RecordTypeRef* recordTypeRef ) override;
     virtual void VisitReturnStatement( ReturnStatement* retStmt ) override;
     virtual void VisitSliceExpr( SliceExpr* sliceExpr ) override;
     virtual void VisitStatementList( StatementList* stmtList ) override;

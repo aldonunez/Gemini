@@ -29,6 +29,8 @@ static const char* gTokenNames[] =
     "@",
     "[",
     "]",
+    "{",
+    "}",
     ":=",
     ":",
     "..",
@@ -70,6 +72,7 @@ static const char* gTokenNames[] =
     "of",
     "or",
     "proc",
+    "record",
     "return",
     "then",
     "to",
@@ -242,6 +245,16 @@ AlgolyParser::TokenCode AlgolyParser::ScanToken()
     case ']':
         NextChar();
         mCurToken = TokenCode::RBracket;
+        break;
+
+    case '{':
+        NextChar();
+        mCurToken = TokenCode::LBrace;
+        break;
+
+    case '}':
+        NextChar();
+        mCurToken = TokenCode::RBrace;
         break;
 
     case '.':
@@ -484,6 +497,7 @@ void AlgolyParser::ReadSymbolOrKeyword()
         { "of",     TokenCode::Of },
         { "or",     TokenCode::Or },
         { "proc",   TokenCode::Proc },
+        { "record", TokenCode::Record },
         { "return", TokenCode::Return },
         { "then",   TokenCode::Then },
         { "to",     TokenCode::To },
@@ -1339,6 +1353,7 @@ Unique<TypeRef> AlgolyParser::ParseTypeDef()
 {
     switch ( mCurToken )
     {
+    case TokenCode::Record: return ParseRecordTypeDef();
     default:
         return ParseTypeRef();
     }
@@ -1355,6 +1370,31 @@ Unique<TypeRef> AlgolyParser::ParseTypeRef( bool allowOpenArray )
     default:
         ThrowSyntaxError( "Expected type denoter" );
     }
+}
+
+Unique<TypeRef> AlgolyParser::ParseRecordTypeDef()
+{
+    auto recordTypeRef = Make<RecordTypeRef>();
+
+    ScanToken();
+    SkipLineEndings();
+
+    while ( mCurToken != TokenCode::End )
+    {
+        recordTypeRef->Fields.push_back( ParseVar( Make<FieldDecl>(), std::nullopt ) );
+
+        SkipLineEndings();
+
+        if ( mCurToken == TokenCode::Comma )
+        {
+            ScanToken();
+            SkipLineEndings();
+        }
+    }
+
+    ScanToken();
+
+    return recordTypeRef;
 }
 
 Unique<TypeRef> AlgolyParser::ParseNameTypeRef()
@@ -1495,11 +1535,46 @@ Unique<Syntax> AlgolyParser::ParseArrayInitializer()
     return initList;
 }
 
+Unique<Syntax> AlgolyParser::ParseRecordInitializer()
+{
+    auto recordInitializer = Make<RecordInitializer>();
+
+    ScanToken();
+    SkipLineEndings();
+
+    while ( mCurToken != TokenCode::RBrace )
+    {
+        auto fieldInit = Make<FieldInitializer>();
+
+        fieldInit->Name = ParseRawSymbol();
+
+        ScanToken( TokenCode::Colon );
+        SkipLineEndings();
+
+        fieldInit->Initializer = ParseInitExpr();
+
+        recordInitializer->Fields.push_back( std::move( fieldInit ) );
+
+        if ( mCurToken == TokenCode::Comma )
+            ScanToken();
+
+        SkipLineEndings();
+    }
+
+    ScanToken();
+
+    return recordInitializer;
+}
+
 Unique<Syntax> AlgolyParser::ParseInitExpr()
 {
     if ( mCurToken == TokenCode::LBracket )
     {
         return ParseArrayInitializer();
+    }
+    else if ( mCurToken == TokenCode::LBrace )
+    {
+        return ParseRecordInitializer();
     }
     else
     {

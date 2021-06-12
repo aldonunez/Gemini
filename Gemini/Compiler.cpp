@@ -922,6 +922,10 @@ void Compiler::GenerateLocalInit( LocalSize offset, Syntax* initializer )
 
         AddLocalDataArray( offset, initializer, arrayType->Count );
     }
+    else if ( type->GetKind() == TypeKind::Record )
+    {
+        AddLocalDataRecord( offset, initializer );
+    }
     else
     {
         mRep.ThrowSemanticsError( initializer, "'let' binding takes a name or name and type" );
@@ -1001,6 +1005,20 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
             GenerateLocalInit( locIndex, lastNode );
             locIndex -= static_cast<LocalSize>(lastNode->Type->GetSize());
         }
+    }
+}
+
+void Compiler::AddLocalDataRecord( LocalSize offset, Syntax* recordValue )
+{
+    auto recordInit = (RecordInitializer*) recordValue;
+
+    for ( auto& fieldInit : recordInit->Fields )
+    {
+        auto fieldDecl = (FieldStorage*) fieldInit->GetDecl();
+
+        assert( offset >= fieldDecl->Offset );
+
+        GenerateLocalInit( static_cast<LocalSize>(offset - fieldDecl->Offset), fieldInit->Initializer.get() );
     }
 }
 
@@ -1944,9 +1962,43 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
     EmitLoadAggregateCopySource( sliceExpr );
 }
 
+void Compiler::GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status )
+{
+    if ( config.discard )
+    {
+        status.discarded = true;
+        return;
+    }
+    else if ( config.calcAddr )
+    {
+        Generate( dotExpr->Head.get(), config, status );
+
+        auto field = (FieldStorage*) dotExpr->GetDecl();
+
+        status.offset += field->Offset;
+        return;
+    }
+
+    Declaration* baseDecl = nullptr;
+    int32_t offset = 0;
+
+    CalcAddress( dotExpr, baseDecl, offset );
+
+    EmitLoadScalar( dotExpr, baseDecl, offset );
+}
+
 void Compiler::VisitDotExpr( DotExpr* dotExpr )
 {
-    GenerateValue( dotExpr, dotExpr->GetDecl(), Config(), Status() );
+    auto decl = dotExpr->GetDecl();
+
+    if ( decl->Kind == DeclKind::Field )
+    {
+        GenerateFieldAccess( dotExpr, Config(), Status() );
+    }
+    else
+    {
+        GenerateValue( dotExpr, decl, Config(), Status() );
+    }
 }
 
 void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status )
@@ -1972,6 +2024,10 @@ void Compiler::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
         auto arrayType = (ArrayType*) type;
 
         AddGlobalDataArray( offset, initializer, arrayType->Count );
+    }
+    else if ( type->GetKind() == TypeKind::Record )
+    {
+        AddGlobalDataRecord( offset, initializer );
     }
     else
     {
@@ -2066,6 +2122,21 @@ void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t 
             GenerateGlobalInit( globalIndex, lastNode );
             globalIndex += lastNode->Type->GetSize();
         }
+    }
+}
+
+void Compiler::AddGlobalDataRecord( GlobalSize offset, Syntax* recordValue )
+{
+    if ( recordValue->Kind != SyntaxKind::RecordInitializer )
+        mRep.ThrowSemanticsError( recordValue, "Records must be initialized with record initializer" );
+
+    auto recordInit = (RecordInitializer*) recordValue;
+
+    for ( auto& fieldInit : recordInit->Fields )
+    {
+        auto fieldDecl = (FieldStorage*) fieldInit->GetDecl();
+
+        GenerateGlobalInit( offset + fieldDecl->Offset, fieldInit->Initializer.get() );
     }
 }
 
