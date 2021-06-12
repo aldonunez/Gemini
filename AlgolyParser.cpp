@@ -511,7 +511,7 @@ Unique<Unit> AlgolyParser::Parse()
             break;
 
         case TokenCode::Type:
-            unit->DataDeclarations.push_back( ParseTypeDecl() );
+            ParseTypeDecls( unit.get() );
             break;
 
         default:
@@ -1149,8 +1149,6 @@ Unique<DeclSyntax> AlgolyParser::ParseTypeDecl()
 {
     auto typeDecl = Make<TypeDecl>();
 
-    ScanToken();
-
     typeDecl->Name = ParseRawSymbol();
 
     ScanToken( TokenCode::EQ );
@@ -1158,6 +1156,32 @@ Unique<DeclSyntax> AlgolyParser::ParseTypeDecl()
     typeDecl->TypeRef = ParseTypeDef();
 
     return typeDecl;
+}
+
+void AlgolyParser::ParseTypeDecls( Unit* unit )
+{
+    ScanToken();
+    SkipLineEndings();
+
+    bool first = true;
+
+    do
+    {
+        if ( !first )
+        {
+            ScanToken( TokenCode::Comma );
+            SkipLineEndings();
+        }
+
+        first = false;
+
+        unit->DataDeclarations.push_back( ParseTypeDecl() );
+
+    } while ( mCurToken != TokenCode::Eol
+        && mCurToken != TokenCode::Separator
+        && mCurToken != TokenCode::Eof );
+
+    SkipLineSeparators();
 }
 
 Unique<TypeRef> AlgolyParser::ParseTypeDef()

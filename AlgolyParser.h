@@ -140,6 +140,7 @@ private:
     Unique<DataDecl> ParseVarDecl();
     Unique<DataDecl> ParseConstDecl();
     Unique<DeclSyntax> ParseTypeDecl();
+    void ParseTypeDecls( Unit* unit );
 
     Unique<TypeRef> ParseTypeDef();
     Unique<TypeRef> ParseTypeRef();
