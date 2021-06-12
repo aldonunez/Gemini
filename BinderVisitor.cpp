@@ -103,6 +103,13 @@ static bool IsAllowedParamType( TypeKind kind )
         ;
 }
 
+static bool IsStorageType( TypeKind kind )
+{
+    return IsScalarType( kind )
+        || kind == TypeKind::Array
+        ;
+}
+
 template <typename T, typename... Args>
 std::shared_ptr<T> Make( Args&&... args )
 {
@@ -645,6 +652,9 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
         if ( varDecl->Initializer == nullptr && type->GetKind() == TypeKind::Pointer )
             mRep.ThrowError( CERR_SEMANTICS, varDecl, "Pointers must be initialized" );
     }
+
+    if ( !IsStorageType( type->GetKind() ) )
+        mRep.ThrowError( CERR_SEMANTICS, varDecl, "Variables cannot take this type" );
 
     int32_t size = type->GetSize();
 
