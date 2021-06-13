@@ -1511,8 +1511,28 @@ Unique<Syntax> AlgolyParser::ParseRecordInitializer()
     auto recordInitializer = Make<RecordInitializer>();
 
     ScanToken();
+    SkipLineEndings();
 
-    ScanToken( TokenCode::RBrace );
+    while ( mCurToken != TokenCode::RBrace )
+    {
+        auto fieldInit = Make<FieldInitializer>();
+
+        fieldInit->Name = ParseRawSymbol();
+
+        ScanToken( TokenCode::Colon );
+        SkipLineEndings();
+
+        fieldInit->Initializer = ParseInitExpr();
+
+        recordInitializer->Fields.push_back( std::move( fieldInit ) );
+
+        if ( mCurToken == TokenCode::Comma )
+            ScanToken();
+
+        SkipLineEndings();
+    }
+
+    ScanToken();
 
     return recordInitializer;
 }

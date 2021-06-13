@@ -56,6 +56,11 @@ InitList::InitList()
     Kind = SyntaxKind::ArrayInitializer;
 }
 
+RecordInitializer::RecordInitializer()
+{
+    Kind = SyntaxKind::RecordInitializer;
+}
+
 Declaration* DeclSyntax::GetDecl()
 {
     return Decl.get();
@@ -194,6 +199,11 @@ void DotExpr::Accept( Visitor* visitor )
 void FieldDecl::Accept( IVisitor* visitor )
 {
     visitor->VisitFieldDecl( this );
+}
+
+void FieldInitializer::Accept( IVisitor* visitor )
+{
+    visitor->VisitFieldInitializer( this );
 }
 
 void ForStatement::Accept( Visitor* visitor )
@@ -402,6 +412,10 @@ void Visitor::VisitDotExpr( DotExpr* dotExpr )
 }
 
 void IVisitor::VisitFieldDecl( FieldDecl* fieldDecl )
+{
+}
+
+void IVisitor::VisitFieldInitializer( FieldInitializer* fieldInit )
 {
 }
 

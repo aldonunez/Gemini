@@ -9,6 +9,7 @@
 #include "FolderVisitor.h"
 #include <assert.h>
 #include <inttypes.h>
+#include <set>
 #include <stdio.h>
 
 
@@ -133,6 +134,7 @@ static bool IsStorageType( TypeKind kind )
 {
     return IsScalarType( kind )
         || kind == TypeKind::Array
+        || kind == TypeKind::Record
         ;
 }
 
@@ -837,6 +839,40 @@ void BinderVisitor::CheckInitializer(
             if ( arrayInit.Values.size() < (size_t) arrayType.Count )
                 CheckAllDescendantsHaveDefault( elemType.get(), initializer.get() );
         }
+
+        initializer->Type = type;
+    }
+    else if ( initializer->Kind == SyntaxKind::RecordInitializer )
+    {
+        if ( type->GetKind() != TypeKind::Record )
+            mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Record initializer is invalid here" );
+
+        auto& recordInit = (RecordInitializer&) *initializer;
+        auto& recordType = (RecordType&) *type;
+
+        std::set<std::string> alreadyInit;
+
+        for ( auto& fieldInit : recordInit.Fields )
+        {
+            auto it = recordType.Fields.find( fieldInit->Name );
+
+            if ( it == recordType.Fields.end() )
+                mRep.ThrowError( CERR_SEMANTICS, fieldInit.get(), "Field not found: ", fieldInit->Name.c_str() );
+
+            if ( alreadyInit.find( fieldInit->Name ) != alreadyInit.end() )
+                mRep.ThrowError( CERR_SEMANTICS, fieldInit.get(), "Field already initialized" );
+
+            alreadyInit.insert( fieldInit->Name );
+
+            auto fieldDecl = it->second;
+
+            CheckInitializer( fieldDecl->Type, fieldInit->Initializer );
+
+            fieldInit->Decl = fieldDecl;
+        }
+
+        if ( alreadyInit.size() != recordType.Fields.size() )
+            mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Not all fields were initialized" );
 
         initializer->Type = type;
     }

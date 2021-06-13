@@ -32,6 +32,7 @@ enum class SyntaxKind
     Index,
     DotExpr,
     ArrayInitializer,
+    RecordInitializer,
     ConstDecl,
     VarDecl,
     Other,
@@ -188,9 +189,15 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+class FieldInitializer;
+
 class RecordInitializer : public Syntax
 {
 public:
+    RecordInitializer();
+
+    std::vector<Unique<FieldInitializer>> Fields;
+
     virtual void Accept( IVisitor* visitor ) override;
 };
 
@@ -235,6 +242,12 @@ public:
 };
 
 class FieldDecl : public DataDecl
+{
+public:
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
+class FieldInitializer : public DataDecl
 {
 public:
     virtual void Accept( IVisitor* visitor ) override;
@@ -548,6 +561,7 @@ public:
     virtual void VisitCountofExpr( CountofExpr* countofExpr );
     virtual void VisitDotExpr( DotExpr* dotExpr );
     virtual void VisitFieldDecl( FieldDecl* fieldDecl );
+    virtual void VisitFieldInitializer( FieldInitializer* fieldInit );
     virtual void VisitForStatement( ForStatement* forStmt );
     virtual void VisitImportDecl( ImportDecl* importDecl );
     virtual void VisitIndexExpr( IndexExpr* indexExpr );
