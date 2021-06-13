@@ -555,11 +555,11 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
         dotExpr->Decl = it->second;
         dotExpr->Type = dotExpr->Decl->Type;
     }
-    else if ( dotExpr->Head->Type->GetKind() == TypeKind::Type )
+    else if ( dotExpr->Head->Type->GetKind() == TypeKind::Record )
     {
         auto decl = dotExpr->Head->GetDecl();
 
-        auto recType = (RecordType&) *((TypeDeclaration*) decl)->ReferentType;
+        auto recType = (RecordType&) *decl->Type;
 
         auto it = recType.Fields.find( dotExpr->Member );
 
