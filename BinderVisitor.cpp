@@ -627,16 +627,13 @@ void BinderVisitor::VisitLetBinding( DataDecl* varDecl )
 
 void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 {
-    if ( varDecl->TypeRef != nullptr )
-        varDecl->TypeRef->Accept( this );
-
-    if ( varDecl->Initializer != nullptr )
-        varDecl->Initializer->Accept( this );
-
     std::shared_ptr<Type> type;
 
     if ( varDecl->TypeRef == nullptr )
     {
+        if ( varDecl->Initializer != nullptr )
+            varDecl->Initializer->Accept( this );
+
         if ( varDecl->Initializer == nullptr )
             type = mIntType;
         else
@@ -644,10 +641,12 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
     }
     else
     {
+        varDecl->TypeRef->Accept( this );
+
         type = varDecl->TypeRef->ReferentType;
 
         if ( varDecl->Initializer != nullptr )
-            CheckType( type, varDecl->Initializer->Type, varDecl->Initializer.get() );
+            CheckInitializer( type, varDecl->Initializer );
 
         if ( varDecl->Initializer == nullptr && type->GetKind() == TypeKind::Pointer )
             mRep.ThrowError( CERR_SEMANTICS, varDecl, "Pointers must be initialized" );
@@ -665,6 +664,41 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
     varDecl->Decl = AddStorage( varDecl->Name, type, size, declKind );
     varDecl->Type = type;
+}
+
+void BinderVisitor::CheckInitializer(
+    const std::shared_ptr<Type>& type,
+    const Unique<Syntax>& initializer )
+{
+    if ( initializer->Kind == SyntaxKind::ArrayInitializer )
+    {
+        if ( type->GetKind() != TypeKind::Array )
+            mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Array initializer is invalid here" );
+
+        auto& arrayInit = (InitList&) *initializer;
+        auto& arrayType = (ArrayType&) *type;
+
+        std::shared_ptr<Type> elemType = arrayType.ElemType;
+
+        if ( arrayType.Size < (int32_t) arrayInit.Values.size()
+            || (elemType->GetKind() == TypeKind::Pointer && arrayType.Size != arrayInit.Values.size()) )
+        {
+            mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Wrong number of array elements" );
+        }
+
+        for ( auto& value : arrayInit.Values )
+        {
+            CheckInitializer( elemType, value );
+        }
+
+        initializer->Type = Make<ArrayType>( arrayInit.Values.size(), elemType );
+    }
+    else
+    {
+        initializer->Accept( this );
+
+        CheckType( type, initializer->Type, initializer.get() );
+    }
 }
 
 void BinderVisitor::VisitLoopStatement( LoopStatement* loopStmt )

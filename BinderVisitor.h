@@ -110,6 +110,9 @@ private:
     void CheckAssignableType( Syntax* node );
     void CheckAndConsolidateClauseType( StatementList& clause, std::shared_ptr<Type>& bodyType );
     void CheckAndConsolidateClauseType( Syntax* clause, std::shared_ptr<Type>& bodyType );
+    void CheckInitializer(
+        const std::shared_ptr<Type>& type,
+        const Unique<Syntax>& initializer );
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );
