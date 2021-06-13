@@ -188,6 +188,12 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+class RecordInitializer : public Syntax
+{
+public:
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
 class DeclSyntax : public Syntax
 {
 public:
@@ -558,6 +564,7 @@ public:
     virtual void VisitPointerTypeRef( PointerTypeRef* pointerTypeRef );
     virtual void VisitProcDecl( ProcDecl* procDecl );
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef );
+    virtual void VisitRecordInitializer( RecordInitializer* recordInitializer );
     virtual void VisitRecordTypeRef( RecordTypeRef* recordTypeRef );
     virtual void VisitReturnStatement( ReturnStatement* retStmt );
     virtual void VisitSliceExpr( SliceExpr* sliceExpr );
@@ -721,6 +728,7 @@ enum class TypeKind
     Func,
     Pointer,
     Record,
+    RecordInit,
 };
 
 class Type
@@ -816,6 +824,13 @@ public:
 
     virtual bool IsAssignableFrom( Type* other ) const override;
     virtual int32_t GetSize() const override;
+};
+
+
+class RecordInitializerType : public Type
+{
+public:
+    RecordInitializerType();
 };
 
 }

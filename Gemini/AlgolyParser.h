@@ -35,6 +35,8 @@ class AlgolyParser
         At,
         LBracket,
         RBracket,
+        LBrace,
+        RBrace,
         Assign,
         Colon,
         DotDot,
@@ -165,6 +167,7 @@ private:
     Unique<TypeRef> ParsePtrFuncTypeRef();
     Unique<TypeRef> ParseArrayTypeRef();
     Unique<Syntax> ParseArrayInitializer();
+    Unique<Syntax> ParseRecordInitializer();
     Unique<Syntax> ParseInitExpr();
 
     Unique<Syntax> ParseReturn();

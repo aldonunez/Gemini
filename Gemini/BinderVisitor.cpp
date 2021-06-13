@@ -1126,6 +1126,11 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
     procTypeRef->ReferentType = funcType;
 }
 
+void BinderVisitor::VisitRecordInitializer( RecordInitializer* recordInitializer )
+{
+    recordInitializer->Type = Make<RecordInitializerType>();
+}
+
 void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 {
     auto recordType = Make<RecordType>();

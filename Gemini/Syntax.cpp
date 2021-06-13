@@ -276,6 +276,11 @@ void ProcTypeRef::Accept( Visitor* visitor )
     visitor->VisitProcTypeRef( this );
 }
 
+void RecordInitializer::Accept( IVisitor* visitor )
+{
+    visitor->VisitRecordInitializer( this );
+}
+
 void RecordTypeRef::Accept( IVisitor* visitor )
 {
     visitor->VisitRecordTypeRef( this );
@@ -461,6 +466,10 @@ void Visitor::VisitProcDecl( ProcDecl* procDecl )
 }
 
 void Visitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
+{
+}
+
+void IVisitor::VisitRecordInitializer( RecordInitializer* recordInitializer )
 {
 }
 
@@ -752,6 +761,12 @@ int32_t RecordType::GetSize() const
     }
 
     return mSize;
+}
+
+
+RecordInitializerType::RecordInitializerType() :
+    Type( TypeKind::RecordInit )
+{
 }
 
 }

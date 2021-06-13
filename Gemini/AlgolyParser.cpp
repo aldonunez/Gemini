@@ -29,6 +29,8 @@ static const char* gTokenNames[] =
     "@",
     "[",
     "]",
+    "{",
+    "}",
     ":=",
     ":",
     "..",
@@ -243,6 +245,16 @@ AlgolyParser::TokenCode AlgolyParser::ScanToken()
     case ']':
         NextChar();
         mCurToken = TokenCode::RBracket;
+        break;
+
+    case '{':
+        NextChar();
+        mCurToken = TokenCode::LBrace;
+        break;
+
+    case '}':
+        NextChar();
+        mCurToken = TokenCode::RBrace;
         break;
 
     case '.':
@@ -1494,11 +1506,26 @@ Unique<Syntax> AlgolyParser::ParseArrayInitializer()
     return initList;
 }
 
+Unique<Syntax> AlgolyParser::ParseRecordInitializer()
+{
+    auto recordInitializer = Make<RecordInitializer>();
+
+    ScanToken();
+
+    ScanToken( TokenCode::RBrace );
+
+    return recordInitializer;
+}
+
 Unique<Syntax> AlgolyParser::ParseInitExpr()
 {
     if ( mCurToken == TokenCode::LBracket )
     {
         return ParseArrayInitializer();
+    }
+    else if ( mCurToken == TokenCode::LBrace )
+    {
+        return ParseRecordInitializer();
     }
     else
     {
