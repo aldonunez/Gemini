@@ -691,7 +691,7 @@ void BinderVisitor::CheckInitializer(
             CheckInitializer( elemType, value );
         }
 
-        initializer->Type = Make<ArrayType>( arrayInit.Values.size(), elemType );
+        initializer->Type = type;
     }
     else
     {

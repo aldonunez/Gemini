@@ -308,7 +308,7 @@ void Compiler::GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig
     }
     else
     {
-        GenerateSymbol( symbol.get(), decl, config, status );
+        Generate( symbol.get() );
     }
 }
 
@@ -719,16 +719,21 @@ void Compiler::GenerateLet( LetStatement* letStmt, const GenConfig& config, GenS
 void Compiler::GenerateLetBinding( DataDecl* binding )
 {
     auto local = (LocalStorage*) binding->GetDecl();
-    auto type = local->Type.get();
 
-    if ( type->GetKind() == TypeKind::Int
-        || type->GetKind() == TypeKind::Pointer )
+    GenerateLocalInit( local->Offset, binding->Initializer.get() );
+}
+
+void Compiler::GenerateLocalInit( int32_t offset, Syntax* initializer )
+{
+    auto type = initializer->Type.get();
+
+    if ( IsScalarType( type->GetKind() ) )
     {
-        if ( binding->Initializer != nullptr )
+        if ( initializer != nullptr )
         {
-            Generate( binding->Initializer.get() );
+            Generate( initializer );
             mCodeBinPtr[0] = OP_STLOC;
-            mCodeBinPtr[1] = local->Offset;
+            mCodeBinPtr[1] = offset;
             mCodeBinPtr += 2;
             DecreaseExprDepth();
         }
@@ -737,14 +742,15 @@ void Compiler::GenerateLetBinding( DataDecl* binding )
     {
         auto arrayType = (ArrayType*) type;
 
-        if ( binding->Initializer != nullptr )
+        if ( initializer != nullptr )
         {
-            AddLocalDataArray( local, binding->Initializer.get(), arrayType->Size );
+            AddLocalDataArray( offset, initializer, arrayType->Size );
         }
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, binding, "'let' binding takes a name or name and type" );
+        // TODO: node
+        mRep.ThrowError( CERR_SEMANTICS, nullptr, "'let' binding takes a name or name and type" );
     }
 }
 
@@ -755,13 +761,13 @@ void Compiler::VisitLetStatement( LetStatement* letStmt )
 
 // TODO: try to merge this with AddGlobalDataArray. Separate the array processing from the code generation
 
-void Compiler::AddLocalDataArray( LocalStorage* local, Syntax* valueElem, size_t size )
+void Compiler::AddLocalDataArray( int32_t offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
 
     Syntax* lastTwoElems[2] = {};
-    size_t locIndex = local->Offset;
+    size_t locIndex = offset;
     size_t i = 0;
 
     auto initList = (InitList*) valueElem;

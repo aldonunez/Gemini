@@ -346,7 +346,8 @@ private:
     void GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateLet( LetStatement* letStmt, const GenConfig& config, GenStatus& status );
     void GenerateLetBinding( DataDecl* binding );
-    void AddLocalDataArray( LocalStorage* local, Syntax* valueElem, size_t size );
+    void GenerateLocalInit( int32_t offset, Syntax* initializer );
+    void AddLocalDataArray( int32_t offset, Syntax* valueElem, size_t size );
 
     void GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status );
