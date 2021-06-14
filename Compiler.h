@@ -174,6 +174,7 @@ private:
         ExprKind    kind;
         bool        discarded;
         bool        tailRet;
+
     };
 
     struct GenConfig
@@ -329,6 +330,8 @@ private:
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
     void EmitFuncAddress( Function* func, uint8_t*& dstPtr );
+    void EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset );
+    void EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset );
 
     // Level 3 - functions and special operators
     void GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status );

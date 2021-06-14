@@ -248,26 +248,31 @@ void Compiler::GenerateSymbol( Syntax* node, Declaration* decl, const GenConfig&
         return;
     }
 
+    EmitLoadScalar( node, decl, 0 );
+}
+
+void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
+{
     switch ( decl->Kind )
     {
     case DeclKind::Global:
         mCodeBinPtr[0] = OP_LDMOD;
         mCodeBinPtr[1] = ((GlobalStorage*) decl)->ModIndex;
         mCodeBinPtr += 2;
-        WriteU16( mCodeBinPtr, ((GlobalStorage*) decl)->Offset );
+        WriteU16( mCodeBinPtr, ((GlobalStorage*) decl)->Offset + offset );
         IncreaseExprDepth();
         break;
 
     case DeclKind::Local:
         mCodeBinPtr[0] = OP_LDLOC;
-        mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset;
+        mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset - offset;
         mCodeBinPtr += 2;
         IncreaseExprDepth();
         break;
 
     case DeclKind::Param:
         mCodeBinPtr[0] = OP_LDARG;
-        mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset;
+        mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset + offset;
         mCodeBinPtr += 2;
         IncreaseExprDepth();
         break;
@@ -278,6 +283,7 @@ void Compiler::GenerateSymbol( Syntax* node, Declaration* decl, const GenConfig&
         break;
 
     case DeclKind::Const:
+        assert( offset == 0 );
         EmitLoadConstant( ((Constant*) decl)->Value );
         break;
 
@@ -529,35 +535,40 @@ void Compiler::GenerateSet( AssignmentExpr* assignment, const GenConfig& config,
 
     auto decl = assignment->Left->GetDecl();
 
+    EmitStoreScalar( assignment->Left.get(), decl, 0 );
+}
+
+void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset )
+{
     switch ( decl->Kind )
     {
     case DeclKind::Global:
         mCodeBinPtr[0] = OP_STMOD;
         mCodeBinPtr[1] = ((GlobalStorage*) decl)->ModIndex;
         mCodeBinPtr += 2;
-        WriteU16( mCodeBinPtr, ((GlobalStorage*) decl)->Offset );
+        WriteU16( mCodeBinPtr, ((GlobalStorage*) decl)->Offset + offset );
         break;
 
     case DeclKind::Local:
         mCodeBinPtr[0] = OP_STLOC;
-        mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset;
+        mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset - offset;
         mCodeBinPtr += 2;
         break;
 
     case DeclKind::Param:
         mCodeBinPtr[0] = OP_STARG;
-        mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset;
+        mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset + offset;
         mCodeBinPtr += 2;
         break;
 
     case DeclKind::Func:
     case DeclKind::Forward:
     case DeclKind::NativeFunc:
-        mRep.ThrowError( CERR_SEMANTICS, assignment->Left.get(), "functions can't be assigned a value" );
+        mRep.ThrowError( CERR_SEMANTICS, node, "functions can't be assigned a value" );
         break;
 
     case DeclKind::Const:
-        mRep.ThrowError( CERR_SEMANTICS, assignment->Left.get(), "Constants can't be changed" );
+        mRep.ThrowError( CERR_SEMANTICS, node, "Constants can't be changed" );
         break;
 
     default:
