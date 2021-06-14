@@ -318,7 +318,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
         funcType = std::static_pointer_cast<FuncType>( call->Head->Type );
     }
 
-    if ( call->Arguments.size() != funcType->ParamTypes.size() )
+    if ( call->Arguments.size() != funcType->Params.size() )
         mRep.ThrowSemanticsError( call, "Function does not take %u arguments", call->Arguments.size() );
 
     ParamSize i = 0;
@@ -327,7 +327,12 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
     {
         Visit( arg );
 
-        CheckType( funcType->ParamTypes[i], arg->Type, arg.get() );
+        // TODO: Is this a good way to check it?
+        if ( funcType->Params[i].Mode != ParamMode::Value
+            && arg->GetDecl() == nullptr )
+            mRep.ThrowError( CERR_SEMANTICS, arg.get(), "Cannot pass this expression as var arg" );
+
+        CheckType( funcType->Params[i].Type, arg->Type, arg.get() );
         i++;
     }
 
@@ -344,7 +349,7 @@ void BinderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
     {
         auto funcType = (FuncType*) decl->Type.get();
 
-        if ( funcType->ParamTypes.size() > 0 )
+        if ( funcType->Params.size() > 0 )
             mRep.ThrowSemanticsError( callOrSymbol, "Too few arguments" );
 
         callOrSymbol->Type = funcType->ReturnType;
@@ -966,7 +971,7 @@ void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
     auto type = VisitParamTypeRef( paramDecl->TypeRef );
 
-    paramDecl->Decl = AddParam( paramDecl, type );
+    paramDecl->Decl = AddParam( paramDecl, type, paramDecl->Mode );
 }
 
 std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef )
@@ -1087,7 +1092,12 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
     {
         param->Accept( this );
 
-        funcType->ParamTypes.push_back( param->ReferentType );
+        // TODO: parameter mode
+        ParamSpec paramSpec;
+        paramSpec.Mode = ParamMode::Value;
+        paramSpec.Type = param->ReferentType;
+
+        funcType->Params.push_back( paramSpec );
     }
 
     procTypeRef->Type = mTypeType;
@@ -1318,7 +1328,7 @@ std::shared_ptr<Declaration> BinderVisitor::FindSymbol( const std::string& symbo
     return nullptr;
 }
 
-std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type )
+std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type, ParamMode mode )
 {
     auto& table = *mSymStack.back();
 
@@ -1327,6 +1337,7 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
     param->Offset = static_cast<ParamSize>( table.size() );
     param->Type = type;
+    param->Mode = mode;
     table.insert( SymTable::value_type( declNode->Name, param ) );
     return param;
 }
@@ -1511,11 +1522,17 @@ std::shared_ptr<FuncType> BinderVisitor::MakeFuncType( ProcDeclBase* procDecl )
 
     auto funcType = Make<FuncType>( returnType );
 
-    for ( auto& paramDecl : procDecl->Params )
+    for ( auto& paramDataDecl : procDecl->Params )
     {
-        auto type = VisitParamTypeRef( paramDecl->TypeRef );
+        auto type = VisitParamTypeRef( paramDataDecl->TypeRef );
 
-        funcType->ParamTypes.push_back( type );
+        auto paramDecl = (ParamDecl*) paramDataDecl.get();
+
+        ParamSpec paramSpec;
+        paramSpec.Mode = paramDecl->Mode;
+        paramSpec.Type = type;
+
+        funcType->Params.push_back( paramSpec );
     }
 
     return funcType;

@@ -212,9 +212,17 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+enum class ParamMode
+{
+    Value,
+    InOutRef,
+};
+
 class ParamDecl : public DataDecl
 {
 public:
+    ParamMode Mode = ParamMode::Value;
+
     virtual void Accept( Visitor* visitor ) override;
 };
 
@@ -611,6 +619,7 @@ struct GlobalStorage : public Declaration
 struct LocalStorage : public Declaration
 {
     LocalSize   Offset = 0;
+    ParamMode   Mode = ParamMode::Value;
 
     LocalStorage();
 };
@@ -757,11 +766,17 @@ public:
     virtual DataSize GetSize() const override;
 };
 
+struct ParamSpec
+{
+    std::shared_ptr<Type>   Type;
+    ParamMode               Mode;
+};
+
 class FuncType : public Type
 {
 public:
     std::shared_ptr<Type>               ReturnType;
-    std::vector<std::shared_ptr<Type>>  ParamTypes;
+    std::vector<ParamSpec>              Params;
 
     FuncType( std::shared_ptr<Type> returnType );
 

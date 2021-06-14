@@ -718,7 +718,16 @@ std::vector<Unique<DataDecl>> AlgolyParser::ParseParamList()
 
 Unique<DataDecl> AlgolyParser::ParseParameter()
 {
-    return ParseVar( Make<ParamDecl>(), std::nullopt );
+    auto paramDecl = Make<ParamDecl>();
+
+    if ( mCurToken == TokenCode::Var )
+    {
+        ScanToken();
+
+        paramDecl->Mode = ParamMode::InOutRef;
+    }
+
+    return ParseVar( std::move( paramDecl ), std::nullopt );
 }
 
 void AlgolyParser::ParseStatements( StatementList& container )

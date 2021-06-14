@@ -633,8 +633,25 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
     case DeclKind::Param:
         assert( offset >= 0 && offset < ParamSizeMax );
         assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+        {
+            auto param = (ParamStorage*) decl;
 
-        EmitU8( OP_STARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
+            if ( param->Mode == ParamMode::Value )
+            {
+                EmitU8( OP_STARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
+            }
+            else if ( param->Mode == ParamMode::InOutRef )
+            {
+                mCodeBinPtr[0] = OP_LDARG;
+                mCodeBinPtr[1] = param->Offset + offset;
+                mCodeBinPtr[2] = OP_STOREI;
+                mCodeBinPtr += 3;
+            }
+            else
+            {
+                mRep.ThrowError( CERR_SEMANTICS, assignment->Left.get(), "Bad parameter mode" );
+            }
+        }
         break;
 
     case DeclKind::Func:
@@ -870,6 +887,20 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
     }
 }
 
+void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
+{
+    switch ( paramSpec.Mode )
+    {
+    case ParamMode::Value:
+        Generate( &node );
+        break;
+
+    case ParamMode::InOutRef:
+        EmitLoadAddress( &node, node.GetDecl(), 0 );
+        break;
+    }
+}
+
 void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status )
 {
     GenerateCall( call->Head->GetDecl(), call->Arguments, config, status );
@@ -877,9 +908,11 @@ void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus&
 
 void Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments )
 {
-    for ( auto i = static_cast<ptrdiff_t>( arguments.size() ) - 1; i >= 0; i-- )
+    auto funcType = (FuncType*) decl->Type.get();
+
+    for ( auto i = static_cast<ptrdiff_t>(arguments.size()) - 1; i >= 0; i-- )
     {
-        Generate( arguments[i].get() );
+        GenerateArg( *arguments[i], funcType->Params[i] );
     }
 }
 

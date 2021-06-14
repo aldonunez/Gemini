@@ -678,12 +678,15 @@ bool FuncType::IsEqual( Type* other ) const
     auto otherFunc = (FuncType*) other;
 
     if ( !ReturnType->IsEqual( otherFunc->ReturnType.get() )
-        || ParamTypes.size() != otherFunc->ParamTypes.size() )
+        || Params.size() != otherFunc->Params.size() )
         return false;
 
-    for ( int i = 0; i < (int) ParamTypes.size(); i++ )
+    for ( int i = 0; i < (int) Params.size(); i++ )
     {
-        if ( !ParamTypes[i]->IsEqual( otherFunc->ParamTypes[i].get() ) )
+        if ( !Params[i].Type->IsEqual( otherFunc->Params[i].Type.get() ) )
+            return false;
+
+        if ( Params[i].Mode != otherFunc->Params[i].Mode )
             return false;
     }
 
