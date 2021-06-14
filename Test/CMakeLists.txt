@@ -3,6 +3,7 @@ add_executable(Test
     TestAlgoly.cpp
     TestAlgolyCopyArray.cpp
     TestAlgolyMultiArray.cpp
+    TestAlgolyPassRef.cpp
     TestAlgolyStack.cpp
     TestBase.cpp
     TestLispy.cpp

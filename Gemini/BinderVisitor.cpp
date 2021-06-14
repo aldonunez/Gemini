@@ -124,8 +124,11 @@ static bool IsAllowedPointerTarget( TypeKind kind )
     return kind == TypeKind::Func;
 }
 
-static bool IsAllowedParamType( TypeKind kind )
+static bool IsAllowedParamType( TypeKind kind, ParamMode mode )
 {
+    if ( kind == TypeKind::Array )
+        return mode == ParamMode::InOutRef;
+
     return IsScalarType( kind )
         ;
 }
@@ -149,7 +152,6 @@ static bool IsLValue( const Syntax& node )
 
     return IsAssignableType( node.Type->GetKind() );
 }
-
 
 template <typename T, typename... Args>
 std::shared_ptr<T> Make( Args&&... args )
@@ -217,7 +219,7 @@ void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 
 void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 {
-    Visit( typeRef->SizeExpr );
+    DataSize size = 0;
 
     std::shared_ptr<Type> elemType;
 
@@ -232,12 +234,18 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
         elemType = mIntType;
     }
 
-    int32_t rawSize = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
+    if ( typeRef->SizeExpr )
+    {
+        Visit( typeRef->SizeExpr );
 
-    if ( rawSize <= 0 )
-        mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Array size must be positive" );
+        int32_t rawSize = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
 
-    DataSize size = CheckArraySize( static_cast<size_t>(rawSize), elemType.get(), typeRef->SizeExpr.get() );
+        if ( rawSize <= 0 )
+            mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Array size must be positive" );
+
+        size = CheckArraySize( static_cast<size_t>(rawSize), elemType.get(), typeRef->SizeExpr.get() );
+    }
+    // Else, it's an open array
 
     if ( !IsStorageType( elemType->GetKind() ) )
         mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Element type is not allowed" );
@@ -320,7 +328,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
         funcType = std::static_pointer_cast<FuncType>( call->Head->Type );
     }
 
-    if ( call->Arguments.size() != funcType->ParamTypes.size() )
+    if ( call->Arguments.size() != funcType->Params.size() )
         mRep.ThrowSemanticsError( call, "Function does not take %u arguments", call->Arguments.size() );
 
     ParamSize i = 0;
@@ -329,7 +337,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
     {
         Visit( arg );
 
-        CheckType( funcType->ParamTypes[i], arg->Type, arg.get() );
+        CheckParamType( funcType->Params[i].Mode, funcType->Params[i].Type, arg->Type, arg.get() );
         i++;
     }
 
@@ -346,7 +354,7 @@ void BinderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
     {
         auto funcType = (FuncType*) decl->Type.get();
 
-        if ( funcType->ParamTypes.size() > 0 )
+        if ( funcType->Params.size() > 0 )
             mRep.ThrowSemanticsError( callOrSymbol, "Too few arguments" );
 
         callOrSymbol->Type = funcType->ReturnType;
@@ -966,12 +974,14 @@ void BinderVisitor::VisitNumberExpr( NumberExpr* numberExpr )
 
 void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
-    auto type = VisitParamTypeRef( paramDecl->TypeRef );
+    auto type = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Mode );
 
-    paramDecl->Decl = AddParam( paramDecl, type );
+    ParamSize size = GetParamSize( type.get(), paramDecl->Mode );
+
+    paramDecl->Decl = AddParam( paramDecl, type, paramDecl->Mode, size );
 }
 
-std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef )
+std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamMode mode )
 {
     std::shared_ptr<Type> type;
 
@@ -979,7 +989,7 @@ std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef
     {
         typeRef->Accept( this );
 
-        if ( !IsAllowedParamType( typeRef->ReferentType->GetKind() ) )
+        if ( !IsAllowedParamType( typeRef->ReferentType->GetKind(), mode ) )
             mRep.ThrowSemanticsError( typeRef.get(), "This type is not allowed for parameters" );
 
         type = typeRef->ReferentType;
@@ -1051,6 +1061,8 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
             procDecl->Name.c_str(), ProcDecl::MaxParams );
     }
 
+    mParamCount = 0;
+
     for ( auto& parameter : procDecl->Params )
     {
         parameter->Accept( this );
@@ -1072,7 +1084,7 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
     }
 
     func->LocalCount = mMaxLocalCount;
-    func->ParamCount = static_cast<ParamSize>(procDecl->Params.size());
+    func->ParamCount = mParamCount;
 
     auto funcType = (FuncType*) func->Type.get();
 
@@ -1087,9 +1099,14 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 
     for ( auto& param : procTypeRef->Params )
     {
-        param->Accept( this );
+        param.TypeRef->Accept( this );
 
-        funcType->ParamTypes.push_back( param->ReferentType );
+        ParamSpec paramSpec;
+        paramSpec.Mode = param.Mode;
+        paramSpec.Type = param.TypeRef->ReferentType;
+        paramSpec.Size = GetParamSize( paramSpec.Type.get(), param.Mode );
+
+        funcType->Params.push_back( paramSpec );
     }
 
     procTypeRef->Type = mTypeType;
@@ -1268,6 +1285,20 @@ void BinderVisitor::CheckStatementType( Syntax* node )
         mRep.ThrowSemanticsError( node, "Expected scalar type" );
 }
 
+void BinderVisitor::CheckParamType(
+    ParamMode mode,
+    const std::shared_ptr<Type>& site,
+    const std::shared_ptr<Type>& type,
+    Syntax* node )
+{
+    if ( site->GetKind() != TypeKind::Xfer
+        && type->GetKind() != TypeKind::Xfer
+        && !site->IsPassableFrom( type.get(), mode ) )
+    {
+        mRep.ThrowSemanticsError( node, "Incompatible argument type" );
+    }
+}
+
 void BinderVisitor::CheckAndConsolidateClauseType( StatementList& clause, std::shared_ptr<Type>& bodyType )
 {
     CheckAndConsolidateClauseType( &clause, bodyType );
@@ -1320,16 +1351,20 @@ std::shared_ptr<Declaration> BinderVisitor::FindSymbol( const std::string& symbo
     return nullptr;
 }
 
-std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type )
+std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type, ParamMode mode, size_t size )
 {
     auto& table = *mSymStack.back();
 
     CheckDuplicateSymbol( declNode, table );
 
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
-    param->Offset = static_cast<ParamSize>( table.size() );
+    param->Offset = mParamCount;
     param->Type = type;
+    param->Mode = mode;
+    param->Size = static_cast<ParamSize>( size );
     table.insert( SymTable::value_type( declNode->Name, param ) );
+
+    mParamCount += static_cast<ParamSize>( size );
     return param;
 }
 
@@ -1513,11 +1548,18 @@ std::shared_ptr<FuncType> BinderVisitor::MakeFuncType( ProcDeclBase* procDecl )
 
     auto funcType = Make<FuncType>( returnType );
 
-    for ( auto& paramDecl : procDecl->Params )
+    for ( auto& paramDataDecl : procDecl->Params )
     {
-        auto type = VisitParamTypeRef( paramDecl->TypeRef );
+        auto paramDecl = (ParamDecl*) paramDataDecl.get();
 
-        funcType->ParamTypes.push_back( type );
+        auto type = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Mode );
+
+        ParamSpec paramSpec;
+        paramSpec.Mode = paramDecl->Mode;
+        paramSpec.Type = type;
+        paramSpec.Size = GetParamSize( type.get(), paramDecl->Mode );
+
+        funcType->Params.push_back( paramSpec );
     }
 
     return funcType;
@@ -1545,6 +1587,32 @@ void BinderVisitor::Visit( Unique<Syntax>& child )
     if ( mReplacementNode )
     {
         child = std::move( mReplacementNode );
+    }
+}
+
+ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
+{
+    switch ( mode )
+    {
+    case ParamMode::Value:
+        {
+            auto size = type->GetSize();
+            if ( size > ParamSizeMax )
+                mRep.ThrowSemanticsError( NULL, "Parameter is too big" );
+            return static_cast<ParamSize>(size);
+        }
+
+    case ParamMode::InOutRef:
+        // Open array: dope vector + address
+        if ( type->GetKind() == TypeKind::Array && ((ArrayType&) *type).Count == 0 )
+            return 2;
+
+        // Closed array: address
+        return 1;
+
+    default:
+        assert( false );
+        return 1;
     }
 }
 

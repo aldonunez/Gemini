@@ -356,6 +356,7 @@ private:
     void EmitSpilledAddrOffset( int32_t offset );
     void EmitLoadAggregateCopySource( Syntax* node );
     void EmitLoadAggregateCopySource( Syntax* node, Type* type );
+    void EmitCountofArray( Syntax* arrayNode );
 
     // Level 3 - functions and special operators
     void GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status );
@@ -373,9 +374,11 @@ private:
     void GenerateLocalInit( LocalSize offset, Syntax* initializer );
     void AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size );
 
+    void GenerateDopeVector( Syntax& node, ParamSpec& paramSpec );
+    void GenerateArg( Syntax& node, ParamSpec& paramSpec );
     void GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status );
-    void GenerateCallArgs( std::vector<Unique<Syntax>>& arguments );
+    ParamSize GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType );
     void GenerateFor( ForStatement* forStmt, const GenConfig& config, GenStatus& status );
     void GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& config, GenStatus& status );
     void GenerateDo( WhileStatement* whileStmt, const GenConfig& config, GenStatus& status );

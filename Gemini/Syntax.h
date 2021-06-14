@@ -35,6 +35,7 @@ enum class SyntaxKind
     ArrayInitializer,
     ConstDecl,
     VarDecl,
+    ParamDecl,
     Other,
 };
 
@@ -143,11 +144,36 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+enum class ParamMode
+{
+    Value,
+    InOutRef,
+};
+
+struct ParamSpecRef
+{
+    Unique<Gemini::TypeRef> TypeRef;
+    ParamMode               Mode = ParamMode::Value;
+
+    ParamSpecRef()
+    {
+    }
+
+    ParamSpecRef( ParamSpecRef&& other ) noexcept :
+        TypeRef( std::move( other.TypeRef ) ),
+        Mode( other.Mode )
+    {
+    }
+
+    ParamSpecRef( const ParamSpecRef& ) = delete;
+    ParamSpecRef& operator=( const ParamSpecRef& ) = delete;
+};
+
 class ProcTypeRef : public TypeRef
 {
 public:
-    std::vector<Unique<TypeRef>> Params;
-    Unique<TypeRef>              ReturnTypeRef;
+    std::vector<ParamSpecRef>   Params;
+    Unique<TypeRef>             ReturnTypeRef;
 
     virtual void Accept( Visitor* visitor ) override;
 };
@@ -216,6 +242,10 @@ public:
 class ParamDecl : public DataDecl
 {
 public:
+    ParamMode Mode = ParamMode::Value;
+
+    ParamDecl();
+
     virtual void Accept( Visitor* visitor ) override;
 };
 
@@ -621,6 +651,8 @@ struct LocalStorage : public Declaration
 struct ParamStorage : public Declaration
 {
     ParamSize   Offset = 0;
+    ParamMode   Mode = ParamMode::Value;
+    ParamSize   Size = 0;
 
     ParamStorage();
 };
@@ -714,6 +746,7 @@ public:
     TypeKind GetKind() const;
     virtual bool IsEqual( Type* other ) const;
     virtual bool IsAssignableFrom( Type* other ) const;
+    virtual bool IsPassableFrom( Type* other, ParamMode mode ) const;
     virtual DataSize GetSize() const;
 };
 
@@ -757,14 +790,22 @@ public:
 
     virtual bool IsEqual( Type* other ) const override;
     virtual bool IsAssignableFrom( Type* other ) const override;
+    virtual bool IsPassableFrom( Type* other, ParamMode mode ) const override;
     virtual DataSize GetSize() const override;
+};
+
+struct ParamSpec
+{
+    std::shared_ptr<Gemini::Type>   Type;
+    ParamMode                       Mode = ParamMode::Value;
+    ParamSize                       Size = 0;
 };
 
 class FuncType : public Type
 {
 public:
     std::shared_ptr<Type>               ReturnType;
-    std::vector<std::shared_ptr<Type>>  ParamTypes;
+    std::vector<ParamSpec>              Params;
 
     FuncType( std::shared_ptr<Type> returnType );
 

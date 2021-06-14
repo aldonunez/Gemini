@@ -116,6 +116,7 @@ private:
     Unique<Syntax> ParseProgn();
 
     std::vector<Unique<DataDecl>> ParseParamList();
+    ParamSpecRef ParseAnonymousParameter();
     Unique<DataDecl> ParseParameter();
     Unique<ProcDecl> ParseProc( bool hasName );
     Unique<DataDecl> ParseDefvar();

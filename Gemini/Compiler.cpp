@@ -327,9 +327,29 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
     case DeclKind::Param:
         assert( offset >= 0 && offset < ParamSizeMax );
         assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+        {
+            auto param = (ParamStorage*) decl;
 
-        EmitU8( OP_LDARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
-        IncreaseExprDepth();
+            if ( param->Mode == ParamMode::Value )
+            {
+                EmitU8( OP_LDARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
+                IncreaseExprDepth();
+            }
+            else if ( param->Mode == ParamMode::InOutRef )
+            {
+                EmitU8( OP_LDARG, param->Offset );
+                IncreaseExprDepth();
+
+                if ( offset > 0 )
+                    EmitSpilledAddrOffset( offset );
+
+                Emit( OP_LOADI );
+            }
+            else
+            {
+                mRep.ThrowSemanticsError( node, "Bad parameter mode" );
+            }
+        }
         break;
 
     case DeclKind::Func:
@@ -483,7 +503,12 @@ void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
         return;
     }
 
-    auto& arrayType = (ArrayType&) *countofExpr->Expr->Type;
+    EmitCountofArray( countofExpr->Expr.get() );
+}
+
+void Compiler::EmitCountofArray( Syntax* arrayNode )
+{
+    ArrayType& arrayType = (ArrayType&) *arrayNode->Type;
 
     if ( arrayType.Count != 0 )
     {
@@ -491,7 +516,22 @@ void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
     }
     else
     {
-        THROW_INTERNAL_ERROR( "" );
+        Declaration*    decl = nullptr;
+        int32_t         offset = 0;
+
+        CalcAddress( arrayNode, decl, offset );
+
+        if ( decl->Kind != DeclKind::Param )
+            THROW_INTERNAL_ERROR( "" );
+
+        // Only ref params are allowed to take open array types
+        // Because of this, the address calculation above won't spill
+
+        auto param = (ParamStorage*) decl;
+
+        EmitU8( OP_LDARG, param->Offset + 1 );
+
+        IncreaseExprDepth();
     }
 }
 
@@ -660,8 +700,29 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
     case DeclKind::Param:
         assert( offset >= 0 && offset < ParamSizeMax );
         assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+        {
+            auto param = (ParamStorage*) decl;
 
-        EmitU8( OP_STARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
+            if ( param->Mode == ParamMode::Value )
+            {
+                EmitU8( OP_STARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
+            }
+            else if ( param->Mode == ParamMode::InOutRef )
+            {
+                EmitU8( OP_LDARG, param->Offset );
+                IncreaseExprDepth();
+
+                if ( offset > 0 )
+                    EmitSpilledAddrOffset( offset );
+
+                Emit( OP_STOREI );
+                DecreaseExprDepth();
+            }
+            else
+            {
+                mRep.ThrowSemanticsError( node, "Bad parameter mode" );
+            }
+        }
         break;
 
     case DeclKind::Func:
@@ -802,11 +863,12 @@ void Compiler::VisitAddrOfExpr( AddrOfExpr* addrOf )
 
 void Compiler::GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status )
 {
-    GenerateCallArgs( call->Arguments );
+    auto ptrType = (PointerType*) call->Head->Type.get();
+    auto funcType = (FuncType*) ptrType->TargetType.get();
+
+    ParamSize argCount = GenerateCallArgs( call->Arguments, funcType );
 
     Generate( call->Head.get() );
-
-    ParamSize argCount = static_cast<ParamSize>( call->Arguments.size() );
 
     EmitU8( OP_CALLI, CallFlags::Build( argCount, config.discard ) );
 
@@ -942,24 +1004,72 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
     }
 }
 
+void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
+{
+    if ( paramSpec.Type->GetKind() == TypeKind::Array
+        && ((ArrayType&) *paramSpec.Type).Count == 0 )
+    {
+        EmitCountofArray( &node );
+    }
+}
+
+void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
+{
+    GenConfig config{};
+    GenStatus status{};
+
+    switch ( paramSpec.Mode )
+    {
+    case ParamMode::Value:
+        Generate( &node );
+        break;
+
+    case ParamMode::InOutRef:
+        GenerateDopeVector( node, paramSpec );
+
+        config.calcAddr = true;
+
+        Generate( &node, config, status );
+
+        if ( !status.spilledAddr )
+        {
+            EmitLoadAddress( &node, status.baseDecl, status.offset );
+        }
+        else if ( status.offset > 0 )
+        {
+            EmitSpilledAddrOffset( status.offset );
+        }
+        break;
+    }
+}
+
 void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status )
 {
     GenerateCall( call->Head->GetDecl(), call->Arguments, config, status );
 }
 
-void Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments )
+ParamSize Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType )
 {
-    for ( auto i = static_cast<ptrdiff_t>( arguments.size() ) - 1; i >= 0; i-- )
+    assert( arguments.size() == funcType->Params.size() );
+
+    ParamSize argCount = 0;
+
+    for ( auto i = static_cast<ptrdiff_t>(arguments.size()) - 1; i >= 0; i-- )
     {
-        Generate( arguments[i].get() );
+        GenerateArg( *arguments[i], funcType->Params[i] );
+
+        argCount += funcType->Params[i].Size;
     }
+
+    return argCount;
 }
 
 void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status )
 {
-    GenerateCallArgs( arguments );
+    auto funcType = (FuncType*) decl->Type.get();
 
-    ParamSize argCount = static_cast<ParamSize>( arguments.size() );
+    ParamSize argCount = GenerateCallArgs( arguments, funcType );
+
     U8 callFlags = CallFlags::Build( argCount, config.discard );
 
     if ( decl == nullptr )
@@ -1675,6 +1785,26 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
 
             if ( offset > 0 )
                 EmitSpilledAddrOffset( offset );
+            break;
+
+        case DeclKind::Param:
+            {
+                auto param = (ParamStorage*) baseDecl;
+
+                if ( param->Mode == ParamMode::InOutRef )
+                {
+                    EmitU8( OP_LDARG, param->Offset );
+
+                    if ( offset != 0 )
+                        EmitSpilledAddrOffset( offset );
+
+                    IncreaseExprDepth();
+                }
+                else
+                {
+                    mRep.ThrowSemanticsError( node, "Bad parameter mode" );
+                }
+            }
             break;
 
         default:

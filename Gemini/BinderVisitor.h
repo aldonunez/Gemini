@@ -36,6 +36,7 @@ class BinderVisitor final : public Visitor
     LocalSize       mCurLevelLocalCount = 0;
     LocalSize       mCurLocalCount = 0;
     LocalSize       mMaxLocalCount = 0;
+    ParamSize       mParamCount = 0;
     GlobalSize      mGlobalSize = 0;
     int32_t         mPrevNativeId = -1;
 
@@ -106,7 +107,7 @@ private:
     void VisitLetBinding( DataDecl* varDecl );
     void VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind );
     void VisitStorage( DataDecl* varDecl, DeclKind declKind );
-    std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef );
+    std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamMode mode );
 
     int32_t Evaluate( Syntax* node, const char* message = nullptr );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
@@ -120,6 +121,11 @@ private:
         Type* type,
         Syntax* node );
     void CheckStatementType( Syntax* node );
+    void CheckParamType(
+        ParamMode mode,
+        const std::shared_ptr<Type>& site,
+        const std::shared_ptr<Type>& type,
+        Syntax* node );
     void CheckAndConsolidateClauseType( StatementList& clause, std::shared_ptr<Type>& bodyType );
     void CheckAndConsolidateClauseType( Syntax* clause, std::shared_ptr<Type>& bodyType );
     void CheckInitializer(
@@ -130,7 +136,7 @@ private:
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );
-    std::shared_ptr<ParamStorage> AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type );
+    std::shared_ptr<ParamStorage> AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type, ParamMode mode, size_t size );
     std::shared_ptr<LocalStorage> AddLocal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<GlobalStorage> AddGlobal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<Declaration> AddStorage( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size, DeclKind declKind );
@@ -150,6 +156,8 @@ private:
     std::shared_ptr<Declaration> DefineNode( const std::string& name, UndefinedDeclaration* decl );
     std::shared_ptr<FuncType> MakeFuncType( ProcDeclBase* procDecl );
     std::shared_ptr<Type> VisitFuncReturnType( Unique<TypeRef>& typeRef );
+
+    ParamSize GetParamSize( Type* type, ParamMode mode );
 };
 
 

@@ -77,6 +77,11 @@ VarDecl::VarDecl( std::string_view name ) :
     Name = name;
 }
 
+ParamDecl::ParamDecl()
+{
+    Kind = SyntaxKind::ParamDecl;
+}
+
 AddrOfExpr::AddrOfExpr()
 {
     Kind = SyntaxKind::AddrOfExpr;
@@ -572,6 +577,11 @@ bool Type::IsAssignableFrom( Type* other ) const
     return IsEqual( other );
 }
 
+bool Type::IsPassableFrom( Type* other, ParamMode mode ) const
+{
+    return IsAssignableFrom( other );
+}
+
 DataSize Type::GetSize() const
 {
     return 0;
@@ -663,6 +673,28 @@ bool ArrayType::IsAssignableFrom( Type* other ) const
     return Count >= otherArray->Count;
 }
 
+bool ArrayType::IsPassableFrom( Type* other, ParamMode mode ) const
+{
+    if ( mode == ParamMode::Value )
+        return IsAssignableFrom( other );
+
+    // Otherwise, it's a reference.
+
+    if ( other == nullptr || other->GetKind() != TypeKind::Array )
+        return false;
+
+    if ( mode != ParamMode::InOutRef )
+        return false;
+
+    auto otherArray = (ArrayType*) other;
+
+    // In contrast to assignability, passability requires the destination array
+    // be equal size or greater, because it's a reference.
+
+    return Count <= otherArray->Count
+        && ElemType->IsAssignableFrom( otherArray->ElemType.get() );
+}
+
 DataSize ArrayType::GetSize() const
 {
     return Count * ElemType->GetSize();
@@ -683,12 +715,15 @@ bool FuncType::IsEqual( Type* other ) const
     auto otherFunc = (FuncType*) other;
 
     if ( !ReturnType->IsEqual( otherFunc->ReturnType.get() )
-        || ParamTypes.size() != otherFunc->ParamTypes.size() )
+        || Params.size() != otherFunc->Params.size() )
         return false;
 
-    for ( int i = 0; i < (int) ParamTypes.size(); i++ )
+    for ( int i = 0; i < (int) Params.size(); i++ )
     {
-        if ( !ParamTypes[i]->IsEqual( otherFunc->ParamTypes[i].get() ) )
+        if ( !Params[i].Type->IsEqual( otherFunc->Params[i].Type.get() ) )
+            return false;
+
+        if ( Params[i].Mode != otherFunc->Params[i].Mode )
             return false;
     }
 
