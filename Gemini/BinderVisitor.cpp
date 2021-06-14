@@ -1384,7 +1384,7 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std:
 {
     std::shared_ptr<Constant> constant( new Constant() );
     constant->Type = type;
-    constant->Value = value;
+    constant->Value.SetInteger( value );
     table.insert( SymTable::value_type( name, constant ) );
     return constant;
 }
