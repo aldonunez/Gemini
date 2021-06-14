@@ -1768,7 +1768,7 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::sh
 
     std::shared_ptr<SimpleConstant> constant( new SimpleConstant() );
     constant->Type = type;
-    constant->Value = value;
+    constant->Value.SetInteger( value );
     table.insert( SymTable::value_type( declNode->Name, constant ) );
     return constant;
 }

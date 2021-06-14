@@ -376,8 +376,16 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Const:
-        assert( offset == 0 );
-        EmitLoadConstant( ((Constant*) decl)->Value );
+        {
+            assert( offset == 0 );
+
+            auto constant = (Constant*) decl;
+
+            if ( constant->Value.GetKind() == ValueKind::Integer )
+                EmitLoadConstant( constant->Value.GetInteger() );
+            else
+                EmitLoadFuncAddress( constant->Value.GetFunction().get() );
+        }
         break;
 
     case DeclKind::LoadedAddress:

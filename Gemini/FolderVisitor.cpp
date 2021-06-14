@@ -194,9 +194,10 @@ void FolderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 
 void FolderVisitor::VisitDotExpr( DotExpr* dotExpr )
 {
-    if ( dotExpr->GetDecl()->Kind == DeclKind::Const )
+    if ( dotExpr->GetDecl()->Kind == DeclKind::Const
+        && ((Constant*) dotExpr->GetDecl())->Value.GetKind() == ValueKind::Integer )
     {
-        mLastValue = ((Constant*) dotExpr->GetDecl())->Value;
+        mLastValue = ((Constant*) dotExpr->GetDecl())->Value.GetInteger();
     }
     else
     {
@@ -271,9 +272,10 @@ void FolderVisitor::VisitLoopStatement( LoopStatement* loopStmt )
 
 void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
 {
-    if ( nameExpr->Decl->Kind == DeclKind::Const )
+    if ( nameExpr->Decl->Kind == DeclKind::Const
+        && ((Constant*) nameExpr->GetDecl())->Value.GetKind() == ValueKind::Integer )
     {
-        mLastValue = ((Constant*) nameExpr->Decl.get())->Value;
+        mLastValue = ((Constant*) nameExpr->Decl.get())->Value.GetInteger();
     }
     else
     {
