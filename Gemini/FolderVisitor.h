@@ -16,17 +16,24 @@ namespace Gemini
 
 class FolderVisitor final : public Visitor
 {
-    std::optional<int32_t>  mLastValue;
-    bool                    mFoldNodes;
-    Reporter                mRep;
+    std::optional<ValueVariant> mLastValue;
+    bool                        mFoldNodes = false;
+    bool                        mCalcOffset = false;
+    Reporter                    mRep;
 
-    std::shared_ptr<IntType>    mIntType;
+    std::optional<int32_t>      mBufOffset;
+    std::shared_ptr<std::vector<int32_t>> mBuffer;
+
+    const ConstIndexFuncMap&    mConstIndexFuncMap;
 
 public:
-    FolderVisitor( ICompilerLog* log );
+    FolderVisitor( ICompilerLog* log, const ConstIndexFuncMap& constIndexFuncMap );
 
-    std::optional<int32_t> Evaluate( Syntax* node );
+    std::optional<int32_t> EvaluateInt( Syntax* node );
+    std::optional<ValueVariant> Evaluate( Syntax* node );
     void Fold( Syntax* node );
+
+    ValueVariant ReadConstValue( Type& type, std::shared_ptr<std::vector<int32_t>> buffer, GlobalSize offset );
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
@@ -65,6 +72,12 @@ public:
 private:
     void VisitProc( ProcDecl* procDecl );
     void VisitLetBinding( DataDecl* varDecl );
+    void VisitFieldAccess( DotExpr* dotExpr );
+    void VisitNameAccess( Syntax* expr );
+    void CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index );
+
+    void ReadValue( Syntax* expr );
+    ValueVariant ReadValueAtCurrentOffset( Type& type );
 
     void Fold( Unique<Syntax>& child );
 };

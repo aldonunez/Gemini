@@ -40,8 +40,10 @@ struct Module
 {
     const U8*       CodeBase;
     CELL*           DataBase;
+    CELL*           ConstBase;
     U32             CodeSize;
     U16             DataSize;
+    U16             ConstSize;
 };
 
 struct ByteCode
@@ -75,6 +77,19 @@ struct StackFrame
 
 class Machine : private IEnvironment
 {
+private:
+    struct ReadableDataModule
+    {
+        const CELL* Base;
+        U16         Size;
+    };
+
+    struct WritableDataModule
+    {
+        CELL*       Base;
+        U16         Size;
+    };
+
 private:
     CELL*           mSP;
     CELL*           mStack;
@@ -130,8 +145,11 @@ private:
 
     bool IsCodeInBounds( U32 address ) const;
 
-    std::pair<int, const Module*> GetDataModule( U8 index );
-    std::pair<int, CELL*> GetSizedDataPtr( CELL addrWord, CELL size );
+    std::pair<int, ReadableDataModule> GetReadableDataModule( U8 index, U32 addr, bool writable = false );
+    std::pair<int, WritableDataModule> GetWritableDataModule( U8 index, U32 addr );
+
+    std::pair<int, const CELL*> GetSizedReadableDataPtr( CELL addrWord, CELL size, bool writable = false );
+    std::pair<int,       CELL*> GetSizedWritableDataPtr( CELL addrWord, CELL size );
 
     const Module* GetModule( U8 index );
 

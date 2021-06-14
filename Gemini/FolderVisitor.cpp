@@ -13,13 +13,27 @@
 namespace Gemini
 {
 
-FolderVisitor::FolderVisitor( ICompilerLog* log ) :
-    mFoldNodes( false ),
-    mRep( log )
+FolderVisitor::FolderVisitor( ICompilerLog* log, const ConstIndexFuncMap& constIndexFuncMap ) :
+    mRep( log ),
+    mConstIndexFuncMap( constIndexFuncMap )
 {
 }
 
-std::optional<int32_t> FolderVisitor::Evaluate( Syntax* node )
+std::optional<int32_t> FolderVisitor::EvaluateInt( Syntax* node )
+{
+    mFoldNodes = false;
+    node->Accept( this );
+
+    if ( !mLastValue.has_value() )
+        return std::nullopt;
+
+    if ( mLastValue.value().Is( ValueKind::Integer ) )
+        return mLastValue.value().GetInteger();
+
+    THROW_INTERNAL_ERROR( "EvaluateInt: ValueKind" );
+}
+
+std::optional<ValueVariant> FolderVisitor::Evaluate( Syntax* node )
 {
     mFoldNodes = false;
     node->Accept( this );
@@ -35,7 +49,12 @@ void FolderVisitor::Fold( Syntax* node )
 
 void FolderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 {
-    mLastValue.reset();
+    auto decl = addrOf->Inner->GetSharedDecl();
+
+    if ( decl->Kind != DeclKind::Func )
+        mRep.ThrowSemanticsError( addrOf, "Expected function" );
+
+    mLastValue = std::static_pointer_cast<Function>(decl);
 }
 
 void FolderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
@@ -59,14 +78,16 @@ void FolderVisitor::VisitBinaryExpr( BinaryExpr* binary )
 {
     Fold( binary->Left );
 
-    std::optional<int32_t> leftOptVal = std::move( mLastValue );
+    std::optional<ValueVariant> leftOptVal = std::move( mLastValue );
 
     Fold( binary->Right );
 
     if ( leftOptVal.has_value() && mLastValue.has_value() )
     {
-        int32_t left = leftOptVal.value();
-        int32_t right = mLastValue.value();
+        assert( leftOptVal.value().Is( ValueKind::Integer ) && mLastValue.value().Is( ValueKind::Integer ) );
+
+        int32_t left = leftOptVal.value().GetInteger();
+        int32_t right = mLastValue.value().GetInteger();
         int32_t result = 0;
 
         if ( binary->Op == "+" )
@@ -123,12 +144,27 @@ void FolderVisitor::VisitBreakStatement( BreakStatement* breakStmt )
 
 void FolderVisitor::VisitCallExpr( CallExpr* call )
 {
+    auto headType = call->Head->Type;
+
+    if ( headType->GetKind() == TypeKind::Pointer )
+        headType = ((PointerType&) *headType).TargetType;
+
+    auto& funcType = (FuncType&) *headType;
+    auto paramIt = funcType.Params.cbegin();
+
     for ( auto& arg : call->Arguments )
     {
-        Fold( arg );
+        if (   paramIt->Mode == ParamMode::Value
+            || paramIt->Mode == ParamMode::ValueIn
+            || paramIt->Mode == ParamMode::RefIn )
+            Fold( arg );
+        else
+            arg->Accept( this );
+
+        paramIt++;
     }
 
-    call->Head->Accept( this );
+    Fold( call->Head );
 
     mLastValue.reset();
 }
@@ -192,17 +228,42 @@ void FolderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
     }
 }
 
-void FolderVisitor::VisitDotExpr( DotExpr* dotExpr )
+void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
 {
-    if ( dotExpr->GetDecl()->Kind == DeclKind::Const )
+    if ( mCalcOffset )
     {
-        mLastValue = ((Constant*) dotExpr->GetDecl())->Value;
+        dotExpr->Head->Accept( this );
+
+        if ( mBufOffset.has_value() && mBuffer )
+        {
+            auto& recordType = (RecordType&) *dotExpr->Head->Type;
+
+            auto fieldIt = recordType.GetFields().find( dotExpr->Member );
+
+            mBufOffset = ((FieldStorage&) *fieldIt->second).Offset + mBufOffset.value();
+        }
+        else
+        {
+            mLastValue.reset();
+            mBufOffset.reset();
+            mBuffer.reset();
+        }
     }
     else
     {
-        Fold( dotExpr->Head );
+        ReadValue( dotExpr );
+    }
+}
 
-        mLastValue.reset();
+void FolderVisitor::VisitDotExpr( DotExpr* dotExpr )
+{
+    if ( dotExpr->GetDecl()->Kind == DeclKind::Field )
+    {
+        VisitFieldAccess( dotExpr );
+    }
+    else
+    {
+        VisitNameAccess( dotExpr );
     }
 }
 
@@ -221,8 +282,37 @@ void FolderVisitor::VisitForStatement( ForStatement* forStmt )
 
 void FolderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 {
-    indexExpr->Head->Accept( this );
-    Fold( indexExpr->Index );
+    if ( mCalcOffset )
+    {
+        CalcIndexAddr( indexExpr->Head, indexExpr->Index );
+    }
+    else
+    {
+        ReadValue( indexExpr );
+    }
+}
+
+void FolderVisitor::CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index )
+{
+    mCalcOffset = false;
+    Fold( index );
+    mCalcOffset = true;
+
+    auto lastValue = std::move( mLastValue );
+
+    head->Accept( this );
+
+    if ( lastValue.has_value() && mBufOffset.has_value() && mBuffer )
+    {
+        auto arrayType = (ArrayType&) *head->Type;
+        mBufOffset = (lastValue.value().GetInteger() * arrayType.ElemType->GetSize()) + mBufOffset.value();
+    }
+    else
+    {
+        mBufOffset.reset();
+        mBuffer.reset();
+    }
+
     mLastValue.reset();
 }
 
@@ -271,13 +361,39 @@ void FolderVisitor::VisitLoopStatement( LoopStatement* loopStmt )
 
 void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
 {
-    if ( nameExpr->Decl->Kind == DeclKind::Const )
+    VisitNameAccess( nameExpr );
+}
+
+void FolderVisitor::VisitNameAccess( Syntax* nameExpr )
+{
+    if ( mCalcOffset )
     {
-        mLastValue = ((Constant*) nameExpr->Decl.get())->Value;
+        if ( nameExpr->GetDecl()->Kind == DeclKind::Const
+            && ((Constant*) nameExpr->GetDecl())->Value.Is( ValueKind::Aggregate ) )
+        {
+            mBufOffset = 0;
+            mBuffer = ((Constant*) nameExpr->GetDecl())->Value.GetAggregate().Buffer;
+        }
+        else
+        {
+            mBuffer.reset();
+            mBufOffset.reset();
+        }
     }
     else
     {
-        mLastValue.reset();
+        if ( nameExpr->GetDecl()->Kind == DeclKind::Const )
+        {
+            mLastValue = ((Constant*) nameExpr->GetDecl())->Value;
+        }
+        else if ( nameExpr->GetDecl()->Kind == DeclKind::Enum )
+        {
+            mLastValue = ((EnumMember*) nameExpr->GetDecl())->Value;
+        }
+        else
+        {
+            mLastValue.reset();
+        }
     }
 }
 
@@ -331,10 +447,18 @@ void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
 
 void FolderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 {
-    sliceExpr->Head->Accept( this );
-    Fold( sliceExpr->FirstIndex );
-    Fold( sliceExpr->LastIndex );
-    mLastValue.reset();
+    if ( mCalcOffset )
+    {
+        mCalcOffset = false;
+        Fold( sliceExpr->LastIndex );
+        mCalcOffset = true;
+
+        CalcIndexAddr( sliceExpr->Head, sliceExpr->FirstIndex );
+    }
+    else
+    {
+        ReadValue( sliceExpr );
+    }
 }
 
 void FolderVisitor::VisitStatementList( StatementList* stmtList )
@@ -354,9 +478,9 @@ void FolderVisitor::VisitUnaryExpr( UnaryExpr* unary )
     if ( mLastValue.has_value() )
     {
         if ( unary->Op == "-" )
-            mLastValue = VmSub( 0, mLastValue.value() );
+            mLastValue = VmSub( 0, mLastValue.value().GetInteger() );
         else if ( unary->Op == "not" )
-            mLastValue = !mLastValue.value();
+            mLastValue = !mLastValue.value().GetInteger();
         else
             THROW_INTERNAL_ERROR( "" );
     }
@@ -387,20 +511,98 @@ void FolderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
 }
 
 
+void FolderVisitor::ReadValue( Syntax* expr )
+{
+    mBuffer.reset();
+
+    mCalcOffset = true;
+    expr->Accept( this );
+    mCalcOffset = false;
+
+    if ( mBufOffset.has_value() && mBuffer )
+    {
+        mLastValue = ReadValueAtCurrentOffset( *expr->Type );
+    }
+    else
+    {
+        mLastValue.reset();
+        mBufOffset.reset();
+        mBuffer.reset();
+    }
+}
+
+ValueVariant FolderVisitor::ReadValueAtCurrentOffset( Type& type )
+{
+    return ReadConstValue( type, mBuffer, static_cast<GlobalSize>(mBufOffset.value()) );
+}
+
+ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<std::vector<int32_t>> buffer, GlobalSize offset )
+{
+    if ( IsIntegralType( type.GetKind() ) )
+    {
+        return (*buffer)[offset];
+    }
+    else if ( IsPtrFuncType( type ) )
+    {
+        auto funcIndex = (*buffer)[offset];
+        auto funcIt = mConstIndexFuncMap.find( funcIndex );
+
+        assert( funcIt != mConstIndexFuncMap.end() );
+
+        return funcIt->second;
+    }
+    else if ( IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
+    {
+        ConstRef constRef;
+
+        constRef.Buffer = buffer;
+        constRef.Offset = offset;
+
+        return constRef;
+    }
+    else
+    {
+        THROW_INTERNAL_ERROR( "ReadConstValue: type" );
+    }
+}
+
 void FolderVisitor::Fold( Unique<Syntax>& child )
 {
     child->Accept( this );
 
-    if ( mFoldNodes && mLastValue.has_value() && child->Kind != SyntaxKind::Number )
+    if ( !mFoldNodes || !mLastValue.has_value() )
+        return;
+
+    if ( IsIntegralType( child->Type->GetKind() ) )
     {
-        Unique<NumberExpr> number( new NumberExpr( mLastValue.value() ) );
+        if ( child->Kind != SyntaxKind::Number )
+        {
+            Unique<NumberExpr> number( new NumberExpr( mLastValue.value().GetInteger() ) );
 
-        if ( !mIntType )
-            mIntType = std::shared_ptr<IntType>( new IntType() );
-
-        child = std::move( number );
-        child->Type = mIntType;
+            number->Type = child->Type;
+            child = std::move( number );
+        }
     }
+    else if ( IsPtrFuncType( *child->Type ) )
+    {
+        auto func = mLastValue.value().GetFunction();
+
+        auto pointerType = std::shared_ptr<PointerType>( new PointerType( func->Type ) );
+
+        Unique<NameExpr> nameExpr( new NameExpr() );
+        nameExpr->String = "<const>";
+        nameExpr->Decl = func;
+        nameExpr->Type = func->Type;
+
+        Unique<AddrOfExpr> addrOf( new AddrOfExpr() );
+        addrOf->Inner = std::move( nameExpr );
+        addrOf->Type = pointerType;
+        CopyBaseSyntax( *addrOf, *child );
+
+        child = std::move( addrOf );
+    }
+
+    // No need to fold aggregates, because it would bring more complexity for no benefit
 }
 
 }

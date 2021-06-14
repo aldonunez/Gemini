@@ -18,6 +18,7 @@ class BinderVisitor final : public Visitor
     using SymStack = std::vector<SymTable*>;
     using LambdaVec = std::vector<Unique<ProcDecl>>;
     using NatTypeMap = std::map<int32_t, std::shared_ptr<Type>>;
+    using ConstFuncIndexMap = std::map<Function*, int32_t>;
 
     friend class LocalScope;
     friend class BorrowedScope;
@@ -31,6 +32,9 @@ class BinderVisitor final : public Visitor
     NatTypeMap      mNativeTypeMap;
     Reporter        mRep;
 
+    ConstFuncIndexMap   mConstFuncIndexMap;
+    ConstIndexFuncMap   mConstIndexFuncMap;
+
     Function*       mCurFunc = nullptr;
 
     ModSize         mModIndex = 0;
@@ -39,6 +43,7 @@ class BinderVisitor final : public Visitor
     LocalSize       mMaxLocalCount = 0;
     ParamSize       mParamCount = 0;
     GlobalSize      mGlobalSize = 0;
+    GlobalSize      mConstSize = 0;
     size_t          mTotalLambdas = 0;
     int32_t         mPrevNativeId = -1;
 
@@ -61,6 +66,8 @@ public:
     void BindFunctionBodies( Unit* unit );
 
     size_t GetDataSize();
+    size_t GetConstSize();
+    ConstIndexFuncMap ReleaseConstIndexFuncMap();
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
@@ -119,8 +126,12 @@ private:
     void VisitStorage( DataDecl* varDecl, DeclKind declKind );
     ParamSpec VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModifier modifier );
 
-    int32_t Evaluate( Syntax* node, const char* message = nullptr );
-    std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
+    int32_t EvaluateInt( Syntax* node, const char* message = nullptr );
+    ValueVariant EvaluateVariant( Syntax* node );
+    std::optional<int32_t> EvaluateOptionalInt( Syntax* node );
+
+    void EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueNode );
+    void CopyConstAggregateBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode );
 
     void CheckType(
         const std::shared_ptr<Type>& left,
@@ -154,8 +165,8 @@ private:
     std::shared_ptr<LocalStorage> AddLocal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<GlobalStorage> AddGlobal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<Declaration> AddStorage( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size, DeclKind declKind );
-    std::shared_ptr<Constant> AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, SymTable& table );
-    std::shared_ptr<Constant> AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, bool isPublic );
+    std::shared_ptr<Constant> AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, ValueVariant value, SymTable& table );
+    std::shared_ptr<Constant> AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, ValueVariant value, bool isPublic );
     std::shared_ptr<Function> AddFunc( DeclSyntax* declNode, bool isPublic );
     std::shared_ptr<TypeDeclaration> AddType( DeclSyntax* declNode, std::shared_ptr<Type> type, bool isPublic );
     void AddModule( DeclSyntax* declNode, std::shared_ptr<ModuleDeclaration> moduleDecl );
@@ -174,11 +185,5 @@ private:
 
     ParamSize GetParamSize( Type* type, ParamMode mode );
 };
-
-
-bool IsScalarType( TypeKind kind );
-bool IsIntegralType( TypeKind kind );
-bool IsClosedArrayType( Type& type );
-bool IsOpenArrayType( Type& type );
 
 }

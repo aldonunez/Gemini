@@ -30,6 +30,7 @@
     <ClCompile Include="TestAlgolyMultiArray.cpp" />
     <ClCompile Include="TestAlgolyNegativeLimits.cpp" />
     <ClCompile Include="TestAlgolyPassRef.cpp" />
+    <ClCompile Include="TestAlgolyPtrConst.cpp" />
     <ClCompile Include="TestAlgolyRecord.cpp" />
     <ClCompile Include="TestAlgolyStack.cpp" />
     <ClCompile Include="TestBase.cpp" />

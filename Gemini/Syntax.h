@@ -11,6 +11,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 
@@ -88,6 +89,7 @@ public:
     virtual ~Syntax() {}
     virtual void Accept( Visitor* visitor ) = 0;
     virtual Declaration* GetDecl();
+    virtual std::shared_ptr<Declaration> GetSharedDecl();
 };
 
 class StatementList : public Syntax
@@ -110,6 +112,7 @@ public:
 
     virtual void Accept( Visitor* visitor ) override;
     virtual Declaration* GetDecl() override;
+    virtual std::shared_ptr<Declaration> GetSharedDecl() override;
 };
 
 class NumberExpr : public Syntax
@@ -160,6 +163,7 @@ enum class ParamModifier
 {
     None,
     Var,
+    Const,
 };
 
 struct ParamSpecRef
@@ -245,6 +249,7 @@ public:
     std::string Name;
 
     virtual Declaration* GetDecl() override;
+    virtual std::shared_ptr<Declaration> GetSharedDecl() override;
 };
 
 class DataDecl : public DeclSyntax
@@ -433,6 +438,7 @@ public:
 
     virtual void Accept( Visitor* visitor ) override;
     virtual Declaration* GetDecl() override;
+    virtual std::shared_ptr<Declaration> GetSharedDecl() override;
 };
 
 class CallExpr : public Syntax
@@ -666,6 +672,7 @@ enum class DeclKind
 {
     Undefined,
     Const,
+    Enum,
     Global,
     Local,
     Param,
@@ -680,6 +687,7 @@ enum class DeclKind
 struct Declaration
 {
     const DeclKind          Kind;
+    bool                    IsReadOnly = false;
 
     virtual ~Declaration() { }
     virtual std::shared_ptr<Type> GetType() const = 0;
@@ -712,16 +720,100 @@ struct UndefinedDeclaration : public CommonDeclaration
     UndefinedDeclaration();
 };
 
-struct Constant : public Declaration
+struct ConstRef
 {
-    int32_t     Value = 0;
-
-    Constant();
+    std::shared_ptr<std::vector<int32_t>>   Buffer;
+    GlobalSize                              Offset;
 };
 
-struct SimpleConstant : public Constant
+enum class ValueKind
 {
+    Integer,
+    Function,
+    Aggregate,
+};
+
+struct Function;
+
+class ValueVariant
+{
+    using Variant = std::variant<
+        int32_t,
+        std::shared_ptr<Function>,
+        ConstRef>;
+
+    Variant mVariant;
+
+public:
+    ValueVariant() = default;
+    ValueVariant( const ValueVariant& ) = default;
+    ValueVariant( ValueVariant&& ) = default;
+
+    template <typename T,
+        std::enable_if_t<!std::is_same_v<std::decay_t<T>, ValueVariant>,
+            int> = 0>
+    ValueVariant( T&& t ) noexcept :
+        mVariant( std::move( t ) )
+    {
+    }
+
+    template <typename T,
+        std::enable_if_t<!std::is_same_v<std::decay_t<T>, ValueVariant>,
+        int> = 0>
+        ValueVariant( const T& t ) noexcept :
+        mVariant( t )
+    {
+    }
+
+    ValueVariant& operator=( const ValueVariant& ) = default;
+    ValueVariant& operator=( ValueVariant&& ) = default;
+
+    bool Is( ValueKind kind ) const
+    {
+        return mVariant.index() == static_cast<size_t>(kind);
+    }
+
+    int32_t& GetInteger()
+    {
+        return std::get<0>( mVariant );
+    }
+
+    std::shared_ptr<Function>& GetFunction()
+    {
+        return std::get<1>( mVariant );
+    }
+
+    ConstRef& GetAggregate()
+    {
+        return std::get<2>( mVariant );
+    }
+
+    void SetInteger( int32_t value )
+    {
+        mVariant = value;
+    }
+
+    void SetFunction( std::shared_ptr<Function> value )
+    {
+        mVariant = value;
+    }
+
+    void SetAggregate( ConstRef value )
+    {
+        mVariant = value;
+    }
+};
+
+struct Constant : public Declaration
+{
+    ValueVariant    Value;
+    GlobalSize      Offset = 0;
+    ModSize         ModIndex = 0;
+    bool            Spilled = false;
+
     std::shared_ptr<Gemini::Type>   Type;
+
+    Constant();
 
     virtual std::shared_ptr<Gemini::Type> GetType() const override
     {
@@ -747,7 +839,9 @@ struct LocalStorage : public CommonDeclaration
 enum class ParamMode
 {
     Value,
+    ValueIn,
     RefInOut,
+    RefIn,
 };
 
 struct ParamStorage : public CommonDeclaration
@@ -828,14 +922,15 @@ struct LoadedAddressDeclaration : public CommonDeclaration
 
 class EnumType;
 
-struct EnumMember : public Constant
+struct EnumMember : public Declaration
 {
     // Use a weak reference to avoid a circular reference.
     // But the parent type must always be available.
     // This is easy to guarantee since, in the language,
     // these only show up in the context of the parent.
 
-    const std::weak_ptr<EnumType> ParentType;
+    const std::weak_ptr<EnumType>   ParentType;
+    int32_t                         Value;
 
     EnumMember( int32_t value, std::shared_ptr<EnumType> parentType );
 
