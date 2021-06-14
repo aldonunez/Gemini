@@ -797,6 +797,10 @@ void Compiler::GenerateLocalInit( LocalSize offset, Syntax* initializer )
 
         AddLocalDataArray( offset, initializer, arrayType->Count );
     }
+    else if ( type->GetKind() == TypeKind::Record )
+    {
+        AddLocalDataRecord( offset, initializer );
+    }
     else
     {
         mRep.ThrowSemanticsError( initializer, "'let' binding takes a name or name and type" );
@@ -867,6 +871,18 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
             GenerateLocalInit( locIndex, lastNode );
             locIndex -= static_cast<LocalSize>(lastNode->Type->GetSize());
         }
+    }
+}
+
+void Compiler::AddLocalDataRecord( int32_t offset, Syntax* recordValue )
+{
+    auto recordInit = (RecordInitializer*) recordValue;
+
+    for ( auto& fieldInit : recordInit->Fields )
+    {
+        auto fieldDecl = (FieldStorage*) fieldInit->GetDecl();
+
+        GenerateLocalInit( offset - fieldDecl->Offset, fieldInit->Initializer.get() );
     }
 }
 
@@ -1757,6 +1773,10 @@ void Compiler::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
 
         AddGlobalDataArray( offset, initializer, arrayType->Count );
     }
+    else if ( type->GetKind() == TypeKind::Record )
+    {
+        AddGlobalDataRecord( offset, initializer );
+    }
     else
     {
         mRep.ThrowSemanticsError( initializer, "'defvar' takes a name or name and type" );
@@ -1835,6 +1855,21 @@ void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t 
             GenerateGlobalInit( globalIndex, lastNode );
             globalIndex += lastNode->Type->GetSize();
         }
+    }
+}
+
+void Compiler::AddGlobalDataRecord( int32_t offset, Syntax* recordValue )
+{
+    if ( recordValue->Kind != SyntaxKind::RecordInitializer )
+        mRep.ThrowError( CERR_SEMANTICS, recordValue, "Records must be initialized with record initializer" );
+
+    auto recordInit = (RecordInitializer*) recordValue;
+
+    for ( auto& fieldInit : recordInit->Fields )
+    {
+        auto fieldDecl = (FieldStorage*) fieldInit->GetDecl();
+
+        GenerateGlobalInit( offset + fieldDecl->Offset, fieldInit->Initializer.get() );
     }
 }
 
