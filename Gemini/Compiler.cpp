@@ -317,9 +317,27 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
     case DeclKind::Param:
         assert( offset >= 0 && offset < ParamSizeMax );
         assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+        {
+            auto param = (ParamStorage*) decl;
 
-        EmitU8( OP_LDARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
-        IncreaseExprDepth();
+            if ( param->Mode == ParamMode::Value )
+            {
+                EmitU8( OP_LDARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
+            }
+            else if ( param->Mode == ParamMode::InOutRef )
+            {
+                mCodeBinPtr[0] = OP_LDARG;
+                mCodeBinPtr[1] = param->Offset + offset;
+                mCodeBinPtr[2] = OP_LOADI;
+                mCodeBinPtr += 3;
+            }
+            else
+            {
+                mRep.ThrowError( CERR_SEMANTICS, node, "Bad parameter mode" );
+            }
+
+            IncreaseExprDepth();
+        }
         break;
 
     case DeclKind::Func:
