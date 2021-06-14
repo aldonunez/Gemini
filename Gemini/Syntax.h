@@ -705,9 +705,79 @@ struct UndefinedDeclaration : public CommonDeclaration
     UndefinedDeclaration();
 };
 
+enum class ValueKind
+{
+    Integer,
+    Function,
+};
+
+struct Function;
+
+class ValueVariant
+{
+    ValueKind mKind = ValueKind::Integer;
+
+    union ValueUnion
+    {
+        int32_t Integer;
+        std::shared_ptr<Function> Function;
+
+        ~ValueUnion() {}
+    } mValue = { 0 };
+
+public:
+    ValueKind GetKind() const
+    {
+        return mKind;
+    }
+
+    int32_t GetInteger() const
+    {
+        assert( mKind == ValueKind::Integer );
+        return mValue.Integer;
+    }
+
+    std::shared_ptr<Function> GetFunction() const
+    {
+        assert( mKind == ValueKind::Function );
+        return mValue.Function;
+    }
+
+    void SetInteger( int32_t value )
+    {
+        Destroy();
+
+        mValue.Integer = value;
+        mKind = ValueKind::Integer;
+    }
+
+    void SetFunction( std::shared_ptr<Function> function )
+    {
+        Destroy();
+
+        new (&mValue.Function) std::shared_ptr<Function>( function );
+        mKind = ValueKind::Function;
+    }
+
+    ~ValueVariant()
+    {
+        Destroy();
+    }
+
+private:
+    void Destroy()
+    {
+        if ( mKind == ValueKind::Function )
+        {
+            mValue.Function.~shared_ptr<Function>();
+            mKind = ValueKind::Integer;
+        }
+    }
+};
+
 struct Constant : public Declaration
 {
-    int32_t     Value = 0;
+    ValueVariant Value;
 
     Constant();
 };
