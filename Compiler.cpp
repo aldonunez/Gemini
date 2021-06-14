@@ -725,32 +725,28 @@ void Compiler::GenerateLetBinding( DataDecl* binding )
 
 void Compiler::GenerateLocalInit( int32_t offset, Syntax* initializer )
 {
+    if ( initializer == nullptr )
+        return;
+
     auto type = initializer->Type.get();
 
     if ( IsScalarType( type->GetKind() ) )
     {
-        if ( initializer != nullptr )
-        {
-            Generate( initializer );
-            mCodeBinPtr[0] = OP_STLOC;
-            mCodeBinPtr[1] = offset;
-            mCodeBinPtr += 2;
-            DecreaseExprDepth();
-        }
+        Generate( initializer );
+        mCodeBinPtr[0] = OP_STLOC;
+        mCodeBinPtr[1] = offset;
+        mCodeBinPtr += 2;
+        DecreaseExprDepth();
     }
     else if ( type->GetKind() == TypeKind::Array )
     {
         auto arrayType = (ArrayType*) type;
 
-        if ( initializer != nullptr )
-        {
-            AddLocalDataArray( offset, initializer, arrayType->Size );
-        }
+        AddLocalDataArray( offset, initializer, arrayType->Size );
     }
     else
     {
-        // TODO: node
-        mRep.ThrowError( CERR_SEMANTICS, nullptr, "'let' binding takes a name or name and type" );
+        mRep.ThrowError( CERR_SEMANTICS, initializer, "'let' binding takes a name or name and type" );
     }
 }
 
@@ -780,13 +776,9 @@ void Compiler::AddLocalDataArray( int32_t offset, Syntax* valueElem, size_t size
         lastTwoElems[0] = lastTwoElems[1];
         lastTwoElems[1] = entry.get();
 
-        Generate( entry.get() );
-        mCodeBinPtr[0] = OP_STLOC;
-        mCodeBinPtr[1] = (U8) locIndex;
-        mCodeBinPtr += 2;
+        GenerateLocalInit( locIndex, entry.get() );
         i++;
         locIndex--;
-        DecreaseExprDepth();
     }
 
     I32 prevValue = 0;
@@ -1623,28 +1615,30 @@ void Compiler::VisitDotExpr( DotExpr* dotExpr )
 void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status )
 {
     auto global = (GlobalStorage*) varDecl->GetDecl();
-    auto type = global->Type.get();
 
-    if ( type->GetKind() == TypeKind::Int
-        || type->GetKind() == TypeKind::Pointer )
+    GenerateGlobalInit( global->Offset, varDecl->Initializer.get() );
+}
+
+void Compiler::GenerateGlobalInit( int32_t offset, Syntax* initializer )
+{
+    if ( initializer == nullptr )
+        return;
+
+    auto type = initializer->Type.get();
+
+    if ( IsScalarType( type->GetKind() ) )
     {
-        if ( varDecl->Initializer != nullptr )
-        {
-            AddGlobalData( global->Offset, varDecl->Initializer.get() );
-        }
+        AddGlobalData( offset, initializer );
     }
     else if ( type->GetKind() == TypeKind::Array )
     {
         auto arrayType = (ArrayType*) type;
 
-        if ( varDecl->Initializer != nullptr )
-        {
-            AddGlobalDataArray( global, varDecl->Initializer.get(), arrayType->Size );
-        }
+        AddGlobalDataArray( offset, initializer, arrayType->Size );
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, varDecl, "'defvar' takes a name or name and type" );
+        mRep.ThrowError( CERR_SEMANTICS, initializer, "'defvar' takes a name or name and type" );
     }
 }
 
@@ -1676,7 +1670,7 @@ void Compiler::AddGlobalData( U32 offset, Syntax* valueElem )
     }
 }
 
-void Compiler::AddGlobalDataArray( GlobalStorage* global, Syntax* valueElem, size_t size )
+void Compiler::AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
@@ -1690,7 +1684,7 @@ void Compiler::AddGlobalDataArray( GlobalStorage* global, Syntax* valueElem, siz
         if ( i == size )
             mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
 
-        AddGlobalData( global->Offset + i, entry.get() );
+        GenerateGlobalInit( offset + i, entry.get() );
         i++;
     }
 
@@ -1700,17 +1694,17 @@ void Compiler::AddGlobalDataArray( GlobalStorage* global, Syntax* valueElem, siz
     if ( initList->HasExtra )
     {
         if ( i >= 1 )
-            prevValue = mGlobals[global->Offset + i - 1];
+            prevValue = mGlobals[offset + i - 1];
 
         if ( i >= 2 )
-            step = prevValue - mGlobals[global->Offset + i - 2];
+            step = prevValue - mGlobals[offset + i - 2];
     }
 
     for ( ; i < size; i++ )
     {
         I32 newValue = prevValue + step;
 
-        mGlobals[global->Offset + i] = newValue;
+        mGlobals[offset + i] = newValue;
         prevValue = newValue;
     }
 }

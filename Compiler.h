@@ -323,9 +323,10 @@ private:
     void GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateArrayElementRef( IndexExpr* indexExpr );
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
+    void GenerateGlobalInit( int32_t offset, Syntax* initializer );
 
     void AddGlobalData( U32 offset, Syntax* valueElem );
-    void AddGlobalDataArray( GlobalStorage* global, Syntax* valueElem, size_t size );
+    void AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t size );
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
