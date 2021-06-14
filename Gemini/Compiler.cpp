@@ -706,7 +706,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
             }
             else
             {
-                mRep.ThrowError( CERR_SEMANTICS, assignment->Left.get(), "Bad parameter mode" );
+                mRep.ThrowError( CERR_SEMANTICS, node, "Bad parameter mode" );
             }
         }
         break;
