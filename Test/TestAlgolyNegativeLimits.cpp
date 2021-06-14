@@ -523,47 +523,36 @@ TEST_CASE( "Algoly: fail to assign to const", "[algoly][negative]" )
 //  Other Const
 //----------------------------------------------------------------------------
 
-TEST_CASE( "Algoly: const fptr", "[algoly][negative]" )
+TEST_CASE( "Algoly: const fptr", "[algoly]" )
 {
     const char code[] =
         "const f = &B\n"
-        "def a end\n"
-        "def B end\n"
+        "def a; (f)() end\n"
+        "def B 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
-TEST_CASE( "Algoly: const array, explicit", "[algoly][array][negative]" )
+TEST_CASE( "Algoly: const array, explicit", "[algoly][array]" )
 {
     const char code[] =
         "type Array = [2]\n"
         "const ar1: Array = [1, 2]\n"
-        "def a end\n"
+        "def a ar1[1] end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, 2 );
 }
 
-TEST_CASE( "Algoly: const array", "[algoly][array][negative]" )
+TEST_CASE( "Algoly: const array", "[algoly][array]" )
 {
     const char code[] =
         "const ar1 = [1, 2]\n"
-        "def a end\n"
+        "def a ar1[1] end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
-}
-
-TEST_CASE( "Algoly: const record", "[algoly][record][negative]" )
-{
-    const char code[] =
-        "type R = record a, b end\n"
-        "const r1: R = { a: 1, b: 2 }\n"
-        "def a end\n"
-        ;
-
-    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, 2 );
 }
 
 TEST_CASE( "Algoly: const record, inferred", "[algoly][record][negative]" )

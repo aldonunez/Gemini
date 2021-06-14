@@ -227,7 +227,7 @@ public:
 
 void Disassemble( const uint8_t* program, int size )
 {
-    Disassembler disassembler( program );
+    Disassembler disassembler( program, true, Disassembler::DecimalConst );
     int totalBytesDisasm = 0;
     while ( totalBytesDisasm < size )
     {
@@ -399,6 +399,7 @@ void TestCompileAndRun( const TestConfig& config )
 
     CodeGenBuffer<U8>   codeBuf;
     CodeGenBuffer<CELL> dataBuf;
+    CodeGenBuffer<CELL> constBuf;
 
     CompilerEnv env;
     CompilerLog log{ GetKind( config.expectedResult ) == ResultKind::Compiler };
@@ -463,6 +464,7 @@ void TestCompileAndRun( const TestConfig& config )
 
         curMod->CodeSize  = static_cast<CodeSize>(codeBuf.Add( compiler1.GetCodeSize(), compiler1.GetCode() ));
         curMod->DataSize  = static_cast<GlobalSize>(dataBuf.Add( compiler1.GetDataSize(), compiler1.GetData() ));
+        curMod->ConstSize = static_cast<GlobalSize>(constBuf.Add( compiler1.GetConstSize(), compiler1.GetConst() ));
 
         modDecls.push_back( compiler1.GetMetadata( moduleSource->Name ) );
 
@@ -483,6 +485,7 @@ void TestCompileAndRun( const TestConfig& config )
 
         mod->CodeBase  = codeBuf.Consume( mod->CodeSize );
         mod->DataBase  = dataBuf.Consume( mod->DataSize );
+        mod->ConstBase = constBuf.Consume( mod->ConstSize );
 
         REQUIRE( VerifyModule( mod ) == ERR_NONE );
     }

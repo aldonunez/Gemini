@@ -18,6 +18,11 @@ Declaration* Syntax::GetDecl()
     return nullptr;
 }
 
+std::shared_ptr<Declaration> Syntax::GetSharedDecl()
+{
+    return std::shared_ptr<Declaration>();
+}
+
 NameExpr::NameExpr()
 {
     Kind = SyntaxKind::Name;
@@ -38,6 +43,11 @@ NameExpr::NameExpr( std::string&& str ) :
 Declaration* NameExpr::GetDecl()
 {
     return Decl.get();
+}
+
+std::shared_ptr<Declaration> NameExpr::GetSharedDecl()
+{
+    return Decl;
 }
 
 NumberExpr::NumberExpr() :
@@ -64,6 +74,11 @@ RecordInitializer::RecordInitializer()
 Declaration* DeclSyntax::GetDecl()
 {
     return Decl.get();
+}
+
+std::shared_ptr<Declaration> DeclSyntax::GetSharedDecl()
+{
+    return Decl;
 }
 
 ConstDecl::ConstDecl()
@@ -110,6 +125,11 @@ DotExpr::DotExpr()
 Declaration* DotExpr::GetDecl()
 {
     return Decl.get();
+}
+
+std::shared_ptr<Declaration> DotExpr::GetSharedDecl()
+{
+    return Decl;
 }
 
 Unit::Unit( const std::string& fileName )
@@ -378,7 +398,7 @@ std::optional<int32_t> GetFinalOptionalSyntaxValue( Syntax* node )
         return (int32_t) number->Value;
     }
 
-    return std::optional<int32_t>();
+    return {};
 }
 
 void CopyBaseSyntax( Syntax& dest, const Syntax& source )
@@ -592,6 +612,7 @@ UndefinedDeclaration::UndefinedDeclaration() :
 Constant::Constant() :
     Declaration( DeclKind::Const )
 {
+    IsReadOnly = true;
 }
 
 GlobalStorage::GlobalStorage() :
@@ -640,9 +661,11 @@ LoadedAddressDeclaration::LoadedAddressDeclaration() :
 }
 
 EnumMember::EnumMember( int32_t value, std::shared_ptr<EnumType> parentType ) :
-    ParentType( parentType )
+    Declaration( DeclKind::Enum ),
+    ParentType( parentType ),
+    Value( value )
 {
-    Value = value;
+    IsReadOnly = true;
 }
 
 std::shared_ptr<Type> EnumMember::GetType() const

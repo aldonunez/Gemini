@@ -86,6 +86,7 @@ public:
     {
         Code,
         Data,
+        Const,
     };
 
     struct CodeRef
@@ -163,8 +164,15 @@ private:
         };
     };
 
+    enum class ModuleSection
+    {
+        Data,
+        Const,
+    };
+
     struct MemTransfer
     {
+        ModuleSection SrcSection;
         int32_t Src;
         int32_t Dst;
         int32_t Size;
@@ -275,12 +283,14 @@ private:
     struct CalculatedAddress
     {
         Declaration*    decl;
-        int32_t         offset;
+        GlobalSize      offset;
         bool            spilled;
     };
 
     CodeVec         mCodeBin;
     GlobalVec       mGlobals;
+    GlobalVec       mConsts;
+    GlobalSize      mTotalConst = 0;
 
     SymTable        mGlobalTable;
     SymTable        mModuleTable;
@@ -289,6 +299,16 @@ private:
     FuncPatchMap    mFuncPatchMap;
     AddrRefVec      mLocalAddrRefs;
     MemTransferVec  mDeferredGlobals;
+
+    ConstIndexFuncMap   mConstIndexFuncMap;
+    GlobalDataGenerator mGlobalDataGenerator
+    {
+        mGlobals,
+        std::bind( &Compiler::EmitGlobalFuncAddress, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4 ),
+        std::bind( &Compiler::CopyGlobalAggregateBlock, this, std::placeholders::_1, std::placeholders::_3 ),
+        mConstIndexFuncMap,
+        mRep
+    };
 
     bool            mInFunc = false;
     Function*       mCurFunc = nullptr;
@@ -310,6 +330,7 @@ private:
     std::shared_ptr<ModuleType>     mModuleType{ new ModuleType() };
 
     std::shared_ptr<LoadedAddressDeclaration>   mLoadedAddrDecl;
+    std::shared_ptr<LoadedAddressDeclaration>   mLoadedAddrDeclConst;
 
 public:
     Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex = 0 );
@@ -323,6 +344,8 @@ public:
     size_t GetCodeSize();
     I32* GetData();
     size_t GetDataSize();
+    I32* GetConst();
+    size_t GetConstSize();
     std::shared_ptr<ModuleDeclaration> GetMetadata( const char* modName );
 
 private:
@@ -352,14 +375,15 @@ private:
     void GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status );
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
-    void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );
 
-    CalculatedAddress CalcAddress( Syntax* expr );
+    void SpillConstant( Constant* constant );
+    void SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcOffset, GlobalVec& dstBuffer, GlobalSize dstOffset );
 
-    void EmitGlobalScalar( GlobalSize offset, Syntax* valueElem );
-    void EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size );
-    void EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit );
-    void EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem );
+    CalculatedAddress CalcAddress( Syntax* expr, bool writable = false );
+
+    void EmitGlobalFuncAddress( std::optional<std::shared_ptr<Function>> func, GlobalSize offset, int32_t* buffer, Syntax* initializer );
+    void CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode );
+    void PushDeferredGlobal( Type& type, ModuleSection srcSection, GlobalSize srcOffset, GlobalSize dstOffset );
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
@@ -411,6 +435,7 @@ private:
     void GenerateNilIfNeeded( const GenConfig& config, GenStatus& status );
 
     void GenerateSentinel();
+    void FinalizeConstData();
 
     // And and Or
     void GenerateConj( ConjSpec* spec, BinaryExpr* binary, const GenConfig& config );
@@ -435,6 +460,7 @@ private:
     void CopyDeferredGlobals();
 
     I32 GetSyntaxValue( Syntax* node, const char* message = nullptr );
+    std::optional<I32> GetFinalOptionalSyntaxValue( Syntax* node );
 
     // Stack usage
     void IncreaseExprDepth( LocalSize amount = 1 );
@@ -467,6 +493,7 @@ private:
     virtual void VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol ) override;
     virtual void VisitCaseExpr( CaseExpr* caseExpr ) override;
     virtual void VisitCondExpr( CondExpr* condExpr ) override;
+    virtual void VisitConstDecl( ConstDecl* constDecl ) override;
     virtual void VisitCountofExpr( CountofExpr* countofExpr ) override;
     virtual void VisitDotExpr( DotExpr* dotExpr ) override;
     virtual void VisitForStatement( ForStatement* forStmt ) override;

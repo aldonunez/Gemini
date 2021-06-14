@@ -46,6 +46,10 @@ Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
 
     mLoadedAddrDecl.reset( new LoadedAddressDeclaration() );
     mLoadedAddrDecl->Type = mErrorType;
+
+    mLoadedAddrDeclConst.reset( new LoadedAddressDeclaration() );
+    mLoadedAddrDeclConst->Type = mErrorType;
+    mLoadedAddrDeclConst->IsReadOnly = true;
 }
 
 void Compiler::AddUnit( Unique<Unit>&& unit )
@@ -86,6 +90,7 @@ CompilerErr Compiler::Compile()
         CopyDeferredGlobals();
 
         GenerateSentinel();
+        FinalizeConstData();
 
         mStatus = CompilerErr::OK;
     }
@@ -131,6 +136,16 @@ size_t Compiler::GetDataSize()
     return mGlobals.size();
 }
 
+I32* Compiler::GetConst()
+{
+    return mConsts.data();
+}
+
+size_t Compiler::GetConstSize()
+{
+    return mConsts.size();
+}
+
 std::shared_ptr<ModuleDeclaration> Compiler::GetMetadata( const char* modName )
 {
     if ( modName == nullptr )
@@ -160,14 +175,19 @@ void Compiler::BindAttributes()
         binder.BindFunctionBodies( unit.get() );
 
     mGlobals.resize( binder.GetDataSize() );
+    mConsts.resize( binder.GetConstSize() );
+
+    mConstIndexFuncMap = binder.ReleaseConstIndexFuncMap();
 }
 
 void Compiler::FoldConstants()
 {
-    FolderVisitor folder( mRep.GetLog() );
+#if !defined( GEMINIVM_DISABLE_FOLDING_PASS )
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
     for ( auto& unit : mUnits )
         folder.Fold( unit.get() );
+#endif
 }
 
 void Compiler::GenerateCode()
@@ -346,7 +366,8 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         {
             auto param = (ParamStorage*) decl;
 
-            if ( param->Mode == ParamMode::Value )
+            if ( param->Mode == ParamMode::Value
+                || param->Mode == ParamMode::ValueIn )
             {
                 assert( offset >= 0 && offset < ParamSizeMax );
                 assert( offset < (ParamSizeMax - param->Offset) );
@@ -354,7 +375,8 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
                 EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + offset) );
                 IncreaseExprDepth();
             }
-            else if ( param->Mode == ParamMode::RefInOut )
+            else if ( param->Mode == ParamMode::RefInOut
+                || param->Mode == ParamMode::RefIn )
             {
                 EmitU8( OP_LDARG, param->Offset );
                 IncreaseExprDepth();
@@ -376,8 +398,47 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Const:
+        {
+            assert( offset >= 0 && offset < GlobalSizeMax );
+
+            auto constant = (Constant*) decl;
+            ValueVariant value;
+
+            if ( constant->Value.Is( ValueKind::Aggregate ) )
+            {
+                assert( (GlobalSize) offset < (constant->Value.GetAggregate().Buffer->size() - constant->Value.GetAggregate().Offset) );
+
+                FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+
+                GlobalSize bufOffset = static_cast<GlobalSize>(constant->Value.GetAggregate().Offset + offset);
+
+                value = folder.ReadConstValue( *node->Type, constant->Value.GetAggregate().Buffer, bufOffset );
+            }
+            else
+            {
+                assert( offset == 0 );
+
+                value = constant->Value;
+            }
+
+            if ( value.Is( ValueKind::Integer ) )
+            {
+                EmitLoadConstant( value.GetInteger() );
+            }
+            else if ( value.Is( ValueKind::Function ) )
+            {
+                EmitLoadFuncAddress( value.GetFunction().get() );
+            }
+            else
+            {
+                THROW_INTERNAL_ERROR( "" );
+            }
+        }
+        break;
+
+    case DeclKind::Enum:
         assert( offset == 0 );
-        EmitLoadConstant( ((Constant*) decl)->Value );
+        EmitLoadConstant( ((EnumMember*) decl)->Value );
         break;
 
     case DeclKind::LoadedAddress:
@@ -392,7 +453,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     default:
-        THROW_INTERNAL_ERROR( "" );
+        THROW_INTERNAL_ERROR( "EmitLoadScalar: DeclKind" );
     }
 }
 
@@ -681,6 +742,9 @@ void Compiler::GenerateSetScalar( AssignmentExpr* assignment, const GenConfig& c
 
 void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset )
 {
+    if ( decl->IsReadOnly )
+        mRep.ThrowSemanticsError( node, "Constants can't be changed" );
+
     switch ( decl->Kind )
     {
     case DeclKind::Global:
@@ -731,10 +795,11 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
 
     case DeclKind::Func:
     case DeclKind::NativeFunc:
-        mRep.ThrowSemanticsError( node, "functions can't be assigned a value" );
+        mRep.ThrowSemanticsError( node, "Functions can't be assigned a value" );
         break;
 
     case DeclKind::Const:
+    case DeclKind::Enum:
         mRep.ThrowSemanticsError( node, "Constants can't be changed" );
         break;
 
@@ -749,7 +814,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     default:
-        THROW_INTERNAL_ERROR( "" );
+        THROW_INTERNAL_ERROR( "EmitStoreScalar: DeclKind" );
     }
 
     DecreaseExprDepth();
@@ -782,7 +847,7 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
         if ( IsClosedArrayType( leftArrayType ) )
             EmitLoadConstant( leftArrayType.Count );
 
-        auto addr = CalcAddress( assignment->Left.get() );
+        auto addr = CalcAddress( assignment->Left.get(), true );
 
         EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
 
@@ -807,7 +872,7 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
             IncreaseExprDepth();
         }
 
-        auto addr = CalcAddress( assignment->Left.get() );
+        auto addr = CalcAddress( assignment->Left.get(), true );
 
         EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
 
@@ -889,6 +954,10 @@ void Compiler::EmitFuncAddress( Function* func, CodeRef funcRef )
 
     case CodeRefKind::Data:
         mGlobals[funcRef.Location] = addrWord;
+        break;
+
+    case CodeRefKind::Const:
+        mConsts[funcRef.Location] = addrWord;
         break;
 
     default:
@@ -1096,14 +1165,16 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
     switch ( paramSpec.Mode )
     {
     case ParamMode::Value:
+    case ParamMode::ValueIn:
         Generate( &node );
         break;
 
     case ParamMode::RefInOut:
+    case ParamMode::RefIn:
         {
             GenerateDopeVector( node, paramSpec );
 
-            auto addr = CalcAddress( &node );
+            auto addr = CalcAddress( &node, (paramSpec.Mode == ParamMode::RefInOut) );
 
             if ( !addr.spilled )
             {
@@ -1792,8 +1863,9 @@ void Compiler::PatchCalls( FuncPatchChain* chain, U32 addr )
 
         switch ( link->Ref.Kind )
         {
-        case CodeRefKind::Code: refPtr = &mCodeBin[link->Ref.Location]; break;
-        case CodeRefKind::Data: refPtr = &mGlobals[link->Ref.Location]; break;
+        case CodeRefKind::Code:  refPtr = &mCodeBin[link->Ref.Location]; break;
+        case CodeRefKind::Data:  refPtr = &mGlobals[link->Ref.Location]; break;
+        case CodeRefKind::Const: refPtr = &mConsts[link->Ref.Location]; break;
         default:
             THROW_INTERNAL_ERROR( "" );
         }
@@ -1896,7 +1968,8 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                     EmitU8( OP_LDARGA, static_cast<uint8_t>(param->Offset + offset) );
                     IncreaseExprDepth();
                 }
-                else if ( param->Mode == ParamMode::RefInOut )
+                else if ( param->Mode == ParamMode::RefInOut
+                    || param->Mode == ParamMode::RefIn )
                 {
                     EmitU8( OP_LDARG, param->Offset );
 
@@ -1909,6 +1982,25 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 {
                     THROW_INTERNAL_ERROR( "EmitLoadAddress: Bad parameter mode" );
                 }
+            }
+            break;
+
+        case DeclKind::Const:
+            {
+                auto    constant = (Constant*) baseDecl;
+                ModSize modIndex = constant->ModIndex | CONST_SECTION_MOD_INDEX_MASK;
+
+                assert( offset >= 0 && offset < GlobalSizeMax );
+                assert( offset < (GlobalSizeMax - constant->Offset) );
+
+                if ( !constant->Spilled )
+                    SpillConstant( constant );
+
+                addrWord = CodeAddr::Build(
+                    constant->Offset + offset,
+                    modIndex );
+                EmitU32( OP_LDC, addrWord );
+                IncreaseExprDepth();
             }
             break;
 
@@ -1947,7 +2039,11 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
         EmitLoadAddress( fullExpr, status.baseDecl, status.offset );
 
         // Set this after emitting the original decl's address above
-        status.baseDecl = mLoadedAddrDecl.get();
+        if ( status.baseDecl->IsReadOnly )
+            status.baseDecl = mLoadedAddrDeclConst.get();
+        else
+            status.baseDecl = mLoadedAddrDecl.get();
+
         status.offset = 0;
         status.spilledAddr = true;
     }
@@ -2067,7 +2163,7 @@ void Compiler::VisitIndexExpr( IndexExpr* indexExpr )
     GenerateAref( indexExpr, Config(), Status() );
 }
 
-Compiler::CalculatedAddress Compiler::CalcAddress( Syntax* expr )
+Compiler::CalculatedAddress Compiler::CalcAddress( Syntax* expr, bool writable )
 {
     GenConfig config{};
     GenStatus status{};
@@ -2078,6 +2174,9 @@ Compiler::CalculatedAddress Compiler::CalcAddress( Syntax* expr )
 
     if ( status.baseDecl == nullptr )
         mRep.ThrowSemanticsError( expr, "Expression has no address" );
+
+    if ( writable && status.baseDecl->IsReadOnly )
+        mRep.ThrowSemanticsError( expr, "Constants cannot be changed" );
 
     CalculatedAddress addr{};
 
@@ -2150,10 +2249,25 @@ void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenSta
 {
     auto global = (GlobalStorage*) varDecl->GetDecl();
 
-    GenerateGlobalInit( global->Offset, varDecl->Initializer.get() );
+    mGlobalDataGenerator.GenerateGlobalInit( global->Offset, varDecl->Initializer.get() );
 }
 
-void Compiler::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
+GlobalDataGenerator::GlobalDataGenerator(
+    std::vector<int32_t>& globals,
+    EmitFuncAddressFunctor emitFuncAddressFunctor,
+    CopyAggregateFunctor copyAggregateFunctor,
+    ConstIndexFuncMap& constIndexFuncMap,
+    Reporter& reporter )
+    :
+    mGlobals( globals ),
+    mEmitFuncAddressFunctor( emitFuncAddressFunctor ),
+    mCopyAggregateFunctor( copyAggregateFunctor ),
+    mConstIndexFuncMap( constIndexFuncMap ),
+    mRep( reporter )
+{
+}
+
+void GlobalDataGenerator::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
 {
     if ( initializer == nullptr )
         return;
@@ -2176,7 +2290,7 @@ void Compiler::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
     }
     else
     {
-        EmitGlobalAggregateCopyBlock( offset, initializer );
+        mCopyAggregateFunctor( offset, mGlobals.data(), initializer );
     }
 }
 
@@ -2185,43 +2299,91 @@ void Compiler::VisitVarDecl( VarDecl* varDecl )
     GenerateDefvar( varDecl, Config(), Status() );
 }
 
-void Compiler::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
+void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
 {
-    if ( valueElem->Type->GetKind() == TypeKind::Pointer )
-    {
-        if ( valueElem->Kind == SyntaxKind::AddrOfExpr )
-        {
-            auto addrOf = (AddrOfExpr*) valueElem;
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
-            EmitFuncAddress( (Function*) addrOf->Inner->GetDecl(), { CodeRefKind::Data, offset } );
+    auto optVal = folder.Evaluate( valueElem );
+
+    std::optional<std::shared_ptr<Function>> optFunc;
+
+    if ( optVal.has_value() )
+    {
+        if ( optVal.value().Is( ValueKind::Integer ) )
+        {
+            mGlobals[offset] = optVal.value().GetInteger();
+            return;
         }
         else
         {
-            THROW_INTERNAL_ERROR( "" );
+            assert( optVal.value().Is( ValueKind::Function ) );
+
+            optFunc = optVal.value().GetFunction();
         }
+    }
+
+    mEmitFuncAddressFunctor( optFunc, offset, mGlobals.data(), valueElem );
+}
+
+void Compiler::EmitGlobalFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* initializer )
+{
+    if ( optFunc.has_value() )
+    {
+        EmitFuncAddress( optFunc.value().get(), { CodeRefKind::Data, offset } );
     }
     else
     {
-        mGlobals[offset] = GetSyntaxValue( valueElem, "Globals must be initialized with constant data" );
+        // We don't need to check if it's writable, because we'll explicitly check that it's a global
+        auto addr = CalcAddress( initializer );
+
+        if ( addr.decl->Kind != DeclKind::Global )
+            mRep.ThrowSemanticsError( initializer, "Const or global expected" );
+
+        GlobalSize srcOffset = ((GlobalStorage*) addr.decl)->Offset + addr.offset;
+
+        PushDeferredGlobal( *initializer->Type, ModuleSection::Data, srcOffset, offset );
     }
 }
 
-void Compiler::EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem )
+void Compiler::PushDeferredGlobal( Type& type, ModuleSection srcSection, GlobalSize srcOffset, GlobalSize dstOffset )
 {
-    // Defer these globals until all function addresses are known and put in source blocks
-
     MemTransfer  transfer;
 
-    auto srcAddr = CalcAddress( valueElem );
-
-    transfer.Src = srcAddr.offset;
-    transfer.Dst = offset;
-    transfer.Size = valueElem->Type->GetSize();
+    transfer.SrcSection = srcSection;
+    transfer.Src = srcOffset;
+    transfer.Dst = dstOffset;
+    transfer.Size = type.GetSize();
 
     mDeferredGlobals.push_back( transfer );
 }
 
-void Compiler::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size )
+void Compiler::CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode )
+{
+    // Defer these globals until all function addresses are known and put in source blocks
+
+    auto srcAddr = CalcAddress( valueNode );
+
+    if ( srcAddr.decl->Kind == DeclKind::Global )
+    {
+        GlobalSize srcOffset = ((GlobalStorage*) srcAddr.decl)->Offset + srcAddr.offset;
+
+        PushDeferredGlobal( *valueNode->Type, ModuleSection::Data, srcOffset, offset );
+    }
+    else if ( srcAddr.decl->Kind == DeclKind::Const )
+    {
+        assert( ((Constant*) srcAddr.decl)->Spilled );
+
+        GlobalSize srcOffset = ((Constant*) srcAddr.decl)->Offset + srcAddr.offset;
+
+        PushDeferredGlobal( *valueNode->Type, ModuleSection::Const, srcOffset, offset );
+    }
+    else
+    {
+        THROW_INTERNAL_ERROR( "CopyGlobalAggregateBlock: DeclKind" );
+    }
+}
+
+void GlobalDataGenerator::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size )
 {
     GlobalSize  i = 0;
     GlobalSize  globalIndex = offset;
@@ -2268,13 +2430,98 @@ void Compiler::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList
     }
 }
 
-void Compiler::EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit )
+void GlobalDataGenerator::EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit )
 {
     for ( auto& fieldInit : recordInit->Fields )
     {
         auto fieldDecl = (FieldStorage*) fieldInit->GetDecl();
 
         GenerateGlobalInit( offset + fieldDecl->Offset, fieldInit->Initializer.get() );
+    }
+}
+
+void Compiler::VisitConstDecl( ConstDecl* constDecl )
+{
+    // Constants inside functions are spilled on demand
+    if ( mInFunc )
+        return;
+
+    // All global constants except scalars are serialized, because they're public,
+    // and can be accessed from any module.
+
+    // Scalar constants are skipped, because their addresses are never needed:
+    // Scalar parameters with RefIn mode are changed to ValueIn mode.
+
+    if ( !IsScalarType( constDecl->Decl->GetType()->GetKind() ) )
+        SpillConstant( (Constant*) constDecl->GetDecl() );
+}
+
+void Compiler::SpillConstant( Constant* constant )
+{
+    // Constants in other modules would have been spilled already
+    assert( constant->ModIndex == mModIndex );
+    assert( !constant->Spilled );
+
+    auto type = constant->GetType();
+
+    assert( type->GetSize() <= (mConsts.size() - mTotalConst) );
+
+    constant->Spilled = true;
+    constant->Offset = mTotalConst;
+
+    // Scalar constants are not serialized
+
+    if ( constant->Value.Is( ValueKind::Aggregate ) )
+    {
+        auto aggregate = constant->Value.GetAggregate();
+
+        SpillConstPart( type.get(), *aggregate.Buffer, aggregate.Offset, mConsts, mTotalConst );
+    }
+    else
+    {
+        THROW_INTERNAL_ERROR( "SpillConstant: ValueKind" );
+    }
+
+    mTotalConst += type->GetSize();
+}
+
+void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcOffset, GlobalVec& dstBuffer, GlobalSize dstOffset )
+{
+    if ( IsIntegralType( type->GetKind() ) )
+    {
+        dstBuffer[dstOffset] = srcBuffer[srcOffset];
+    }
+    else if ( IsPtrFuncType( *type ) )
+    {
+        auto funcIt = mConstIndexFuncMap.find( srcBuffer[srcOffset] );
+
+        EmitFuncAddress( funcIt->second.get(), { CodeRefKind::Const, dstOffset }  );
+    }
+    else if ( type->GetKind() == TypeKind::Array )
+    {
+        auto arrayType = (ArrayType*) type;
+        auto elemType = arrayType->ElemType.get();
+
+        for ( GlobalSize i = 0; i < arrayType->Count; i++ )
+        {
+            SpillConstPart( elemType, srcBuffer, srcOffset, dstBuffer, dstOffset );
+
+            srcOffset += elemType->GetSize();
+            dstOffset += elemType->GetSize();
+        }
+    }
+    else if ( type->GetKind() == TypeKind::Record )
+    {
+        auto recordType = (RecordType*) type;
+
+        for ( auto& f : recordType->GetOrderedFields() )
+        {
+            SpillConstPart( f->GetType().get(), srcBuffer, srcOffset + f->Offset, dstBuffer, dstOffset + f->Offset );
+        }
+    }
+    else
+    {
+        THROW_INTERNAL_ERROR( "SpillConstPart: TypeKind" );
     }
 }
 
@@ -2417,6 +2664,11 @@ void Compiler::GenerateSentinel()
     }
 }
 
+void Compiler::FinalizeConstData()
+{
+    mConsts.resize( mTotalConst );
+}
+
 I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
 {
     auto optValue = GetFinalOptionalSyntaxValue( node );
@@ -2428,6 +2680,20 @@ I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
         mRep.ThrowSemanticsError( node, message );
     else
         mRep.ThrowSemanticsError( node, "Expected a constant value" );
+}
+
+std::optional<int32_t> Compiler::GetFinalOptionalSyntaxValue( Syntax* node )
+{
+#if defined( GEMINIVM_DISABLE_FOLDING_PASS )
+    if ( node->Kind != SyntaxKind::Number )
+    {
+        FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+
+        return folder.EvaluateInt( node );
+    }
+#endif
+
+    return Gemini::GetFinalOptionalSyntaxValue( node );
 }
 
 void Compiler::IncreaseExprDepth( LocalSize amount )
@@ -2453,7 +2719,17 @@ void Compiler::CopyDeferredGlobals()
 {
     for ( const auto& transfer : mDeferredGlobals )
     {
-        std::copy_n( &mGlobals[transfer.Src], transfer.Size, &mGlobals[transfer.Dst] );
+        int32_t* pSrc = nullptr;
+
+        switch ( transfer.SrcSection )
+        {
+        case ModuleSection::Data:   pSrc = &mGlobals[transfer.Src]; break;
+        case ModuleSection::Const:  pSrc = &mConsts[transfer.Src]; break;
+        default:
+            THROW_INTERNAL_ERROR( "CopyDeferredGlobals: ModuleSection" );
+        }
+
+        std::copy_n( pSrc, transfer.Size, &mGlobals[transfer.Dst] );
     }
 }
 

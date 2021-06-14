@@ -20,7 +20,8 @@ int VerifyModule( const Module* mod )
         || (mod->CodeSize % MODULE_CODE_ALIGNMENT) != 0 )
         return ERR_BAD_MODULE;
 
-    if ( (mod->DataBase == nullptr && mod->DataSize > 0) )
+    if ( (mod->DataBase == nullptr && mod->DataSize > 0)
+        || (mod->ConstBase == nullptr && mod->ConstSize > 0) )
         return ERR_BAD_MODULE;
 
     const U8* codeBase = mod->CodeBase;

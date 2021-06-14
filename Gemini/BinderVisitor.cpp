@@ -92,6 +92,7 @@ static bool IsSimpleValueDeclaration( DeclKind kind )
         || kind == DeclKind::Global
         || kind == DeclKind::Local
         || kind == DeclKind::Const
+        || kind == DeclKind::Enum
         ;
 }
 
@@ -155,14 +156,20 @@ static bool IsAllowedPointerTarget( TypeKind kind )
 
 static bool IsAllowedConstType( Type& type )
 {
-    return IsIntegralType( type.GetKind() );
+    return IsScalarType( type.GetKind() )
+        || IsClosedArrayType( type )
+        || type.GetKind() == TypeKind::Record
+        ;
 }
 
 static bool IsAllowedParamType( Type& type, ParamMode mode )
 {
     if ( type.GetKind() == TypeKind::Array
         || type.GetKind() == TypeKind::Record )
-        return mode == ParamMode::RefInOut;
+    {
+        return mode == ParamMode::RefInOut
+            || mode == ParamMode::RefIn;
+    }
 
     return IsScalarType( type.GetKind() )
         ;
@@ -256,6 +263,16 @@ size_t BinderVisitor::GetDataSize()
     return mGlobalSize;
 }
 
+size_t BinderVisitor::GetConstSize()
+{
+    return mConstSize;
+}
+
+ConstIndexFuncMap BinderVisitor::ReleaseConstIndexFuncMap()
+{
+    return std::move( mConstIndexFuncMap );
+}
+
 void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 {
     Visit( addrOf->Inner );
@@ -293,7 +310,7 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
     {
         Visit( typeRef->SizeExpr );
 
-        int32_t rawSize = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
+        int32_t rawSize = EvaluateInt( typeRef->SizeExpr.get(), "Expected a constant array size" );
 
         if ( rawSize <= 0 )
             mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Array size must be positive" );
@@ -542,7 +559,7 @@ void BinderVisitor::VisitCondExpr( CondExpr* condExpr )
 
     if ( condExpr->Clauses.size() > 0 )
     {
-        auto optVal = GetOptionalSyntaxValue( condExpr->Clauses.back()->Condition.get() );
+        auto optVal = EvaluateOptionalInt( condExpr->Clauses.back()->Condition.get() );
 
         if ( !optVal.has_value() || optVal.value() == 0 )
         {
@@ -578,27 +595,29 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
     if ( !constDecl->Initializer )
         THROW_INTERNAL_ERROR( "Missing constant initializer" );
 
-    Visit( constDecl->Initializer );
-
     if ( constDecl->TypeRef )
     {
+        // CheckInitializer will visit the initializer
+
         constDecl->TypeRef->Accept( this );
 
         type = constDecl->TypeRef->ReferentType;
 
         CheckConstType( *type, constDecl->TypeRef.get() );
 
-        CheckType( type, constDecl->Initializer->Type, constDecl->Initializer.get() );
+        CheckInitializer( type, constDecl->Initializer );
     }
     else
     {
+        Visit( constDecl->Initializer );
+
         type = constDecl->Initializer->Type;
 
         CheckMissingRecordInitializer( constDecl->Initializer );
         CheckConstType( *type, constDecl->Initializer.get() );
     }
 
-    int32_t value = Evaluate( constDecl->Initializer.get(), "Constant initializer is not constant" );
+    ValueVariant value = EvaluateVariant( constDecl->Initializer.get() );
 
     std::shared_ptr<Constant> constant;
 
@@ -706,7 +725,7 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
             if ( memberDef->Initializer->Type->GetKind() != TypeKind::Int )
                 CheckType( enumType, memberDef->Initializer->Type, memberDef->Initializer.get() );
 
-            value = Evaluate( memberDef->Initializer.get() );
+            value = EvaluateInt( memberDef->Initializer.get() );
         }
         else
         {
@@ -812,7 +831,7 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 
     if ( arrayType->Count > 0 )
     {
-        std::optional<int32_t> optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+        std::optional<int32_t> optIndexVal = EvaluateOptionalInt( indexExpr->Index.get() );
 
         if ( optIndexVal.has_value() )
         {
@@ -974,7 +993,7 @@ void BinderVisitor::CheckStorageType(
 
 void BinderVisitor::CheckInitializer(
     const std::shared_ptr<Type>& type,
-    const Unique<Syntax>& initializer )
+    Unique<Syntax>& initializer )
 {
     if ( initializer->Kind == SyntaxKind::ArrayInitializer )
     {
@@ -1057,7 +1076,7 @@ void BinderVisitor::CheckInitializer(
     }
     else
     {
-        initializer->Accept( this );
+        Visit( initializer );
 
         CheckType( type, initializer->Type, initializer.get() );
     }
@@ -1232,6 +1251,11 @@ void BinderVisitor::VisitNextStatement( NextStatement* nextStmt )
 
 void BinderVisitor::VisitNumberExpr( NumberExpr* numberExpr )
 {
+    assert( numberExpr->Value >= INT32_MIN );
+
+    if ( numberExpr->Value > INT32_MAX )
+        mRep.ThrowSemanticsError( numberExpr, "Number out of range" );
+
     numberExpr->Type = mIntType;
 }
 
@@ -1265,6 +1289,13 @@ ParamSpec BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModif
 
     case ParamModifier::Var:
         paramSpec.Mode = ParamMode::RefInOut;
+        break;
+
+    case ParamModifier::Const:
+        if ( IsScalarType( paramSpec.Type->GetKind() ) )
+            paramSpec.Mode = ParamMode::ValueIn;
+        else
+            paramSpec.Mode = ParamMode::RefIn;
         break;
 
     default:
@@ -1309,7 +1340,6 @@ void BinderVisitor::VisitProcDecl( ProcDecl* procDecl )
 void BinderVisitor::BindNamedProc( ProcDecl* procDecl )
 {
     SymTable::iterator it = mGlobalTable.find( procDecl->Name );
-    std::shared_ptr<Function> func;
 
     if ( it != mGlobalTable.end() )
     {
@@ -1453,8 +1483,8 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 
     auto arrayType = (ArrayType*) sliceExpr->Head->Type.get();
 
-    std::optional<int32_t> firstVal = GetOptionalSyntaxValue( sliceExpr->FirstIndex.get() );
-    std::optional<int32_t> lastVal = GetOptionalSyntaxValue( sliceExpr->LastIndex.get() );
+    std::optional<int32_t> firstVal = EvaluateOptionalInt( sliceExpr->FirstIndex.get() );
+    std::optional<int32_t> lastVal = EvaluateOptionalInt( sliceExpr->LastIndex.get() );
 
     // Immediately substitute the end marker with the known end index, if applied to a closed array
 
@@ -1530,12 +1560,27 @@ void BinderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
 
 void BinderVisitor::VisitUnaryExpr( UnaryExpr* unary )
 {
-    Visit( unary->Inner );
+    if ( unary->Inner->Kind == SyntaxKind::Number )
+    {
+        int64_t value = ((NumberExpr&) *unary->Inner).Value;
 
-    if ( unary->Inner->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowSemanticsError( unary->Inner.get(), "Unary expression only supports integers" );
+        assert( value >= 0 && value <= (uint32_t) INT32_MAX + 1 );
 
-    unary->Type = unary->Inner->Type;
+        Unique<NumberExpr> number( new NumberExpr( -value ) );
+
+        number->Type = mIntType;
+
+        mReplacementNode = std::move( number );
+    }
+    else
+    {
+        Visit( unary->Inner );
+
+        if ( unary->Inner->Type->GetKind() != TypeKind::Int )
+            mRep.ThrowSemanticsError( unary->Inner.get(), "Unary expression only supports integers" );
+
+        unary->Type = unary->Inner->Type;
+    }
 }
 
 void BinderVisitor::VisitUnit( Unit* unit )
@@ -1649,11 +1694,11 @@ void BinderVisitor::CheckAndConsolidateClauseType( Syntax* clause, std::shared_p
         CheckType( bodyType, clause->Type, clause );
 }
 
-int32_t BinderVisitor::Evaluate( Syntax* node, const char* message )
+int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 {
-    FolderVisitor folder( mRep.GetLog() );
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
-    auto optValue = folder.Evaluate( node );
+    auto optValue = folder.EvaluateInt( node );
 
     if ( optValue.has_value() )
         return optValue.value();
@@ -1664,11 +1709,100 @@ int32_t BinderVisitor::Evaluate( Syntax* node, const char* message )
         mRep.ThrowSemanticsError( node, "Expected a constant value" );
 }
 
-std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
+std::optional<int32_t> BinderVisitor::EvaluateOptionalInt( Syntax* node )
 {
-    FolderVisitor folder( mRep.GetLog() );
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
-    return folder.Evaluate( node );
+    return folder.EvaluateInt( node );
+}
+
+ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
+{
+    ValueVariant value;
+
+    Type& type = *node->Type;
+
+    if ( node->Kind == SyntaxKind::ArrayInitializer
+        || node->Kind == SyntaxKind::RecordInitializer )
+    {
+        ConstRef constRef = { std::make_shared<std::vector<int32_t>>( type.GetSize() ) };
+
+        using namespace std::placeholders;
+
+        GlobalDataGenerator constDataGenerator
+        (
+            *constRef.Buffer,
+            std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3, _4 ),
+            std::bind( &BinderVisitor::CopyConstAggregateBlock, this, _1, _2, _3 ),
+            mConstIndexFuncMap,
+            mRep
+        );
+
+        constDataGenerator.GenerateGlobalInit( 0, node );
+
+        value.SetAggregate( constRef );
+    }
+    else if ( IsIntegralType( type.GetKind() ) || IsPtrFuncType( type )
+        || IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
+    {
+        FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+
+        auto optValue = folder.Evaluate( node );
+
+        if ( !optValue.has_value() )
+            mRep.ThrowSemanticsError( node, "Expected a constant value" );
+
+        value = std::move( optValue.value() );
+    }
+    else
+    {
+        mRep.ThrowSemanticsError( node, "Type not allowed for constants" );
+    }
+
+    return value;
+}
+
+void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueNode )
+{
+    if ( !optFunc.has_value() )
+        mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
+
+    std::shared_ptr<Function> func = optFunc.value();
+
+    auto funcIt = mConstFuncIndexMap.find( func.get() );
+    int32_t index;
+
+    if ( funcIt == mConstFuncIndexMap.end() )
+    {
+        index = static_cast<int32_t>(mConstFuncIndexMap.size());
+
+        mConstFuncIndexMap.insert( ConstFuncIndexMap::value_type( func.get(), index ) );
+        mConstIndexFuncMap.insert( ConstIndexFuncMap::value_type( index, func ) );
+    }
+    else
+    {
+        index = funcIt->second;
+    }
+
+    buffer[offset] = index;
+}
+
+void BinderVisitor::CopyConstAggregateBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode )
+{
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+
+    auto optVal = folder.Evaluate( valueNode );
+
+    if ( !optVal.has_value() )
+        mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
+
+    auto&      srcBuffer = *optVal.value().GetAggregate().Buffer;
+    GlobalSize srcOffset = optVal.value().GetAggregate().Offset;
+
+    std::copy_n(
+        &srcBuffer[srcOffset],
+        valueNode->Type->GetSize(),
+        &buffer[offset] );
 }
 
 
@@ -1701,6 +1835,9 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, Par
     param->Mode = paramSpec.Mode;
     param->Size = static_cast<ParamSize>(paramSpec.Size);
     table.insert( SymTable::value_type( declNode->Name, param ) );
+
+    if ( paramSpec.Mode == ParamMode::RefIn || paramSpec.Mode == ParamMode::ValueIn )
+        param->IsReadOnly = true;
 
     mParamCount += static_cast<ParamSize>(paramSpec.Size);
     return param;
@@ -1762,18 +1899,29 @@ std::shared_ptr<Declaration> BinderVisitor::AddStorage( DeclSyntax* declNode, st
     }
 }
 
-std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, SymTable& table )
+std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, ValueVariant value, SymTable& table )
 {
     CheckDuplicateSymbol( declNode, table );
 
-    std::shared_ptr<SimpleConstant> constant( new SimpleConstant() );
+    if ( !IsScalarType( type->GetKind() ) )
+    {
+        if ( type->GetSize() > static_cast<size_t>(GlobalSizeMax - mConstSize) )
+            mRep.ThrowSemanticsError( declNode, "Const exceeds capacity" );
+    }
+
+    std::shared_ptr<Constant> constant( new Constant() );
     constant->Type = type;
     constant->Value = value;
+    constant->ModIndex = mModIndex;
     table.insert( SymTable::value_type( declNode->Name, constant ) );
+
+    if ( !IsScalarType( type->GetKind() ) )
+        mConstSize += static_cast<GlobalSize>(type->GetSize());
+
     return constant;
 }
 
-std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, bool isPublic )
+std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, ValueVariant value, bool isPublic )
 {
     auto constant = AddConst( declNode, type, value, mGlobalTable );
 
@@ -1942,6 +2090,7 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
     switch ( mode )
     {
     case ParamMode::Value:
+    case ParamMode::ValueIn:
         {
             auto size = type->GetSize();
             if ( size > ParamSizeMax )
@@ -1951,6 +2100,7 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
         }
 
     case ParamMode::RefInOut:
+    case ParamMode::RefIn:
         // Open array: dope vector + address
         if ( IsOpenArrayType( *type ) )
             return 2;

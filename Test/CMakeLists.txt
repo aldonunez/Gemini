@@ -6,6 +6,7 @@ add_executable(Test
     TestAlgolyMultiArray.cpp
     TestAlgolyNegativeLimits.cpp
     TestAlgolyPassRef.cpp
+    TestAlgolyPtrConst.cpp
     TestAlgolyRecord.cpp
     TestAlgolyStack.cpp
     TestBase.cpp
