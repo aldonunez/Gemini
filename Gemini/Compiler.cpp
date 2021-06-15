@@ -1744,9 +1744,57 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
     assert( false );
 }
 
+void Compiler::GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status )
+{
+    if ( config.discard )
+    {
+        status.discarded = true;
+        return;
+    }
+    else if ( config.calcAddr )
+    {
+        Generate( dotExpr->Head.get(), config, status );
+
+        auto field = (FieldStorage*) dotExpr->GetDecl();
+
+        if ( !status.spilledAddr )
+        {
+            status.offset += field->Offset;
+        }
+        else
+        {
+            EmitLoadConstant( field->Offset );
+
+            // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
+            mCodeBinPtr[0] = OP_PRIM;
+            mCodeBinPtr[1] = PRIM_ADD;
+            mCodeBinPtr += 2;
+
+            DecreaseExprDepth();
+        }
+        return;
+    }
+
+    Declaration* baseDecl = nullptr;
+    int32_t offset = 0;
+
+    CalcAddress( dotExpr, baseDecl, offset );
+
+    EmitLoadScalar( dotExpr, baseDecl, offset );
+}
+
 void Compiler::VisitDotExpr( DotExpr* dotExpr )
 {
-    GenerateValue( dotExpr, dotExpr->GetDecl(), Config(), Status() );
+    auto decl = dotExpr->GetDecl();
+
+    if ( decl->Kind == DeclKind::Field )
+    {
+        GenerateFieldAccess( dotExpr, Config(), Status() );
+    }
+    else
+    {
+        GenerateValue( dotExpr, decl, Config(), Status() );
+    }
 }
 
 void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status )

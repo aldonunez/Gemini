@@ -329,6 +329,7 @@ private:
     void GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status );
     void GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
+    void GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status );
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
     void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );
 
