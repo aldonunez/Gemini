@@ -175,6 +175,9 @@ private:
         bool        discarded;
         bool        tailRet;
 
+        Declaration*    baseDecl;
+        int32_t         offset;
+        bool            spilledAddr;
     };
 
     struct GenConfig
@@ -183,6 +186,7 @@ private:
         PatchChain* falseChain;
         bool invert;
         bool discard;
+        bool calcAddr;
         PatchChain* breakChain;
         PatchChain* nextChain;
 
@@ -286,6 +290,8 @@ private:
     CompilerStats   mStats = {};
     UnitVec         mUnits;
 
+    std::shared_ptr<Declaration> mLoadedAddrDecl;
+
 public:
     Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog* log, int modIndex = 0 );
 
@@ -318,12 +324,14 @@ private:
     // Level 2 - S-expressions
     void GenerateNumber( NumberExpr* number, const GenConfig& config, GenStatus& status );
     void GenerateSymbol( NameExpr* symbol, const GenConfig& config, GenStatus& status );
-    void GenerateSymbol( Syntax* node, Declaration *decl, const GenConfig& config, GenStatus& status );
+    void GenerateValue( Syntax* node, Declaration *decl, const GenConfig& config, GenStatus& status );
     void GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status );
+    void GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
-    void GenerateArrayElementRef( IndexExpr* indexExpr );
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
     void GenerateGlobalInit( int32_t offset, Syntax* initializer );
+
+    void CalcAddress( Syntax* dotExpr, Declaration*& baseDecl, int32_t& offset );
 
     void AddGlobalData( U32 offset, Syntax* valueElem );
     void AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t size );

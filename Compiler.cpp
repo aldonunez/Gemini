@@ -15,6 +15,8 @@ Compiler::Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog
     mRep( log ),
     mModIndex( modIndex )
 {
+    mLoadedAddrDecl.reset( new Declaration() );
+    mLoadedAddrDecl->Kind = DeclKind::LoadedAddress;
 }
 
 void Compiler::AddUnit( Unique<Unit>&& unit )
@@ -237,14 +239,19 @@ void Compiler::VisitNameExpr( NameExpr* nameExpr )
 
 void Compiler::GenerateSymbol( NameExpr* symbol, const GenConfig& config, GenStatus& status )
 {
-    GenerateSymbol( symbol, symbol->GetDecl(), config, status );
+    GenerateValue( symbol, symbol->GetDecl(), config, status );
 }
 
-void Compiler::GenerateSymbol( Syntax* node, Declaration* decl, const GenConfig& config, GenStatus& status )
+void Compiler::GenerateValue( Syntax* node, Declaration* decl, const GenConfig& config, GenStatus& status )
 {
     if ( config.discard )
     {
         status.discarded = true;
+        return;
+    }
+    else if ( config.calcAddr )
+    {
+        status.baseDecl = decl;
         return;
     }
 
@@ -285,6 +292,13 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
     case DeclKind::Const:
         assert( offset == 0 );
         EmitLoadConstant( ((Constant*) decl)->Value );
+        break;
+
+    case DeclKind::LoadedAddress:
+        mCodeBinPtr[0] = OP_LOADI;
+        mCodeBinPtr++;
+        DecreaseExprDepth();
+        IncreaseExprDepth();
         break;
 
     default:
@@ -520,22 +534,12 @@ void Compiler::GenerateSet( AssignmentExpr* assignment, const GenConfig& config,
         IncreaseExprDepth();
     }
 
-    if ( assignment->Left->Kind == SyntaxKind::Index )
-    {
-        auto indexExpr = (IndexExpr*) assignment->Left.get();
+    int32_t         offset = 0;
+    Declaration*    decl = nullptr;
 
-        GenerateArrayElementRef( indexExpr );
+    CalcAddress( assignment->Left.get(), decl, offset );
 
-        mCodeBinPtr[0] = OP_STOREI;
-        mCodeBinPtr++;
-
-        DecreaseExprDepth( 2 );
-        return;
-    }
-
-    auto decl = assignment->Left->GetDecl();
-
-    EmitStoreScalar( assignment->Left.get(), decl, 0 );
+    EmitStoreScalar( assignment->Left.get(), decl, offset );
 }
 
 void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset )
@@ -569,6 +573,12 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
 
     case DeclKind::Const:
         mRep.ThrowError( CERR_SEMANTICS, node, "Constants can't be changed" );
+        break;
+
+    case DeclKind::LoadedAddress:
+        mCodeBinPtr[0] = OP_STOREI;
+        mCodeBinPtr++;
+        DecreaseExprDepth();
         break;
 
     default:
@@ -742,7 +752,7 @@ void Compiler::GenerateLocalInit( int32_t offset, Syntax* initializer )
     {
         auto arrayType = (ArrayType*) type;
 
-        AddLocalDataArray( offset, initializer, arrayType->Size );
+        AddLocalDataArray( offset, initializer, arrayType->Count );
     }
     else
     {
@@ -778,7 +788,7 @@ void Compiler::AddLocalDataArray( int32_t offset, Syntax* valueElem, size_t size
 
         GenerateLocalInit( locIndex, entry.get() );
         i++;
-        locIndex--;
+        locIndex -= entry->Type->GetSize();
     }
 
     I32 prevValue = 0;
@@ -1572,12 +1582,47 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
     IncreaseExprDepth();
 }
 
-void Compiler::GenerateArrayElementRef( IndexExpr* indexExpr )
+void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status )
 {
+    assert( config.calcAddr );
+
+    auto arrayType = (ArrayType&) *indexExpr->Head->Type;
+
+    Generate( indexExpr->Head.get(), config, status );
+
+    if ( !status.spilledAddr )
+    {
+        std::optional<int32_t> optIndexVal;
+
+        optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+
+        if ( optIndexVal.has_value() )
+        {
+            status.offset += optIndexVal.value() * arrayType.ElemType->GetSize();
+            return;
+        }
+        else
+        {
+            EmitLoadAddress( indexExpr, status.baseDecl, status.offset );
+
+            // Set this after emitting the original decl's address above
+            status.baseDecl = mLoadedAddrDecl.get();
+            status.spilledAddr = true;
+        }
+    }
+
     Generate( indexExpr->Index.get() );
 
-    EmitLoadAddress( indexExpr->Head.get(), indexExpr->Head->GetDecl(), 0 );
+    if ( arrayType.ElemType->GetSize() > 1 )
+    {
+        EmitLoadConstant( arrayType.ElemType->GetSize() );
+        mCodeBinPtr[0] = OP_PRIM;
+        mCodeBinPtr[1] = PRIM_MUL;
+        mCodeBinPtr += 2;
+        DecreaseExprDepth();
+    }
 
+    // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
     mCodeBinPtr[0] = OP_PRIM;
     mCodeBinPtr[1] = PRIM_ADD;
     mCodeBinPtr += 2;
@@ -1592,14 +1637,18 @@ void Compiler::GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenS
         status.discarded = true;
         return;
     }
+    else if ( config.calcAddr )
+    {
+        GenerateArefAddr( indexExpr, config, status );
+        return;
+    }
 
-    GenerateArrayElementRef( indexExpr );
+    Declaration* baseDecl = nullptr;
+    int32_t offset = 0;
 
-    mCodeBinPtr[0] = OP_LOADI;
-    mCodeBinPtr++;
+    CalcAddress( indexExpr, baseDecl, offset );
 
-    DecreaseExprDepth();
-    IncreaseExprDepth();
+    EmitLoadScalar( indexExpr, baseDecl, offset );
 }
 
 void Compiler::VisitIndexExpr( IndexExpr* indexExpr )
@@ -1607,9 +1656,22 @@ void Compiler::VisitIndexExpr( IndexExpr* indexExpr )
     GenerateAref( indexExpr, Config(), Status() );
 }
 
+void Compiler::CalcAddress( Syntax* expr, Declaration*& baseDecl, int32_t& offset )
+{
+    GenConfig config{};
+    GenStatus status{};
+
+    config.calcAddr = true;
+
+    Generate( expr, config, status );
+
+    baseDecl = status.baseDecl;
+    offset = status.offset;
+}
+
 void Compiler::VisitDotExpr( DotExpr* dotExpr )
 {
-    GenerateSymbol( dotExpr, dotExpr->GetDecl(), Config(), Status() );
+    GenerateValue( dotExpr, dotExpr->GetDecl(), Config(), Status() );
 }
 
 void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status )
@@ -1634,7 +1696,7 @@ void Compiler::GenerateGlobalInit( int32_t offset, Syntax* initializer )
     {
         auto arrayType = (ArrayType*) type;
 
-        AddGlobalDataArray( offset, initializer, arrayType->Size );
+        AddGlobalDataArray( offset, initializer, arrayType->Count );
     }
     else
     {
@@ -1676,6 +1738,7 @@ void Compiler::AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t siz
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
 
     size_t i = 0;
+    size_t globalIndex = offset;
 
     auto initList = (InitList*) valueElem;
 
@@ -1684,8 +1747,9 @@ void Compiler::AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t siz
         if ( i == size )
             mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
 
-        GenerateGlobalInit( offset + i, entry.get() );
+        GenerateGlobalInit( globalIndex, entry.get() );
         i++;
+        globalIndex += entry->Type->GetSize();
     }
 
     I32 prevValue = 0;

@@ -502,6 +502,7 @@ enum class DeclKind
     NativeFunc,
     Type,
     Module,
+    LoadedAddress,
 };
 
 struct Declaration
@@ -639,10 +640,10 @@ public:
 class ArrayType : public Type
 {
 public:
-    int32_t Size;
+    int32_t Count;
     std::shared_ptr<Type> ElemType;
 
-    ArrayType( int32_t size, std::shared_ptr<Type> elemType );
+    ArrayType( int32_t count, std::shared_ptr<Type> elemType );
 
     virtual bool IsAssignableFrom( Type* other ) const override;
     virtual int32_t GetSize() const override;

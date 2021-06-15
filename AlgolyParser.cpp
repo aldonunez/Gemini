@@ -1291,6 +1291,7 @@ Unique<TypeRef> AlgolyParser::ParseArrayTypeRef()
 Unique<Syntax> AlgolyParser::ParseArrayInitializer()
 {
     ScanToken( TokenCode::LBracket );
+    SkipLineEndings();
 
     auto initList = Make<InitList>();
     bool first = true;
@@ -1311,7 +1312,9 @@ Unique<Syntax> AlgolyParser::ParseArrayInitializer()
 
         first = false;
 
-        initList->Values.push_back( ParseExpr() );
+        initList->Values.push_back( ParseInitExpr() );
+
+        SkipLineEndings();
     }
 
     ScanToken( TokenCode::RBracket );

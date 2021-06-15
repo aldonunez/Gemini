@@ -474,15 +474,18 @@ int32_t Type::GetSize() const
     return 0;
 }
 
+
 TypeType::TypeType() :
     Type( TypeKind::Type )
 {
 }
 
+
 ModuleType::ModuleType() :
     Type( TypeKind::Module )
 {
 }
+
 
 XferType::XferType() :
     Type( TypeKind::Xfer )
@@ -494,6 +497,7 @@ bool XferType::IsAssignableFrom( Type* other ) const
     return other != nullptr
         && other->GetKind() == TypeKind::Xfer;
 }
+
 
 IntType::IntType() :
     Type( TypeKind::Int )
@@ -513,9 +517,10 @@ int32_t IntType::GetSize() const
     return 1;
 }
 
-ArrayType::ArrayType( int32_t size, std::shared_ptr<Type> elemType ) :
+
+ArrayType::ArrayType( int32_t count, std::shared_ptr<Type> elemType ) :
     Type( TypeKind::Array ),
-    Size( size ),
+    Count( count ),
     ElemType( elemType )
 {
 }
@@ -531,15 +536,16 @@ bool ArrayType::IsAssignableFrom( Type* other ) const
         return false;
 
     if ( ElemType->GetKind() == TypeKind::Pointer )
-        return Size == otherArray->Size;
+        return Count == otherArray->Count;
 
-    return Size >= otherArray->Size;
+    return Count >= otherArray->Count;
 }
 
 int32_t ArrayType::GetSize() const
 {
-    return Size;
+    return Count * ElemType->GetSize();
 }
+
 
 FuncType::FuncType( std::shared_ptr<Type> returnType ) :
     Type( TypeKind::Func ),
@@ -566,6 +572,7 @@ bool FuncType::IsAssignableFrom( Type* other ) const
 
     return true;
 }
+
 
 PointerType::PointerType( std::shared_ptr<Type> target ) :
     Type( TypeKind::Pointer ),

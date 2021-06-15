@@ -550,9 +550,6 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 
     auto decl = indexExpr->Head->GetDecl();
 
-    if ( decl == nullptr || (decl->Kind != DeclKind::Local && decl->Kind != DeclKind::Global) )
-        mRep.ThrowError( CERR_SEMANTICS, indexExpr->Head.get(), "Only named arrays can be indexed" );
-
     if ( indexExpr->Head->Type->GetKind() != TypeKind::Array )
         mRep.ThrowError( CERR_SEMANTICS, indexExpr->Head.get(), "Only arrays can be indexed" );
 
@@ -680,8 +677,8 @@ void BinderVisitor::CheckInitializer(
 
         std::shared_ptr<Type> elemType = arrayType.ElemType;
 
-        if ( arrayType.Size < (int32_t) arrayInit.Values.size()
-            || (elemType->GetKind() == TypeKind::Pointer && arrayType.Size != arrayInit.Values.size()) )
+        if ( arrayType.Count < (int32_t) arrayInit.Values.size()
+            || (elemType->GetKind() == TypeKind::Pointer && arrayType.Count != arrayInit.Values.size()) )
         {
             mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Wrong number of array elements" );
         }
