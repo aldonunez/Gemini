@@ -917,10 +917,6 @@ Unique<Syntax> AlgolyParser::ParseSingle()
 
     case TokenCode::Symbol:
         elem = ParseSymbol();
-        if ( mCurToken == TokenCode::Dot )
-        {
-            elem = ParseDotExpr( std::move( elem ) );
-        }
         break;
 
     case TokenCode::Number:
@@ -931,9 +927,10 @@ Unique<Syntax> AlgolyParser::ParseSingle()
         ThrowSyntaxError( "Expected expression" );
     }
 
-    if ( mCurToken == TokenCode::LBracket )
+    if ( mCurToken == TokenCode::LBracket
+        || mCurToken == TokenCode::Dot )
     {
-        elem = ParseIndexing( std::move( elem ) );
+        elem = ParseIndexingOrDot( std::move( elem ) );
     }
 
     if ( mCurToken == TokenCode::LParen )
@@ -1018,6 +1015,29 @@ Unique<Syntax> AlgolyParser::ParseDotExpr( Unique<Syntax>&& head )
     dotExpr->Member = ParseRawSymbol();
 
     return dotExpr;
+}
+
+Unique<Syntax> AlgolyParser::ParseIndexingOrDot( Unique<Syntax>&& head )
+{
+    auto expr = std::move( head );
+
+    while ( true )
+    {
+        if ( mCurToken == TokenCode::Dot )
+        {
+            expr = ParseDotExpr( std::move( expr ) );
+        }
+        else if ( mCurToken == TokenCode::LBracket )
+        {
+            expr = ParseIndexing( std::move( expr ) );
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    return expr;
 }
 
 Unique<Syntax> AlgolyParser::ParseLet()
