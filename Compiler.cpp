@@ -295,6 +295,9 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::LoadedAddress:
+        if ( offset > 0 )
+            EmitSpilledAddrOffset( offset );
+
         mCodeBinPtr[0] = OP_LOADI;
         mCodeBinPtr++;
         DecreaseExprDepth();
@@ -305,6 +308,17 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         assert( false );
         mRep.ThrowInternalError();
     }
+}
+
+void Compiler::EmitSpilledAddrOffset( int32_t offset )
+{
+    EmitLoadConstant( offset );
+
+    mCodeBinPtr[0] = OP_PRIM;
+    mCodeBinPtr[1] = PRIM_ADD;
+    mCodeBinPtr += 2;
+
+    DecreaseExprDepth();
 }
 
 void Compiler::GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status )
@@ -576,6 +590,9 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     case DeclKind::LoadedAddress:
+        if ( offset > 0 )
+            EmitSpilledAddrOffset( offset );
+
         mCodeBinPtr[0] = OP_STOREI;
         mCodeBinPtr++;
         DecreaseExprDepth();
@@ -1607,8 +1624,16 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
             // Set this after emitting the original decl's address above
             status.baseDecl = mLoadedAddrDecl.get();
+            status.offset = 0;
             status.spilledAddr = true;
         }
+    }
+
+    if ( status.offset > 0 )
+    {
+        EmitSpilledAddrOffset( status.offset );
+
+        status.offset = 0;
     }
 
     Generate( indexExpr->Index.get() );

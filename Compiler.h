@@ -341,6 +341,7 @@ private:
     void EmitFuncAddress( Function* func, uint8_t*& dstPtr );
     void EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset );
+    void EmitSpilledAddrOffset( int32_t offset );
 
     // Level 3 - functions and special operators
     void GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status );
