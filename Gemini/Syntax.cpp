@@ -191,6 +191,16 @@ void DotExpr::Accept( Visitor* visitor )
     visitor->VisitDotExpr( this );
 }
 
+void EnumMemberDef::Accept( IVisitor* visitor )
+{
+    visitor->VisitEnumMemberDef( this );
+}
+
+void EnumTypeRef::Accept( IVisitor* visitor )
+{
+    visitor->VisitEnumTypeRef( this );
+}
+
 void ForStatement::Accept( Visitor* visitor )
 {
     visitor->VisitForStatement( this );
@@ -383,6 +393,14 @@ void Visitor::VisitCountofExpr( CountofExpr* countofExpr )
 }
 
 void Visitor::VisitDotExpr( DotExpr* dotExpr )
+{
+}
+
+void IVisitor::VisitEnumMemberDef( EnumMemberDef* enumMemberDef )
+{
+}
+
+void IVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 {
 }
 
@@ -613,6 +631,7 @@ bool IntType::IsAssignableFrom( Type* other ) const
     return other != nullptr
         && (other->GetKind() == TypeKind::Int
             || other->GetKind() == TypeKind::Xfer
+            || other->GetKind() == TypeKind::Enum
             );
 }
 
@@ -708,6 +727,28 @@ bool PointerType::IsEqual( Type* other ) const
 }
 
 DataSize PointerType::GetSize() const
+{
+    return 1;
+}
+
+
+EnumType::EnumType() :
+    Type( TypeKind::Enum )
+{
+}
+
+bool EnumType::IsAssignableFrom( Type* other ) const
+{
+    if ( other == nullptr || other->GetKind() != TypeKind::Enum )
+        return false;
+
+    auto otherEnum = (EnumType*) other;
+
+    // TODO: check the other enum's identity
+    return true;
+}
+
+int32_t EnumType::GetSize() const
 {
     return 1;
 }

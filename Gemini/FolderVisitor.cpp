@@ -198,6 +198,10 @@ void FolderVisitor::VisitDotExpr( DotExpr* dotExpr )
     }
 }
 
+void FolderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
+{
+}
+
 void FolderVisitor::VisitForStatement( ForStatement* forStmt )
 {
     Fold( forStmt->First );

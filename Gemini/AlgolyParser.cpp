@@ -59,6 +59,7 @@ static const char* gTokenNames[] =
     "else",
     "elsif",
     "end",
+    "enum"
     "for",
     "if",
     "import",
@@ -473,6 +474,7 @@ void AlgolyParser::ReadSymbolOrKeyword()
         { "else",   TokenCode::Else },
         { "elsif",  TokenCode::Elsif },
         { "end",    TokenCode::End },
+        { "enum",   TokenCode::Enum },
         { "for",    TokenCode::For },
         { "if",     TokenCode::If },
         { "import", TokenCode::Import },
@@ -1328,6 +1330,7 @@ Unique<TypeRef> AlgolyParser::ParseTypeDef()
 {
     switch ( mCurToken )
     {
+    case TokenCode::Enum:   return ParseEnumTypeDef();
     default:
         return ParseTypeRef();
     }
@@ -1344,6 +1347,46 @@ Unique<TypeRef> AlgolyParser::ParseTypeRef()
     default:
         ThrowSyntaxError( "Expected type denoter" );
     }
+}
+
+Unique<TypeRef> AlgolyParser::ParseEnumTypeDef()
+{
+    auto enumTypeRef = Make<EnumTypeRef>();
+
+    ScanToken();
+    SkipLineEndings();
+
+    while ( mCurToken != TokenCode::End )
+    {
+        auto member = Make<EnumMemberDef>();
+
+        member->Name = ParseRawSymbol();
+
+        SkipLineEndings();
+
+        if ( mCurToken == TokenCode::EQ )
+        {
+            ScanToken();
+            SkipLineEndings();
+
+            member->Initializer = ParseExpr();
+        }
+
+        enumTypeRef->Members.push_back( std::move( member ) );
+
+        if ( mCurToken == TokenCode::Comma )
+        {
+            ScanToken();
+            SkipLineEndings();
+        }
+    }
+
+    ScanToken();
+
+    // TODO: where to skip line endings or separators?
+    SkipLineEndings();
+
+    return enumTypeRef;
 }
 
 Unique<TypeRef> AlgolyParser::ParseNameTypeRef()

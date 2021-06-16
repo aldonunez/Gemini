@@ -133,6 +133,26 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+class EnumMemberDef;
+
+// TODO: Or EnumTypeDef?
+class EnumTypeRef : public TypeRef
+{
+public:
+    std::vector<Unique<EnumMemberDef>> Members;
+
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
+class EnumMemberDef : public Syntax
+{
+public:
+    std::string     Name;
+    Unique<Syntax>  Initializer;
+
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
 class ArrayTypeRef : public TypeRef
 {
 public:
@@ -525,6 +545,8 @@ public:
     virtual void VisitConstDecl( ConstDecl* constDecl );
     virtual void VisitCountofExpr( CountofExpr* countofExpr );
     virtual void VisitDotExpr( DotExpr* dotExpr );
+    virtual void VisitEnumMemberDef( EnumMemberDef* enumMemberDef );
+    virtual void VisitEnumTypeRef( EnumTypeRef* enumTypeRef );
     virtual void VisitForStatement( ForStatement* forStmt );
     virtual void VisitImportDecl( ImportDecl* importDecl );
     virtual void VisitIndexExpr( IndexExpr* indexExpr );
@@ -572,18 +594,28 @@ enum class DeclKind
 
 struct Declaration
 {
-    const DeclKind                  Kind;
-    std::shared_ptr<Gemini::Type>   Type;
+    const DeclKind          Kind;
 
     virtual ~Declaration() { }
+    virtual std::shared_ptr<Type> GetType() const = 0;
 
 protected:
     Declaration( DeclKind kind );
 };
 
+struct CommonDeclaration : public Declaration
+{
+    std::shared_ptr<Type>   Type;
+
+    virtual std::shared_ptr<::Type> GetType() const override
+    {
+        return Type;
+    }
+};
+
 using SymTable = std::map<std::string, std::shared_ptr<Declaration>>;
 
-struct UndefinedDeclaration : public Declaration
+struct UndefinedDeclaration : public CommonDeclaration
 {
     // It would be safer if here we kept a weak_ptr to a Syntax node.
     // But that would mean changing all Unique<Syntax> to Shared<Syntax>.
@@ -600,7 +632,17 @@ struct Constant : public Declaration
     Constant();
 };
 
-struct GlobalStorage : public Declaration
+struct SimpleConstant : public Constant
+{
+    std::shared_ptr<Type>   Type;
+
+    virtual std::shared_ptr<::Type> GetType() const override
+    {
+        return Type;
+    }
+};
+
+struct GlobalStorage : public CommonDeclaration
 {
     GlobalSize  Offset = 0;
     ModSize     ModIndex = 0;
@@ -608,14 +650,14 @@ struct GlobalStorage : public Declaration
     GlobalStorage();
 };
 
-struct LocalStorage : public Declaration
+struct LocalStorage : public CommonDeclaration
 {
     LocalSize   Offset = 0;
 
     LocalStorage();
 };
 
-struct ParamStorage : public Declaration
+struct ParamStorage : public CommonDeclaration
 {
     ParamSize   Offset = 0;
 
@@ -629,7 +671,7 @@ struct CallSite
     uint8_t     ModIndex;
 };
 
-struct Function : public Declaration
+struct Function : public CommonDeclaration
 {
     std::string Name;
     CodeSize    Address = UndefinedAddr;
@@ -654,21 +696,21 @@ struct Function : public Declaration
     Function();
 };
 
-struct NativeFunction : public Declaration
+struct NativeFunction : public CommonDeclaration
 {
     int32_t     Id = 0;
 
     NativeFunction();
 };
 
-struct TypeDeclaration : public Declaration
+struct TypeDeclaration : public CommonDeclaration
 {
     std::shared_ptr<Gemini::Type> ReferentType;
 
     TypeDeclaration();
 };
 
-struct ModuleDeclaration : public Declaration
+struct ModuleDeclaration : public CommonDeclaration
 {
     std::string Name;
     SymTable    Table;
@@ -680,6 +722,31 @@ struct ModuleDeclaration : public Declaration
 struct LoadedAddressDeclaration : public Declaration
 {
     LoadedAddressDeclaration();
+
+    virtual std::shared_ptr<Type> GetType() const override
+    {
+        return nullptr;
+    }
+};
+
+class EnumType;
+
+struct EnumMember : public Constant
+{
+    //int32_t                 Value;
+    std::weak_ptr<EnumType> ParentType;
+
+    EnumMember( int32_t value, std::shared_ptr<EnumType> parentType ) :
+        //Value( value ),
+        ParentType( parentType )
+    {
+        Value = value;
+    }
+
+    virtual std::shared_ptr<Type> GetType() const override
+    {
+        return std::static_pointer_cast<Type>( ParentType.lock() );
+    }
 };
 
 
@@ -696,6 +763,7 @@ enum class TypeKind
     Array,
     Func,
     Pointer,
+    Enum,
 };
 
 class Type
@@ -777,6 +845,17 @@ public:
 
     virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;
+};
+
+class EnumType : public Type
+{
+public:
+    SymTable    ByNameTable;
+
+    EnumType();
+
+    virtual bool IsAssignableFrom( Type* other ) const override;
+    virtual int32_t GetSize() const override;
 };
 
 }

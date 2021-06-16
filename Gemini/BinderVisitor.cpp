@@ -40,6 +40,29 @@ public:
 };
 
 
+class BorrowedScope
+{
+    SymTable&           mTable;
+    BinderVisitor&      mBinder;
+
+public:
+    explicit BorrowedScope( BinderVisitor& binder, SymTable& table ) :
+        mBinder( binder ),
+        mTable( table )
+    {
+        mBinder.mSymStack.push_back( &mTable );
+    }
+
+    ~BorrowedScope()
+    {
+        mBinder.mSymStack.pop_back();
+    }
+
+    BorrowedScope( const BorrowedScope& ) = delete;
+    BorrowedScope& operator=( const BorrowedScope& ) = delete;
+};
+
+
 static bool IsFunctionDeclaration( DeclKind kind )
 {
     return kind == DeclKind::Func
@@ -104,6 +127,7 @@ static bool IsAssignableType( TypeKind kind )
 {
     return IsScalarType( kind )
         || kind == TypeKind::Xfer
+        || kind == TypeKind::Enum
         ;
 }
 
@@ -342,7 +366,7 @@ void BinderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
 
     if ( IsCallableDeclaration( decl->Kind ) )
     {
-        auto funcType = (FuncType*) decl->Type.get();
+        auto funcType = std::static_pointer_cast<FuncType>( decl->GetType() );
 
         if ( funcType->ParamTypes.size() > 0 )
             mRep.ThrowSemanticsError( callOrSymbol, "Too few arguments" );
@@ -351,7 +375,7 @@ void BinderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
     }
     else
     {
-        callOrSymbol->Type = decl->Type;
+        callOrSymbol->Type = decl->GetType();
     }
 }
 
@@ -551,12 +575,67 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
             mRep.ThrowSemanticsError( dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
 
         dotExpr->Decl = it->second;
-        dotExpr->Type = dotExpr->Decl->Type;
+        dotExpr->Type = dotExpr->Decl->GetType();
+    }
+    else if ( dotExpr->Head->Type->GetKind() == TypeKind::Type )
+    {
+        auto decl = dotExpr->Head->GetDecl();
+
+        if ( decl == nullptr || decl->Kind != DeclKind::Type
+            || ((TypeDeclaration*) decl)->ReferentType->GetKind() != TypeKind::Enum )
+        {
+            mRep.ThrowError( CERR_SEMANTICS, dotExpr->Head.get(), "Expected a named type" );
+        }
+
+        auto enumType = (EnumType*) ((TypeDeclaration*) decl)->ReferentType.get();
+
+        auto it = enumType->ByNameTable.find( dotExpr->Member );
+
+        if ( it == enumType->ByNameTable.end() )
+            mRep.ThrowError( CERR_SEMANTICS, dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
+
+        dotExpr->Decl = it->second;
+        dotExpr->Type = dotExpr->Decl->GetType();
     }
     else
     {
         mRep.ThrowSemanticsError( dotExpr->Head.get(), "Can only access members of a module" );
     }
+}
+
+void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
+{
+    auto enumType = Make<EnumType>();
+
+    BorrowedScope scope( *this, enumType->ByNameTable );
+
+    int32_t value = -1;
+
+    for ( auto& memberDef : enumTypeRef->Members )
+    {
+        value++;
+
+        if ( memberDef->Initializer )
+        {
+            memberDef->Initializer->Accept( this );
+
+            if ( memberDef->Initializer->Type->GetKind() != TypeKind::Int )
+                CheckType( enumType, memberDef->Initializer->Type, memberDef->Initializer.get() );
+
+            value = Evaluate( memberDef->Initializer.get() );
+        }
+
+        auto member = Make<EnumMember>( value, enumType );
+
+        //member->Kind = DeclKind::EnumMember;
+        member->Kind = DeclKind::Const;
+        member->Value = value;
+
+        enumType->ByNameTable.insert( { memberDef->Name, member } );
+    }
+
+    enumTypeRef->Type = mTypeType;
+    enumTypeRef->ReferentType = enumType;
 }
 
 void BinderVisitor::VisitForStatement( ForStatement* forStmt )
@@ -876,7 +955,7 @@ void BinderVisitor::VisitNameExpr( NameExpr* nameExpr )
         mRep.ThrowSemanticsError( nameExpr, "symbol not found '%s'", nameExpr->String.c_str() );
     }
 
-    nameExpr->Type = nameExpr->Decl->Type;
+    nameExpr->Type = nameExpr->Decl->GetType();
 }
 
 void BinderVisitor::VisitNameTypeRef( NameTypeRef* nameTypeRef )
@@ -1391,7 +1470,7 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::sh
 {
     CheckDuplicateSymbol( declNode, table );
 
-    std::shared_ptr<Constant> constant( new Constant() );
+    std::shared_ptr<SimpleConstant> constant( new SimpleConstant() );
     constant->Type = type;
     constant->Value = value;
     table.insert( SymTable::value_type( declNode->Name, constant ) );

@@ -65,6 +65,7 @@ class AlgolyParser
         Else,
         Elsif,
         End,
+        Enum,
         For,
         If,
         Import,
@@ -159,6 +160,7 @@ private:
 
     Unique<TypeRef> ParseTypeDef();
     Unique<TypeRef> ParseTypeRef();
+    Unique<TypeRef> ParseEnumTypeDef();
     Unique<TypeRef> ParseNameTypeRef();
     Unique<TypeRef> ParsePtrFuncTypeRef();
     Unique<TypeRef> ParseArrayTypeRef();

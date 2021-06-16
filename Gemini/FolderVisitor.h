@@ -41,6 +41,7 @@ public:
     virtual void VisitConstDecl( ConstDecl* constDecl ) override;
     virtual void VisitCountofExpr( CountofExpr* countofExpr ) override;
     virtual void VisitDotExpr( DotExpr* dotExpr ) override;
+    virtual void VisitEnumTypeRef( EnumTypeRef* enumTypeRef ) override;
     virtual void VisitForStatement( ForStatement* forStmt ) override;
     virtual void VisitIndexExpr( IndexExpr* indexExpr ) override;
     virtual void VisitInitList( InitList* initList ) override;
