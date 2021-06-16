@@ -579,6 +579,10 @@ struct ModuleDeclaration : public Declaration
     SymTable    Table;
 };
 
+struct LoadedAddressDeclaration : public Declaration
+{
+};
+
 
 //----------------------------------------------------------------------------
 //  Types

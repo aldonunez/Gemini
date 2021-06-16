@@ -15,7 +15,7 @@ Compiler::Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog
     mRep( log ),
     mModIndex( modIndex )
 {
-    mLoadedAddrDecl.reset( new Declaration() );
+    mLoadedAddrDecl.reset( new LoadedAddressDeclaration() );
     mLoadedAddrDecl->Kind = DeclKind::LoadedAddress;
 }
 
