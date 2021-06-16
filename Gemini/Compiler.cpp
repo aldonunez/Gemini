@@ -1757,21 +1757,7 @@ void Compiler::GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, G
 
         auto field = (FieldStorage*) dotExpr->GetDecl();
 
-        if ( !status.spilledAddr )
-        {
-            status.offset += field->Offset;
-        }
-        else
-        {
-            EmitLoadConstant( field->Offset );
-
-            // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
-            mCodeBinPtr[0] = OP_PRIM;
-            mCodeBinPtr[1] = PRIM_ADD;
-            mCodeBinPtr += 2;
-
-            DecreaseExprDepth();
-        }
+        status.offset += field->Offset;
         return;
     }
 
