@@ -1636,19 +1636,25 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     Generate( indexExpr->Index.get() );
 
-    if ( arrayType.ElemType->GetSize() > 1 )
+    if ( arrayType.ElemType->GetSize() > 255 )
     {
-        EmitLoadConstant( arrayType.ElemType->GetSize() );
-        mCodeBinPtr[0] = OP_PRIM;
-        mCodeBinPtr[1] = PRIM_MUL;
-        mCodeBinPtr += 2;
-        DecreaseExprDepth();
+        mCodeBinPtr[0] = OP_INDEX;
+        mCodeBinPtr += 1;
+        WriteU32( mCodeBinPtr, arrayType.ElemType->GetSize() );
     }
-
-    // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
-    mCodeBinPtr[0] = OP_PRIM;
-    mCodeBinPtr[1] = PRIM_ADD;
-    mCodeBinPtr += 2;
+    else if ( arrayType.ElemType->GetSize() > 1 )
+    {
+        mCodeBinPtr[0] = OP_INDEX_S;
+        mCodeBinPtr[1] = arrayType.ElemType->GetSize();
+        mCodeBinPtr += 2;
+    }
+    else
+    {
+        // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
+        mCodeBinPtr[0] = OP_PRIM;
+        mCodeBinPtr[1] = PRIM_ADD;
+        mCodeBinPtr += 2;
+    }
 
     DecreaseExprDepth();
 }
