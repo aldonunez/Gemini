@@ -1175,13 +1175,10 @@ void BinderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
 
 void BinderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 {
-    countofExpr->Head->Accept( this );
+    countofExpr->Expr->Accept( this );
 
-    if ( countofExpr->Head->Type->GetKind() != TypeKind::Array )
-        mRep.ThrowError( CERR_SEMANTICS, countofExpr->Head.get(), "Countof applies to arrays" );
-
-    if ( countofExpr->Dimension != 0 )
-        mRep.ThrowError( CERR_SEMANTICS, countofExpr, "Countof dimension must be 0" );
+    if ( countofExpr->Expr->Type->GetKind() != TypeKind::Array )
+        mRep.ThrowError( CERR_SEMANTICS, countofExpr->Expr.get(), "Countof applies to arrays" );
 
     countofExpr->Type = mIntType;
 }

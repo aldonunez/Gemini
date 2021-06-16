@@ -413,8 +413,7 @@ public:
 class CountofExpr : public Syntax
 {
 public:
-    Unique<NameExpr>    Head;
-    int32_t             Dimension;
+    Unique<Syntax>      Expr;
 
     virtual void Accept( IVisitor* visitor ) override;
 };

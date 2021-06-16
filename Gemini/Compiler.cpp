@@ -486,7 +486,9 @@ void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
         return;
     }
 
-    EmitCountofArray( countofExpr->Head->GetDecl(), countofExpr->Dimension );
+    // TODO: dimension?
+
+    EmitCountofArray( countofExpr->Expr->GetDecl(), 0 );
 }
 
 void Compiler::EmitCountofArray( Declaration* decl, int dimension )

@@ -1172,11 +1172,7 @@ Unique<Syntax> AlgolyParser::ParseCountof()
     ScanToken();
     ScanToken( TokenCode::LParen );
 
-    countofExpr->Head = ParseSymbol();
-
-    ScanToken( TokenCode::Comma );
-
-    countofExpr->Dimension = ParseRawNumber();
+    countofExpr->Expr = ParseExpr();
 
     ScanToken( TokenCode::RParen );
 

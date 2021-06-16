@@ -325,7 +325,9 @@ void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
 
 void FolderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 {
-    auto& arrayType = (ArrayType&) *countofExpr->Head->Type;
+    Fold( countofExpr->Expr );
+
+    auto& arrayType = (ArrayType&) *countofExpr->Expr->Type;
 
     if ( arrayType.Count != 0 )
     {
