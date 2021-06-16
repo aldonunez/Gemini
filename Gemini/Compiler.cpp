@@ -1629,6 +1629,10 @@ void Compiler::GenerateBinaryPrimitive( BinaryExpr* binary, U8 primitive, const 
     }
 }
 
+void Compiler::VisitRangeExpr( RangeExpr* rangeExpr )
+{
+}
+
 void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset )
 {
     if ( baseDecl == nullptr )
@@ -1667,14 +1671,14 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 EmitSpilledAddrOffset( offset );
             break;
 
-        case DeclKind::Arg:
+        case DeclKind::Param:
             {
-                auto arg = (LocalStorage*) baseDecl;
+                auto param = (ParamStorage*) baseDecl;
 
-                if ( arg->Mode == ParamMode::InOutRef )
+                if ( param->Mode == ParamMode::InOutRef )
                 {
                     mCodeBinPtr[0] = OP_LDARG;
-                    mCodeBinPtr[1] = arg->Offset;
+                    mCodeBinPtr[1] = param->Offset;
                     mCodeBinPtr += 2;
                 }
                 else
@@ -1749,7 +1753,12 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     if ( !status.spilledAddr )
     {
-        std::optional<int32_t> optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+        std::optional<int32_t> optIndexVal;
+
+        if ( indexExpr->Index->Kind == SyntaxKind::Range )
+            optIndexVal = GetOptionalSyntaxValue( ((RangeExpr&) *indexExpr->Index).First.get() );
+        else
+            optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
 
         if ( optIndexVal.has_value() )
         {

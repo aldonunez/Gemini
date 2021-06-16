@@ -623,23 +623,47 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
     if ( indexExpr->Head->Type->GetKind() != TypeKind::Array )
         mRep.ThrowSemanticsError( indexExpr->Head.get(), "Only arrays can be indexed" );
 
-    if ( indexExpr->Index->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowSemanticsError( indexExpr->Index.get(), "Index only supports integers" );
-
-    auto arrayType = (ArrayType*) indexExpr->Head->Type.get();
-
-    if ( arrayType->Count > 0 )
+    if ( indexExpr->Index->Kind == SyntaxKind::Range )
     {
-        std::optional<int32_t> optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+        auto range = (RangeExpr*) indexExpr->Index.get();
 
-        if ( optIndexVal.has_value() )
-        {
-            if ( optIndexVal.value() < 0 || optIndexVal.value() >= arrayType->Count )
-                mRep.ThrowSemanticsError( indexExpr->Index.get(), "Index must be within bounds of array" );
-        }
+        auto arrayType = (ArrayType*) indexExpr->Head->Type.get();
+
+        int32_t firstVal = Evaluate( range->First.get() );
+        int32_t lastVal = Evaluate( range->Last.get() );
+
+        if ( firstVal > lastVal )
+            mRep.ThrowError( CERR_SEMANTICS, range->Last.get(), "Range is not in increasing order" );
+
+        if ( firstVal < 0 || lastVal > arrayType->Size )
+            mRep.ThrowError( CERR_SEMANTICS, range->Last.get(), "Slices must be within bounds of array" );
+
+        int32_t size = lastVal - firstVal;
+
+        auto slicedArrayType = Make<ArrayType>( size, arrayType->ElemType );
+
+        indexExpr->Type = slicedArrayType;
     }
+    else
+    {
+        if ( indexExpr->Index->Type->GetKind() != TypeKind::Int )
+            mRep.ThrowError( CERR_SEMANTICS, indexExpr->Index.get(), "Index only supports integers" );
 
-    indexExpr->Type = arrayType->ElemType;
+        auto arrayType = (ArrayType*) indexExpr->Head->Type.get();
+
+        if ( arrayType->Count > 0 )
+        {
+            std::optional<int32_t> optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+
+            if ( optIndexVal.has_value() )
+            {
+                if ( optIndexVal.value() < 0 || optIndexVal.value() >= arrayType->Count )
+                    mRep.ThrowSemanticsError( indexExpr->Index.get(), "Index must be within bounds of array" );
+            }
+        }
+
+        indexExpr->Type = arrayType->ElemType;
+    }
 }
 
 void BinderVisitor::VisitInitList( InitList* initList )
@@ -1106,6 +1130,20 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 
     procTypeRef->Type = mTypeType;
     procTypeRef->ReferentType = funcType;
+}
+
+void BinderVisitor::VisitRangeExpr( RangeExpr* rangeExpr )
+{
+    rangeExpr->First->Accept( this );
+    rangeExpr->Last->Accept( this );
+
+    if ( rangeExpr->First->Type->GetKind() != TypeKind::Int )
+        mRep.ThrowError( CERR_SEMANTICS, rangeExpr->First.get(), "Range bounds must be integers" );
+
+    if ( rangeExpr->Last->Type->GetKind() != TypeKind::Int )
+        mRep.ThrowError( CERR_SEMANTICS, rangeExpr->Last.get(), "Range bounds must be integers" );
+
+    // Ranges don't have a type. Leave Type empty
 }
 
 void BinderVisitor::VisitReturnStatement( ReturnStatement* retStmt )

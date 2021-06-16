@@ -31,6 +31,7 @@ enum class SyntaxKind
     AddrOfExpr,
     Index,
     DotExpr,
+    Range,
     ArrayInitializer,
     ConstDecl,
     VarDecl,
@@ -396,6 +397,17 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+class RangeExpr : public Syntax
+{
+public:
+    Unique<Syntax> First;
+    Unique<Syntax> Last;
+
+    RangeExpr();
+
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
 class CountofExpr : public Syntax
 {
 public:
@@ -567,6 +579,7 @@ public:
     virtual void VisitPointerTypeRef( PointerTypeRef* pointerTypeRef );
     virtual void VisitProcDecl( ProcDecl* procDecl );
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef );
+    virtual void VisitRangeExpr( RangeExpr* rangeExpr );
     virtual void VisitReturnStatement( ReturnStatement* retStmt );
     virtual void VisitSliceExpr( SliceExpr* sliceExpr );
     virtual void VisitStatementList( StatementList* stmtmList );
@@ -637,7 +650,6 @@ struct GlobalStorage : public Declaration
 struct LocalStorage : public Declaration
 {
     LocalSize   Offset = 0;
-    ParamMode   Mode = ParamMode::Value;
 
     LocalStorage();
 };
@@ -645,6 +657,7 @@ struct LocalStorage : public Declaration
 struct ParamStorage : public Declaration
 {
     ParamSize   Offset = 0;
+    ParamMode   Mode = ParamMode::Value;
 
     ParamStorage();
 };

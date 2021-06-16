@@ -97,6 +97,11 @@ Declaration* DotExpr::GetDecl()
     return Decl.get();
 }
 
+RangeExpr::RangeExpr()
+{
+    Kind = SyntaxKind::Range;
+}
+
 Unit::Unit( const std::string& fileName )
 {
     mFileName.resize( fileName.size() + 1 );
@@ -269,6 +274,11 @@ void ProcDecl::Accept( Visitor* visitor )
 void ProcTypeRef::Accept( Visitor* visitor )
 {
     visitor->VisitProcTypeRef( this );
+}
+
+void RangeExpr::Accept( IVisitor* visitor )
+{
+    visitor->VisitRangeExpr( this );
 }
 
 void ReturnStatement::Accept( Visitor* visitor )
@@ -447,6 +457,10 @@ void Visitor::VisitProcDecl( ProcDecl* procDecl )
 }
 
 void Visitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
+{
+}
+
+void IVisitor::VisitRangeExpr( RangeExpr* rangeExpr )
 {
 }
 

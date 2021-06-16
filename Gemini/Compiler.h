@@ -363,7 +363,7 @@ private:
     void GenerateArg( Syntax& node, ParamSpec& paramSpec );
     void GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status );
-    void GenerateCallArgs( std::vector<Unique<Syntax>>& arguments );
+    void GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType );
     void GenerateFor( ForStatement* forStmt, const GenConfig& config, GenStatus& status );
     void GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& config, GenStatus& status );
     void GenerateDo( WhileStatement* whileStmt, const GenConfig& config, GenStatus& status );
@@ -444,6 +444,7 @@ private:
     virtual void VisitNextStatement( NextStatement* nextStmt ) override;
     virtual void VisitNumberExpr( NumberExpr* numberExpr ) override;
     virtual void VisitProcDecl( ProcDecl* procDecl ) override;
+    virtual void VisitRangeExpr( RangeExpr* rangeExpr ) override;
     virtual void VisitReturnStatement( ReturnStatement* retStmt ) override;
     virtual void VisitSliceExpr( SliceExpr* sliceExpr ) override;
     virtual void VisitStatementList( StatementList* stmtList ) override;
