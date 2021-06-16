@@ -327,16 +327,28 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             else if ( param->Mode == ParamMode::InOutRef )
             {
                 mCodeBinPtr[0] = OP_LDARG;
-                mCodeBinPtr[1] = param->Offset + offset;
-                mCodeBinPtr[2] = OP_LOADI;
-                mCodeBinPtr += 3;
+                mCodeBinPtr[1] = param->Offset;
+                mCodeBinPtr += 2;
+                IncreaseExprDepth();
+
+                if ( offset > 0 )
+                {
+                    EmitLoadConstant( offset );
+
+                    mCodeBinPtr[0] = OP_PRIM;
+                    mCodeBinPtr[1] = PRIM_ADD;
+                    mCodeBinPtr += 2;
+
+                    DecreaseExprDepth();
+                }
+
+                mCodeBinPtr[0] = OP_LOADI;
+                mCodeBinPtr += 1;
             }
             else
             {
                 mRep.ThrowError( CERR_SEMANTICS, node, "Bad parameter mode" );
             }
-
-            IncreaseExprDepth();
         }
         break;
 
@@ -700,9 +712,24 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
             else if ( param->Mode == ParamMode::InOutRef )
             {
                 mCodeBinPtr[0] = OP_LDARG;
-                mCodeBinPtr[1] = param->Offset + offset;
-                mCodeBinPtr[2] = OP_STOREI;
-                mCodeBinPtr += 3;
+                mCodeBinPtr[1] = param->Offset;
+                mCodeBinPtr += 2;
+                IncreaseExprDepth();
+
+                if ( offset > 0 )
+                {
+                    EmitLoadConstant( offset );
+
+                    mCodeBinPtr[0] = OP_PRIM;
+                    mCodeBinPtr[1] = PRIM_ADD;
+                    mCodeBinPtr += 2;
+
+                    DecreaseExprDepth();
+                }
+
+                mCodeBinPtr[0] = OP_STOREI;
+                mCodeBinPtr += 1;
+                DecreaseExprDepth();
             }
             else
             {

@@ -347,6 +347,10 @@ std::optional<int32_t> GetFinalOptionalSyntaxValue( Syntax* node )
 
         return (int32_t) number->Value;
     }
+    else if ( node->Kind == SyntaxKind::Range )
+    {
+        return GetOptionalSyntaxValue( ((RangeExpr*) node)->First.get() );
+    }
 
     return std::optional<int32_t>();
 }
