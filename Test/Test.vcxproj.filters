@@ -39,6 +39,9 @@
     <ClCompile Include="TestAlgolyCopyArray.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestAlgolyEnum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="TestAlgolyPassRef.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

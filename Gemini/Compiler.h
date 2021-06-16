@@ -445,6 +445,7 @@ private:
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
+    virtual void VisitAsExpr( AsExpr* asExpr ) override;
     virtual void VisitAssignmentExpr( AssignmentExpr* assignment ) override;
     virtual void VisitBinaryExpr( BinaryExpr* binary ) override;
     virtual void VisitBreakStatement( BreakStatement* breakStmt ) override;

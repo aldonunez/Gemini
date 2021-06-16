@@ -138,6 +138,11 @@ void ArrayTypeRef::Accept( Visitor* visitor )
     visitor->VisitArrayTypeRef( this );
 }
 
+void AsExpr::Accept( Visitor* visitor )
+{
+    visitor->VisitAsExpr( this );
+}
+
 void AssignmentExpr::Accept( Visitor* visitor )
 {
     visitor->VisitAssignmentExpr( this );
@@ -204,6 +209,16 @@ void CountofExpr::Accept( Visitor* visitor )
 void DotExpr::Accept( Visitor* visitor )
 {
     visitor->VisitDotExpr( this );
+}
+
+void EnumMemberDef::Accept( Visitor* visitor )
+{
+    visitor->VisitEnumMemberDef( this );
+}
+
+void EnumTypeRef::Accept( Visitor* visitor )
+{
+    visitor->VisitEnumTypeRef( this );
 }
 
 void FieldDecl::Accept( Visitor* visitor )
@@ -381,6 +396,10 @@ void Visitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 {
 }
 
+void Visitor::VisitAsExpr( AsExpr* asExpr )
+{
+}
+
 void Visitor::VisitAssignmentExpr( AssignmentExpr* assignment )
 {
 }
@@ -418,6 +437,14 @@ void Visitor::VisitCountofExpr( CountofExpr* countofExpr )
 }
 
 void Visitor::VisitDotExpr( DotExpr* dotExpr )
+{
+}
+
+void Visitor::VisitEnumMemberDef( EnumMemberDef* enumMemberDef )
+{
+}
+
+void Visitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 {
 }
 
@@ -543,8 +570,13 @@ Declaration::Declaration( DeclKind kind ) :
 {
 }
 
+CommonDeclaration::CommonDeclaration( DeclKind kind ) :
+    Declaration( kind )
+{
+}
+
 UndefinedDeclaration::UndefinedDeclaration() :
-    Declaration( DeclKind::Undefined )
+    CommonDeclaration( DeclKind::Undefined )
 {
 }
 
@@ -554,17 +586,17 @@ Constant::Constant() :
 }
 
 GlobalStorage::GlobalStorage() :
-    Declaration( DeclKind::Global )
+    CommonDeclaration( DeclKind::Global )
 {
 }
 
 LocalStorage::LocalStorage() :
-    Declaration( DeclKind::Local )
+    CommonDeclaration( DeclKind::Local )
 {
 }
 
 ParamStorage::ParamStorage() :
-    Declaration( DeclKind::Param )
+    CommonDeclaration( DeclKind::Param )
 {
 }
 
@@ -574,28 +606,46 @@ FieldStorage::FieldStorage() :
 }
 
 Function::Function() :
-    Declaration( DeclKind::Func )
+    CommonDeclaration( DeclKind::Func )
 {
 }
 
 NativeFunction::NativeFunction() :
-    Declaration( DeclKind::NativeFunc )
+    CommonDeclaration( DeclKind::NativeFunc )
 {
 }
 
 TypeDeclaration::TypeDeclaration() :
-    Declaration( DeclKind::Type )
+    CommonDeclaration( DeclKind::Type )
 {
 }
 
 ModuleDeclaration::ModuleDeclaration() :
-    Declaration( DeclKind::Module )
+    CommonDeclaration( DeclKind::Module )
 {
 }
 
 LoadedAddressDeclaration::LoadedAddressDeclaration() :
-    Declaration( DeclKind::LoadedAddress )
+    CommonDeclaration( DeclKind::LoadedAddress )
 {
+}
+
+EnumMember::EnumMember( int32_t value, std::shared_ptr<EnumType> parentType ) :
+    ParentType( parentType )
+{
+    Value = value;
+}
+
+std::shared_ptr<Type> EnumMember::GetType() const
+{
+    auto parentType = ParentType.lock();
+
+    // A weak pointer is used only to avoid a circular reference.
+    // The parent type must be available.
+
+    assert( parentType );
+
+    return std::static_pointer_cast<Type>( std::move( parentType ) );
 }
 
 
@@ -820,6 +870,22 @@ DataSize RecordType::GetSize() const
     }
 
     return mSize;
+}
+
+
+EnumType::EnumType() :
+    Type( TypeKind::Enum )
+{
+}
+
+bool EnumType::IsEqual( Type* other ) const
+{
+    return other == this;
+}
+
+DataSize EnumType::GetSize() const
+{
+    return 1;
 }
 
 }

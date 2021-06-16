@@ -29,6 +29,7 @@ enum class SyntaxKind
     Number,
     Name,
     AddrOfExpr,
+    AsExpr,
     Index,
     Slice,
     DotExpr,
@@ -132,6 +133,25 @@ class NameTypeRef : public TypeRef
 {
 public:
     Unique<Syntax>  QualifiedName;
+
+    virtual void Accept( Visitor* visitor ) override;
+};
+
+class EnumMemberDef;
+
+class EnumTypeRef : public TypeRef
+{
+public:
+    std::vector<Unique<EnumMemberDef>> Members;
+
+    virtual void Accept( Visitor* visitor ) override;
+};
+
+class EnumMemberDef : public Syntax
+{
+public:
+    std::string     Name;
+    Unique<Syntax>  Initializer;
 
     virtual void Accept( Visitor* visitor ) override;
 };
@@ -288,6 +308,15 @@ class TypeDecl : public DeclSyntax
 {
 public:
     Unique<Gemini::TypeRef>     TypeRef;
+
+    virtual void Accept( Visitor* visitor ) override;
+};
+
+class AsExpr : public Syntax
+{
+public:
+    Unique<Syntax>              Inner;
+    Unique<Gemini::TypeRef>     TargetTypeRef;
 
     virtual void Accept( Visitor* visitor ) override;
 };
@@ -583,6 +612,7 @@ public:
 
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf );
     virtual void VisitArrayTypeRef( ArrayTypeRef* typeRef );
+    virtual void VisitAsExpr( AsExpr* asExpr );
     virtual void VisitAssignmentExpr( AssignmentExpr* assignment );
     virtual void VisitBinaryExpr( BinaryExpr* binary );
     virtual void VisitBreakStatement( BreakStatement* breakStmt );
@@ -593,6 +623,8 @@ public:
     virtual void VisitConstDecl( ConstDecl* constDecl );
     virtual void VisitCountofExpr( CountofExpr* countofExpr );
     virtual void VisitDotExpr( DotExpr* dotExpr );
+    virtual void VisitEnumMemberDef( EnumMemberDef* enumMemberDef );
+    virtual void VisitEnumTypeRef( EnumTypeRef* enumTypeRef );
     virtual void VisitFieldDecl( FieldDecl* fieldDecl );
     virtual void VisitFieldInitializer( FieldInitializer* fieldInit );
     virtual void VisitForStatement( ForStatement* forStmt );
@@ -645,18 +677,30 @@ enum class DeclKind
 
 struct Declaration
 {
-    const DeclKind                  Kind;
-    std::shared_ptr<Gemini::Type>   Type;
+    const DeclKind          Kind;
 
     virtual ~Declaration() { }
+    virtual std::shared_ptr<Type> GetType() const = 0;
 
 protected:
     Declaration( DeclKind kind );
 };
 
+struct CommonDeclaration : public Declaration
+{
+    std::shared_ptr<Gemini::Type>   Type;
+
+    CommonDeclaration( DeclKind kind );
+
+    virtual std::shared_ptr<Gemini::Type> GetType() const override
+    {
+        return Type;
+    }
+};
+
 using SymTable = std::map<std::string, std::shared_ptr<Declaration>>;
 
-struct UndefinedDeclaration : public Declaration
+struct UndefinedDeclaration : public CommonDeclaration
 {
     // It would be safer if here we kept a weak_ptr to a Syntax node.
     // But that would mean changing all Unique<Syntax> to Shared<Syntax>.
@@ -673,7 +717,17 @@ struct Constant : public Declaration
     Constant();
 };
 
-struct GlobalStorage : public Declaration
+struct SimpleConstant : public Constant
+{
+    std::shared_ptr<Gemini::Type>   Type;
+
+    virtual std::shared_ptr<Gemini::Type> GetType() const override
+    {
+        return Type;
+    }
+};
+
+struct GlobalStorage : public CommonDeclaration
 {
     GlobalSize  Offset = 0;
     ModSize     ModIndex = 0;
@@ -681,14 +735,14 @@ struct GlobalStorage : public Declaration
     GlobalStorage();
 };
 
-struct LocalStorage : public Declaration
+struct LocalStorage : public CommonDeclaration
 {
     LocalSize   Offset = 0;
 
     LocalStorage();
 };
 
-struct ParamStorage : public Declaration
+struct ParamStorage : public CommonDeclaration
 {
     ParamSize   Offset = 0;
     ParamMode   Mode = ParamMode::Value;
@@ -711,7 +765,7 @@ struct CallSite
     uint8_t     ModIndex;
 };
 
-struct Function : public Declaration
+struct Function : public CommonDeclaration
 {
     std::string Name;
     CodeSize    Address = UndefinedAddr;
@@ -736,21 +790,21 @@ struct Function : public Declaration
     Function();
 };
 
-struct NativeFunction : public Declaration
+struct NativeFunction : public CommonDeclaration
 {
     int32_t     Id = 0;
 
     NativeFunction();
 };
 
-struct TypeDeclaration : public Declaration
+struct TypeDeclaration : public CommonDeclaration
 {
     std::shared_ptr<Gemini::Type> ReferentType;
 
     TypeDeclaration();
 };
 
-struct ModuleDeclaration : public Declaration
+struct ModuleDeclaration : public CommonDeclaration
 {
     std::string Name;
     SymTable    Table;
@@ -759,9 +813,25 @@ struct ModuleDeclaration : public Declaration
     ModuleDeclaration();
 };
 
-struct LoadedAddressDeclaration : public Declaration
+struct LoadedAddressDeclaration : public CommonDeclaration
 {
     LoadedAddressDeclaration();
+};
+
+class EnumType;
+
+struct EnumMember : public Constant
+{
+    // Use a weak reference to avoid a circular reference.
+    // But the parent type must always be available.
+    // This is easy to guarantee since, in the language,
+    // these only show up in the context of the parent.
+
+    const std::weak_ptr<EnumType> ParentType;
+
+    EnumMember( int32_t value, std::shared_ptr<EnumType> parentType );
+
+    virtual std::shared_ptr<Type> GetType() const override;
 };
 
 
@@ -779,6 +849,7 @@ enum class TypeKind
     Func,
     Pointer,
     Record,
+    Enum,
 };
 
 class Type
@@ -880,6 +951,18 @@ public:
     SymTable    Fields;
 
     RecordType();
+
+    virtual bool IsEqual( Type* other ) const override;
+    virtual DataSize GetSize() const override;
+};
+
+
+class EnumType : public Type
+{
+public:
+    SymTable    MembersByName;
+
+    EnumType();
 
     virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;

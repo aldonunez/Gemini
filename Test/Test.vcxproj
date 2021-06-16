@@ -26,6 +26,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TestAlgolyCopyArray.cpp" />
+    <ClCompile Include="TestAlgolyEnum.cpp" />
     <ClCompile Include="TestAlgolyMultiArray.cpp" />
     <ClCompile Include="TestAlgolyPassRef.cpp" />
     <ClCompile Include="TestAlgolyRecord.cpp" />

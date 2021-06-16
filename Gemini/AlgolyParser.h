@@ -67,6 +67,7 @@ class AlgolyParser
         Else,
         Elsif,
         End,
+        Enum,
         For,
         If,
         Import,
@@ -164,6 +165,7 @@ private:
     Unique<TypeRef> ParseTypeDef();
     Unique<TypeRef> ParseTypeRef( bool allowOpenArray = false );
     Unique<TypeRef> ParseRecordTypeDef();
+    Unique<TypeRef> ParseEnumTypeDef();
     Unique<TypeRef> ParseNameTypeRef();
     Unique<TypeRef> ParsePtrFuncTypeRef();
     Unique<TypeRef> ParseArrayTypeRef( bool allowOpenArray );
@@ -191,6 +193,7 @@ private:
     Unique<Syntax> ParseAssignment();
     Unique<Syntax> ParseBinaryPart( int level );
     Unique<Syntax> ParseBinary( int level );
+    Unique<Syntax> ParseAsExpr();
     Unique<Syntax> ParseUnary();
     Unique<Syntax> ParseSingle();
     Unique<Syntax> ParseIndexing( Unique<Syntax>&& head );

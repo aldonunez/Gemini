@@ -20,6 +20,7 @@ class BinderVisitor final : public Visitor
     using NatTypeMap = std::map<int32_t, std::shared_ptr<Type>>;
 
     friend class LocalScope;
+    friend class BorrowedScope;
 
     Unique<Syntax>  mReplacementNode;
     LambdaVec       mLambdas;
@@ -61,6 +62,7 @@ public:
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
     virtual void VisitArrayTypeRef( ArrayTypeRef* typeRef ) override;
+    virtual void VisitAsExpr( AsExpr* asExpr ) override;
     virtual void VisitAssignmentExpr( AssignmentExpr* assignment ) override;
     virtual void VisitBinaryExpr( BinaryExpr* binary ) override;
     virtual void VisitBreakStatement( BreakStatement* breakStmt ) override;
@@ -71,6 +73,7 @@ public:
     virtual void VisitConstDecl( ConstDecl* constDecl ) override;
     virtual void VisitCountofExpr( CountofExpr* countofExpr ) override;
     virtual void VisitDotExpr( DotExpr* dotExpr ) override;
+    virtual void VisitEnumTypeRef( EnumTypeRef* enumTypeRef ) override;
     virtual void VisitFieldDecl( FieldDecl* fieldDecl ) override;
     virtual void VisitForStatement( ForStatement* forStmt ) override;
     virtual void VisitImportDecl( ImportDecl* importDecl ) override;

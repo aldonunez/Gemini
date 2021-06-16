@@ -61,6 +61,7 @@ static const char* gTokenNames[] =
     "else",
     "elsif",
     "end",
+    "enum"
     "for",
     "if",
     "import",
@@ -486,6 +487,7 @@ void AlgolyParser::ReadSymbolOrKeyword()
         { "else",   TokenCode::Else },
         { "elsif",  TokenCode::Elsif },
         { "end",    TokenCode::End },
+        { "enum",   TokenCode::Enum },
         { "for",    TokenCode::For },
         { "if",     TokenCode::If },
         { "import", TokenCode::Import },
@@ -926,7 +928,7 @@ bool AlgolyParser::IsTokenMultiplicativeOp()
 Unique<Syntax> AlgolyParser::ParseBinaryPart( int level )
 {
     if ( level + 1 >= static_cast<int>( std::size( AlgolyParser::sTestOpFuncs ) ) )
-        return ParseUnary();
+        return ParseAsExpr();
     else
         return ParseBinary( level + 1 );
 }
@@ -953,6 +955,28 @@ Unique<Syntax> AlgolyParser::ParseBinary( int level )
             ThrowSyntaxError( "Comparisons are binary only" );
 
         first = std::move( binary );
+    }
+
+    return first;
+}
+
+Unique<Syntax> AlgolyParser::ParseAsExpr()
+{
+    Unique<Syntax> first( ParseUnary() );
+
+    // Left-associative
+
+    while ( mCurToken == TokenCode::As )
+    {
+        auto asExpr = Make<AsExpr>();
+
+        ScanToken();
+        SkipLineEndings();
+
+        asExpr->Inner = std::move( first );
+        asExpr->TargetTypeRef = ParseNameTypeRef();
+
+        first = std::move( asExpr );
     }
 
     return first;
@@ -1354,6 +1378,7 @@ Unique<TypeRef> AlgolyParser::ParseTypeDef()
     switch ( mCurToken )
     {
     case TokenCode::Record: return ParseRecordTypeDef();
+    case TokenCode::Enum:   return ParseEnumTypeDef();
     default:
         return ParseTypeRef();
     }
@@ -1395,6 +1420,43 @@ Unique<TypeRef> AlgolyParser::ParseRecordTypeDef()
     ScanToken();
 
     return recordTypeRef;
+}
+
+Unique<TypeRef> AlgolyParser::ParseEnumTypeDef()
+{
+    auto enumTypeRef = Make<EnumTypeRef>();
+
+    ScanToken();
+    SkipLineEndings();
+
+    while ( mCurToken != TokenCode::End )
+    {
+        auto member = Make<EnumMemberDef>();
+
+        member->Name = ParseRawSymbol();
+
+        SkipLineEndings();
+
+        if ( mCurToken == TokenCode::EQ )
+        {
+            ScanToken();
+            SkipLineEndings();
+
+            member->Initializer = ParseExpr();
+        }
+
+        enumTypeRef->Members.push_back( std::move( member ) );
+
+        if ( mCurToken == TokenCode::Comma )
+        {
+            ScanToken();
+            SkipLineEndings();
+        }
+    }
+
+    ScanToken();
+
+    return enumTypeRef;
 }
 
 Unique<TypeRef> AlgolyParser::ParseNameTypeRef()

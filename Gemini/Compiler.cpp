@@ -653,6 +653,11 @@ void Compiler::VisitCondExpr( CondExpr* condExpr )
     GenerateCond( condExpr, Config(), Status() );
 }
 
+void Compiler::VisitAsExpr( AsExpr* asExpr )
+{
+    Generate( asExpr->Inner.get(), Config(), Status() );
+}
+
 void Compiler::GenerateSet( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status )
 {
     // Value
