@@ -714,7 +714,7 @@ bool ArrayType::IsPassableFrom( Type* other, ParamMode mode ) const
     // In contrast to assignability, passability requires the destination array
     // be equal size or greater, because it's a reference.
 
-    return Size <= otherArray->Size
+    return Count <= otherArray->Count
         && ElemType->IsAssignableFrom( otherArray->ElemType.get() );
 }
 

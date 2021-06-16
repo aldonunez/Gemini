@@ -641,7 +641,7 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
         if ( firstVal > lastVal )
             mRep.ThrowError( CERR_SEMANTICS, range->Last.get(), "Range is not in increasing order" );
 
-        if ( firstVal < 0 || lastVal > arrayType->Size )
+        if ( firstVal < 0 || lastVal > arrayType->Count )
             mRep.ThrowError( CERR_SEMANTICS, range->Last.get(), "Slices must be within bounds of array" );
 
         int32_t size = lastVal - firstVal;
@@ -1010,7 +1010,7 @@ void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 
     if ( paramDecl->Mode == ParamMode::InOutRef
         && type->GetKind() == TypeKind::Array
-        && ((ArrayType&) *type).Size == 0 )
+        && ((ArrayType&) *type).Count == 0 )
     {
         size = 2;
     }

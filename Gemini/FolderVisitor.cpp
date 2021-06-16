@@ -327,9 +327,9 @@ void FolderVisitor::VisitSizeofExpr( SizeofExpr* sizeofExpr )
 {
     auto& arrayType = (ArrayType&) *sizeofExpr->Head->Type;
 
-    if ( arrayType.Size != 0 )
+    if ( arrayType.Count != 0 )
     {
-        mLastValue = arrayType.Size;
+        mLastValue = arrayType.Count;
     }
     else
     {

@@ -481,9 +481,9 @@ void Compiler::EmitSizeofArray( Declaration* decl, int dimension )
 {
     auto& arrayType = (ArrayType&) *decl->Type;
 
-    if ( arrayType.Size != 0 )
+    if ( arrayType.Count != 0 )
     {
-        EmitLoadConstant( arrayType.Size );
+        EmitLoadConstant( arrayType.Count );
     }
     else
     {
@@ -948,7 +948,7 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
 void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
 {
     if ( paramSpec.Type->GetKind() == TypeKind::Array
-        && ((ArrayType&) *paramSpec.Type).Size == 0 )
+        && ((ArrayType&) *paramSpec.Type).Count == 0 )
     {
         auto& srcArray = (ArrayType&) *node.Type;
 
@@ -1000,7 +1000,7 @@ int Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType
         auto& paramType = *funcType->Params[i].Type;
 
         if ( paramType.GetKind() == TypeKind::Array
-            && ((ArrayType&) paramType).Size == 0 )
+            && ((ArrayType&) paramType).Count == 0 )
         {
             argCount++;
         }
@@ -1817,42 +1817,6 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
     {
         EmitU8( OP_INDEX_S, static_cast<U8>(arrayType.ElemType->GetSize()) );
     }
-
-    DecreaseExprDepth();
-}
-
-void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status )
-{
-    assert( config.calcAddr );
-
-    Generate( indexExpr->Head.get(), config, status );
-
-    if ( !status.spilledAddr )
-    {
-        std::optional<int32_t> optIndexVal;
-
-        if ( indexExpr->Index->Kind == SyntaxKind::Range )
-            optIndexVal = GetOptionalSyntaxValue( ((RangeExpr&) *indexExpr->Index).First.get() );
-        else
-            optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
-
-        if ( optIndexVal.has_value() )
-        {
-            status.offset += optIndexVal.value();
-            return;
-        }
-        else
-        {
-            status.spilledAddr = true;
-            EmitLoadAddress( indexExpr, status.baseDecl, status.offset );
-            Generate( indexExpr->Index.get() );
-        }
-    }
-
-    // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
-    mCodeBinPtr[0] = OP_PRIM;
-    mCodeBinPtr[1] = PRIM_ADD;
-    mCodeBinPtr += 2;
 
     DecreaseExprDepth();
 }
