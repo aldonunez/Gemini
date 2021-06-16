@@ -198,10 +198,8 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
     if ( size <= 0 )
         mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Array size must be positive" );
 
-    // We don't support multidimensional arrays yet
-
-    if ( !IsScalarType( elemType->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Only scalar elements are allowed" );
+    if ( !IsStorageType( elemType->GetKind() ) )
+        mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Element type is not allowed" );
 
     typeRef->Type = mTypeType;
     typeRef->ReferentType = Make<ArrayType>( size, elemType );
