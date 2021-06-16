@@ -1177,9 +1177,7 @@ void BinderVisitor::VisitSizeofExpr( SizeofExpr* sizeofExpr )
 {
     sizeofExpr->Head->Accept( this );
 
-    auto decl = sizeofExpr->Head->GetDecl();
-
-    if ( decl == nullptr || decl->Type->GetKind() != TypeKind::Array )
+    if ( sizeofExpr->Head->Type->GetKind() != TypeKind::Array )
         mRep.ThrowError( CERR_SEMANTICS, sizeofExpr->Head.get(), "Sizeof applies to arrays" );
 
     if ( sizeofExpr->Dimension != 0 )

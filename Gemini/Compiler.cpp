@@ -474,7 +474,12 @@ void Compiler::VisitSizeofExpr( SizeofExpr* sizeofExpr )
         return;
     }
 
-    auto& arrayType = (ArrayType&) *sizeofExpr->Head->Type;
+    EmitSizeofArray( sizeofExpr->Head->GetDecl(), sizeofExpr->Dimension );
+}
+
+void Compiler::EmitSizeofArray( Declaration* decl, int dimension )
+{
+    auto& arrayType = (ArrayType&) *decl->Type;
 
     if ( arrayType.Size != 0 )
     {
@@ -483,10 +488,10 @@ void Compiler::VisitSizeofExpr( SizeofExpr* sizeofExpr )
     else
     {
         // Only ref params are allowed to take open array types
-        auto param = (ParamStorage*) sizeofExpr->Head->GetDecl();
+        auto param = (ParamStorage*) decl;
 
         mCodeBinPtr[0] = OP_LDARG;
-        mCodeBinPtr[1] = param->Offset + 1 + sizeofExpr->Dimension;
+        mCodeBinPtr[1] = param->Offset + 1 + dimension;
         mCodeBinPtr += 2;
 
         IncreaseExprDepth();
@@ -947,7 +952,9 @@ void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
     {
         auto& srcArray = (ArrayType&) *node.Type;
 
-        EmitLoadConstant( srcArray.Size );
+        auto decl = node.GetBaseDecl();
+
+        EmitSizeofArray( decl, 0 );
     }
 }
 
@@ -988,10 +995,12 @@ int Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType
     {
         GenerateArg( *arguments[i], funcType->Params[i] );
 
-        auto& argType = *arguments[i]->Type;
+        // TODO: Roll this into GenerateArg.
 
-        if ( argType.GetKind() == TypeKind::Array
-            && ((ArrayType&) argType).Size == 0 )
+        auto& paramType = *funcType->Params[i].Type;
+
+        if ( paramType.GetKind() == TypeKind::Array
+            && ((ArrayType&) paramType).Size == 0 )
         {
             argCount++;
         }

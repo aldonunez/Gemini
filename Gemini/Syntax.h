@@ -85,6 +85,7 @@ public:
     virtual ~Syntax() {}
     virtual void Accept( Visitor* visitor ) = 0;
     virtual Declaration* GetDecl();
+    virtual Declaration* GetBaseDecl();
 };
 
 class StatementList : public Syntax
@@ -344,6 +345,7 @@ public:
     IndexExpr();
 
     virtual void Accept( Visitor* visitor ) override;
+    virtual Declaration* GetBaseDecl() override;
 };
 
 class SliceExpr : public Syntax

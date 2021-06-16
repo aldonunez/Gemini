@@ -18,6 +18,11 @@ Declaration* Syntax::GetDecl()
     return nullptr;
 }
 
+Declaration* Syntax::GetBaseDecl()
+{
+    return GetDecl();
+}
+
 NameExpr::NameExpr()
 {
     Kind = SyntaxKind::Name;
@@ -85,6 +90,11 @@ AddrOfExpr::AddrOfExpr()
 IndexExpr::IndexExpr()
 {
     Kind = SyntaxKind::Index;
+}
+
+Declaration* IndexExpr::GetBaseDecl()
+{
+    return Head->GetBaseDecl();
 }
 
 DotExpr::DotExpr()
