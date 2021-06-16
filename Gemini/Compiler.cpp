@@ -488,16 +488,14 @@ void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
 
     // TODO: dimension?
 
-    EmitCountofArray( countofExpr->Expr->GetDecl(), 0 );
+    EmitCountofArray( countofExpr->Expr->GetDecl(), (ArrayType*) countofExpr->Expr->Type.get(), 0 );
 }
 
-void Compiler::EmitCountofArray( Declaration* decl, int dimension )
+void Compiler::EmitCountofArray( Declaration* decl, ArrayType* arrayType, int dimension )
 {
-    auto& arrayType = (ArrayType&) *decl->Type;
-
-    if ( arrayType.Count != 0 )
+    if ( arrayType->Count != 0 )
     {
-        EmitLoadConstant( arrayType.Count );
+        EmitLoadConstant( arrayType->Count );
     }
     else
     {
@@ -983,7 +981,7 @@ void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
 
         auto decl = node.GetBaseDecl();
 
-        EmitCountofArray( decl, 0 );
+        EmitCountofArray( decl, &srcArray, 0 );
     }
 }
 
