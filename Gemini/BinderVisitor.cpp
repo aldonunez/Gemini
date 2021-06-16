@@ -327,9 +327,11 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
     {
         Visit( arg );
 
+        // TODO: add a function HasAddress?
         // TODO: Is this a good way to check it?
         if ( funcType->Params[i].Mode != ParamMode::Value
-            && arg->GetDecl() == nullptr )
+            && arg->GetDecl() == nullptr
+            && arg->Kind != SyntaxKind::Index )
             mRep.ThrowError( CERR_SEMANTICS, arg.get(), "Cannot pass this expression as var arg" );
 
         CheckType( funcType->Params[i].Type, arg->Type, arg.get() );

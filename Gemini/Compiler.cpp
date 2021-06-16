@@ -907,6 +907,9 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
 
 void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
 {
+    GenConfig config{};
+    GenStatus status{};
+
     switch ( paramSpec.Mode )
     {
     case ParamMode::Value:
@@ -914,7 +917,12 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
         break;
 
     case ParamMode::InOutRef:
-        EmitLoadAddress( &node, node.GetDecl(), 0 );
+        config.calcAddr = true;
+
+        Generate( &node, config, status );
+
+        if ( !status.spilledAddr )
+            EmitLoadAddress( &node, status.baseDecl, status.offset );
         break;
     }
 }
@@ -1709,6 +1717,35 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
     {
         EmitU8( OP_INDEX_S, static_cast<U8>(arrayType.ElemType->GetSize()) );
     }
+
+    DecreaseExprDepth();
+}
+
+void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status )
+{
+    Generate( indexExpr->Head.get(), config, status );
+
+    if ( !status.spilledAddr )
+    {
+        std::optional<int32_t> optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+
+        if ( optIndexVal.has_value() )
+        {
+            status.offset += optIndexVal.value();
+            return;
+        }
+        else
+        {
+            status.spilledAddr = true;
+            EmitLoadAddress( indexExpr, status.baseDecl, status.offset );
+            Generate( indexExpr->Index.get() );
+        }
+    }
+
+    // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
+    mCodeBinPtr[0] = OP_PRIM;
+    mCodeBinPtr[1] = PRIM_ADD;
+    mCodeBinPtr += 2;
 
     DecreaseExprDepth();
 }
