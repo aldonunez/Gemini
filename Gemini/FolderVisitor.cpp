@@ -323,9 +323,9 @@ void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
     mLastValue.reset();
 }
 
-void FolderVisitor::VisitSizeofExpr( SizeofExpr* sizeofExpr )
+void FolderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 {
-    auto& arrayType = (ArrayType&) *sizeofExpr->Head->Type;
+    auto& arrayType = (ArrayType&) *countofExpr->Head->Type;
 
     if ( arrayType.Count != 0 )
     {

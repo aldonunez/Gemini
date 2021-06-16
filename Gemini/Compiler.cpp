@@ -466,7 +466,7 @@ void Compiler::VisitReturnStatement( ReturnStatement* retStmt )
     GenerateReturn( retStmt, Config(), Status() );
 }
 
-void Compiler::VisitSizeofExpr( SizeofExpr* sizeofExpr )
+void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
 {
     if ( Config().discard )
     {
@@ -474,10 +474,10 @@ void Compiler::VisitSizeofExpr( SizeofExpr* sizeofExpr )
         return;
     }
 
-    EmitSizeofArray( sizeofExpr->Head->GetDecl(), sizeofExpr->Dimension );
+    EmitCountofArray( countofExpr->Head->GetDecl(), countofExpr->Dimension );
 }
 
-void Compiler::EmitSizeofArray( Declaration* decl, int dimension )
+void Compiler::EmitCountofArray( Declaration* decl, int dimension )
 {
     auto& arrayType = (ArrayType&) *decl->Type;
 
@@ -954,7 +954,7 @@ void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
 
         auto decl = node.GetBaseDecl();
 
-        EmitSizeofArray( decl, 0 );
+        EmitCountofArray( decl, 0 );
     }
 }
 

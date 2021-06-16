@@ -296,9 +296,9 @@ void ReturnStatement::Accept( Visitor* visitor )
     visitor->VisitReturnStatement( this );
 }
 
-void SizeofExpr::Accept( IVisitor* visitor )
+void CountofExpr::Accept( IVisitor* visitor )
 {
-    visitor->VisitSizeofExpr( this );
+    visitor->VisitCountofExpr( this );
 }
 
 void SliceExpr::Accept( Visitor* visitor )
@@ -483,7 +483,7 @@ void Visitor::VisitReturnStatement( ReturnStatement* retStmt )
 {
 }
 
-void IVisitor::VisitSizeofExpr( SizeofExpr* sizeofExpr )
+void IVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 {
 }
 

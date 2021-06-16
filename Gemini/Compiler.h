@@ -344,7 +344,7 @@ private:
     void EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitSpilledAddrOffset( int32_t offset );
-    void EmitSizeofArray( Declaration* decl, int dimension );
+    void EmitCountofArray( Declaration* decl, int dimension );
 
     // Level 3 - functions and special operators
     void GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status );
@@ -448,7 +448,7 @@ private:
     virtual void VisitProcDecl( ProcDecl* procDecl ) override;
     virtual void VisitRangeExpr( RangeExpr* rangeExpr ) override;
     virtual void VisitReturnStatement( ReturnStatement* retStmt ) override;
-    virtual void VisitSizeofExpr( SizeofExpr* sizeofExpr ) override;
+    virtual void VisitCountofExpr( CountofExpr* countofExpr ) override;
     virtual void VisitSliceExpr( SliceExpr* sliceExpr ) override;
     virtual void VisitStatementList( StatementList* stmtList ) override;
     virtual void VisitUnaryExpr( UnaryExpr* unary ) override;

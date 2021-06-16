@@ -77,7 +77,6 @@ class AlgolyParser
         Or,
         Proc,
         Return,
-        Sizeof,
         Then,
         To,
         Type,
@@ -194,7 +193,6 @@ private:
     Unique<Syntax> ParseIndexingOrDot( Unique<Syntax>&& head );
     Unique<Syntax> ParseQualifiedName();
     Unique<Syntax> ParseRangeOrExpr();
-    Unique<Syntax> ParseSizeof();
     Unique<Syntax> ParseCountof();
 
     bool IsTokenOrOp();

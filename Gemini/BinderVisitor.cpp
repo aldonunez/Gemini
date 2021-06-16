@@ -1173,17 +1173,17 @@ void BinderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
     retStmt->Type = mXferType;
 }
 
-void BinderVisitor::VisitSizeofExpr( SizeofExpr* sizeofExpr )
+void BinderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 {
-    sizeofExpr->Head->Accept( this );
+    countofExpr->Head->Accept( this );
 
-    if ( sizeofExpr->Head->Type->GetKind() != TypeKind::Array )
-        mRep.ThrowError( CERR_SEMANTICS, sizeofExpr->Head.get(), "Sizeof applies to arrays" );
+    if ( countofExpr->Head->Type->GetKind() != TypeKind::Array )
+        mRep.ThrowError( CERR_SEMANTICS, countofExpr->Head.get(), "Countof applies to arrays" );
 
-    if ( sizeofExpr->Dimension != 0 )
-        mRep.ThrowError( CERR_SEMANTICS, sizeofExpr, "Sizeof dimension must be 0" );
+    if ( countofExpr->Dimension != 0 )
+        mRep.ThrowError( CERR_SEMANTICS, countofExpr, "Countof dimension must be 0" );
 
-    sizeofExpr->Type = mIntType;
+    countofExpr->Type = mIntType;
 }
 
 void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
