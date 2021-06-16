@@ -310,6 +310,16 @@ void FolderVisitor::VisitProc( ProcDecl* procDecl )
     mLastValue.reset();
 }
 
+void FolderVisitor::VisitRecordInitializer( RecordInitializer* recordInitializer )
+{
+    for ( auto& fieldInit : recordInitializer->Fields )
+    {
+        Fold( fieldInit->Initializer );
+    }
+
+    mLastValue.reset();
+}
+
 void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
 {
     Fold( retStmt->Inner );

@@ -557,9 +557,7 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
     }
     else if ( dotExpr->Head->Type->GetKind() == TypeKind::Record )
     {
-        auto decl = dotExpr->Head->GetDecl();
-
-        auto recType = (RecordType&) *decl->Type;
+        auto recType = (RecordType&) *dotExpr->Head->Type;
 
         auto it = recType.Fields.find( dotExpr->Member );
 
