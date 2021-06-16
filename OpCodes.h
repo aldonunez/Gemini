@@ -30,6 +30,8 @@ enum
     OP_CALLM,
     OP_CALLNATIVE,
     OP_CALLNATIVE_S,
+    OP_INDEX,
+    OP_INDEX_S,
     OP_MAXOPCODE,
 
     // Having each module end with this unsupported opcode ensures that:

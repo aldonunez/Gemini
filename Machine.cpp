@@ -566,6 +566,34 @@ int Machine::Run()
             }
             break;
 
+        case OP_INDEX:
+            {
+                if ( WouldUnderflow( 2 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                CELL base = mSP[1];
+                CELL index = mSP[0];
+                U32  stride = ReadU32( codePtr );
+
+                mSP[1] = base + (index * stride);
+                mSP++;
+            }
+            break;
+
+        case OP_INDEX_S:
+            {
+                if ( WouldUnderflow( 2 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                CELL base = mSP[1];
+                CELL index = mSP[0];
+                U8   stride = ReadU8( codePtr );
+
+                mSP[1] = base + (index * stride);
+                mSP++;
+            }
+            break;
+
         default:
             return ERR_BAD_OPCODE;
         }
