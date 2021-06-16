@@ -1607,26 +1607,24 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     Generate( indexExpr->Head.get(), config, status );
 
+    std::optional<int32_t> optIndexVal;
+
+    optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+
+    if ( optIndexVal.has_value() )
+    {
+        status.offset += optIndexVal.value() * arrayType.ElemType->GetSize();
+        return;
+    }
+
     if ( !status.spilledAddr )
     {
-        std::optional<int32_t> optIndexVal;
+        EmitLoadAddress( indexExpr, status.baseDecl, status.offset );
 
-        optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
-
-        if ( optIndexVal.has_value() )
-        {
-            status.offset += optIndexVal.value() * arrayType.ElemType->GetSize();
-            return;
-        }
-        else
-        {
-            EmitLoadAddress( indexExpr, status.baseDecl, status.offset );
-
-            // Set this after emitting the original decl's address above
-            status.baseDecl = mLoadedAddrDecl.get();
-            status.offset = 0;
-            status.spilledAddr = true;
-        }
+        // Set this after emitting the original decl's address above
+        status.baseDecl = mLoadedAddrDecl.get();
+        status.offset = 0;
+        status.spilledAddr = true;
     }
 
     if ( status.offset > 0 )
