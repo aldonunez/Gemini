@@ -1294,7 +1294,7 @@ Unique<DataDecl> AlgolyParser::ParseVar( Unique<DataDecl>&& varDecl, std::option
     {
         ScanToken();
 
-        varDecl->TypeRef = ParseTypeRef();
+        varDecl->TypeRef = ParseTypeRef( varDecl->Kind == SyntaxKind::ParamDecl );
     }
 
     if ( assignToken.has_value() )
@@ -1375,11 +1375,11 @@ Unique<TypeRef> AlgolyParser::ParseTypeDef()
     }
 }
 
-Unique<TypeRef> AlgolyParser::ParseTypeRef()
+Unique<TypeRef> AlgolyParser::ParseTypeRef( bool allowOpenArray )
 {
     switch ( mCurToken )
     {
-    case TokenCode::LBracket:   return ParseArrayTypeRef();
+    case TokenCode::LBracket:   return ParseArrayTypeRef( allowOpenArray );
     case TokenCode::At:
     case TokenCode::Ampersand:  return ParsePtrFuncTypeRef();
     case TokenCode::Symbol:     return ParseNameTypeRef();
@@ -1453,18 +1453,18 @@ ParamSpecRef AlgolyParser::ParseBareParameter()
         param.Mode = ParamMode::InOutRef;
     }
 
-    param.TypeRef = ParseTypeRef();
+    param.TypeRef = ParseTypeRef( true );
 
     return param;
 }
 
-Unique<TypeRef> AlgolyParser::ParseArrayTypeRef()
+Unique<TypeRef> AlgolyParser::ParseArrayTypeRef( bool allowOpenArray )
 {
     auto arrayTypeRef = Make<ArrayTypeRef>();
 
     ScanToken( TokenCode::LBracket );
 
-    if ( mCurToken != TokenCode::RBracket )
+    if ( !allowOpenArray || mCurToken != TokenCode::RBracket )
     {
         arrayTypeRef->SizeExpr = ParseExpr();
     }

@@ -82,6 +82,11 @@ VarDecl::VarDecl( std::string_view name ) :
     Name = name;
 }
 
+ParamDecl::ParamDecl()
+{
+    Kind = SyntaxKind::ParamDecl;
+}
+
 AddrOfExpr::AddrOfExpr()
 {
     Kind = SyntaxKind::AddrOfExpr;

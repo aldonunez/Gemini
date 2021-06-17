@@ -35,6 +35,7 @@ enum class SyntaxKind
     ArrayInitializer,
     ConstDecl,
     VarDecl,
+    ParamDecl,
     Other,
 };
 
@@ -242,6 +243,8 @@ class ParamDecl : public DataDecl
 {
 public:
     ParamMode Mode = ParamMode::Value;
+
+    ParamDecl();
 
     virtual void Accept( Visitor* visitor ) override;
 };
