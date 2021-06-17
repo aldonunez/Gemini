@@ -323,22 +323,6 @@ void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
     mLastValue.reset();
 }
 
-void FolderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
-{
-    Fold( countofExpr->Expr );
-
-    auto& arrayType = (ArrayType&) *countofExpr->Expr->Type;
-
-    if ( arrayType.Count != 0 )
-    {
-        mLastValue = arrayType.Count;
-    }
-    else
-    {
-        mLastValue.reset();
-    }
-}
-
 void FolderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 {
     sliceExpr->Head->Accept( this );

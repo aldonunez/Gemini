@@ -594,7 +594,6 @@ public:
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef );
     virtual void VisitRangeExpr( RangeExpr* rangeExpr );
     virtual void VisitReturnStatement( ReturnStatement* retStmt );
-    virtual void VisitCountofExpr( CountofExpr* countofExpr );
     virtual void VisitSliceExpr( SliceExpr* sliceExpr );
     virtual void VisitStatementList( StatementList* stmtmList );
     virtual void VisitTypeDecl( TypeDecl* typeDecl );

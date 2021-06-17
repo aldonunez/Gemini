@@ -1172,16 +1172,6 @@ void BinderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
     retStmt->Type = mXferType;
 }
 
-void BinderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
-{
-    countofExpr->Expr->Accept( this );
-
-    if ( countofExpr->Expr->Type->GetKind() != TypeKind::Array )
-        mRep.ThrowError( CERR_SEMANTICS, countofExpr->Expr.get(), "Countof applies to arrays" );
-
-    countofExpr->Type = mIntType;
-}
-
 void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 {
     Visit( sliceExpr->Head );

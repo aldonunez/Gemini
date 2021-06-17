@@ -89,7 +89,6 @@ public:
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef ) override;
     virtual void VisitRangeExpr( RangeExpr* rangeExpr ) override;
     virtual void VisitReturnStatement( ReturnStatement* retStmt ) override;
-    virtual void VisitCountofExpr( CountofExpr* countofExpr ) override;
     virtual void VisitSliceExpr( SliceExpr* sliceExpr ) override;
     virtual void VisitStatementList( StatementList* stmtList ) override;
     virtual void VisitTypeDecl( TypeDecl* typeDecl ) override;
