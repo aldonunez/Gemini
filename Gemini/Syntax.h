@@ -172,8 +172,8 @@ struct ParamSpecRef
 class ProcTypeRef : public TypeRef
 {
 public:
-    std::vector<ParamSpecRef> Params;
-    Unique<TypeRef>              ReturnTypeRef;
+    std::vector<ParamSpecRef>   Params;
+    Unique<TypeRef>             ReturnTypeRef;
 
     virtual void Accept( Visitor* visitor ) override;
 };

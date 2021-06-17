@@ -336,13 +336,6 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
     {
         Visit( arg );
 
-        // TODO: add a function HasAddress?
-        // TODO: Is this a good way to check it?
-        if ( funcType->Params[i].Mode != ParamMode::Value
-            && arg->GetDecl() == nullptr
-            && arg->Kind != SyntaxKind::Index )
-            mRep.ThrowError( CERR_SEMANTICS, arg.get(), "Cannot pass this expression as var arg" );
-
         CheckParamType( funcType->Params[i].Mode, funcType->Params[i].Type, arg->Type, arg.get() );
         i++;
     }
@@ -641,9 +634,12 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
         if ( firstVal > lastVal )
             mRep.ThrowError( CERR_SEMANTICS, range->Last.get(), "Range is not in increasing order" );
 
+        if ( firstVal < 0 )
+            mRep.ThrowError( CERR_SEMANTICS, range->Last.get(), "Slices must be within bounds of array" );
+
         if ( arrayType->Count > 0 )
         {
-            if ( firstVal < 0 || lastVal > arrayType->Count )
+            if ( lastVal > arrayType->Count )
                 mRep.ThrowError( CERR_SEMANTICS, range->Last.get(), "Slices must be within bounds of array" );
         }
 
