@@ -608,6 +608,7 @@ protected:
 
 public:
     TypeKind GetKind() const;
+    virtual bool IsEqual( Type* other ) const;
     virtual bool IsAssignableFrom( Type* other ) const;
     virtual int32_t GetSize() const;
 };
@@ -629,7 +630,7 @@ class XferType : public Type
 public:
     XferType();
 
-    virtual bool IsAssignableFrom( Type* other ) const override;
+    virtual bool IsEqual( Type* other ) const override;
 };
 
 class IntType : public Type
@@ -637,6 +638,7 @@ class IntType : public Type
 public:
     IntType();
 
+    virtual bool IsEqual( Type* other ) const override;
     virtual bool IsAssignableFrom( Type* other ) const override;
     virtual int32_t GetSize() const override;
 };
@@ -649,6 +651,7 @@ public:
 
     ArrayType( int32_t count, std::shared_ptr<Type> elemType );
 
+    virtual bool IsEqual( Type* other ) const override;
     virtual bool IsAssignableFrom( Type* other ) const override;
     virtual int32_t GetSize() const override;
 };
@@ -661,7 +664,7 @@ public:
 
     FuncType( std::shared_ptr<Type> returnType );
 
-    virtual bool IsAssignableFrom( Type* other ) const override;
+    virtual bool IsEqual( Type* other ) const override;
 };
 
 class PointerType : public Type
@@ -671,6 +674,6 @@ public:
 
     PointerType( std::shared_ptr<Type> target );
 
-    virtual bool IsAssignableFrom( Type* other ) const override;
+    virtual bool IsEqual( Type* other ) const override;
     virtual int32_t GetSize() const override;
 };

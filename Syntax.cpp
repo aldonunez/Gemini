@@ -464,9 +464,14 @@ TypeKind Type::GetKind() const
     return mKind;
 }
 
-bool Type::IsAssignableFrom( Type* other ) const
+bool Type::IsEqual( Type* other ) const
 {
     return false;
+}
+
+bool Type::IsAssignableFrom( Type* other ) const
+{
+    return IsEqual( other );
 }
 
 int32_t Type::GetSize() const
@@ -492,7 +497,7 @@ XferType::XferType() :
 {
 }
 
-bool XferType::IsAssignableFrom( Type* other ) const
+bool XferType::IsEqual( Type* other ) const
 {
     return other != nullptr
         && other->GetKind() == TypeKind::Xfer;
@@ -502,6 +507,12 @@ bool XferType::IsAssignableFrom( Type* other ) const
 IntType::IntType() :
     Type( TypeKind::Int )
 {
+}
+
+bool IntType::IsEqual( Type* other ) const
+{
+    return other != nullptr
+        && (other->GetKind() == TypeKind::Int);
 }
 
 bool IntType::IsAssignableFrom( Type* other ) const
@@ -525,6 +536,19 @@ ArrayType::ArrayType( int32_t count, std::shared_ptr<Type> elemType ) :
 {
 }
 
+bool ArrayType::IsEqual( Type* other ) const
+{
+    if ( other == nullptr || other->GetKind() != TypeKind::Array )
+        return false;
+
+    auto otherArray = (ArrayType*) other;
+
+    if ( !ElemType->IsEqual( otherArray->ElemType.get() ) )
+        return false;
+
+    return Count == otherArray->Count;
+}
+
 bool ArrayType::IsAssignableFrom( Type* other ) const
 {
     if ( other == nullptr || other->GetKind() != TypeKind::Array )
@@ -532,7 +556,7 @@ bool ArrayType::IsAssignableFrom( Type* other ) const
 
     auto otherArray = (ArrayType*) other;
 
-    if ( !ElemType->IsAssignableFrom( otherArray->ElemType.get() ) )
+    if ( !ElemType->IsEqual( otherArray->ElemType.get() ) )
         return false;
 
     if ( ElemType->GetKind() == TypeKind::Pointer )
@@ -553,20 +577,20 @@ FuncType::FuncType( std::shared_ptr<Type> returnType ) :
 {
 }
 
-bool FuncType::IsAssignableFrom( Type* other ) const
+bool FuncType::IsEqual( Type* other ) const
 {
     if ( other == nullptr || other->GetKind() != TypeKind::Func )
         return false;
 
     auto otherFunc = (FuncType*) other;
 
-    if ( !ReturnType->IsAssignableFrom( otherFunc->ReturnType.get() )
+    if ( !ReturnType->IsEqual( otherFunc->ReturnType.get() )
         || ParamTypes.size() != otherFunc->ParamTypes.size() )
         return false;
 
     for ( int i = 0; i < (int) ParamTypes.size(); i++ )
     {
-        if ( !ParamTypes[i]->IsAssignableFrom( otherFunc->ParamTypes[i].get() ) )
+        if ( !ParamTypes[i]->IsEqual( otherFunc->ParamTypes[i].get() ) )
             return false;
     }
 
@@ -580,14 +604,14 @@ PointerType::PointerType( std::shared_ptr<Type> target ) :
 {
 }
 
-bool PointerType::IsAssignableFrom( Type* other ) const
+bool PointerType::IsEqual( Type* other ) const
 {
     if ( other == nullptr || other->GetKind() != TypeKind::Pointer )
         return false;
 
     auto otherPointer = (PointerType*) other;
 
-    return TargetType->IsAssignableFrom( otherPointer->TargetType.get() );
+    return TargetType->IsEqual( otherPointer->TargetType.get() );
 }
 
 int32_t PointerType::GetSize() const
