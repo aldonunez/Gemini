@@ -73,16 +73,14 @@ static bool IsAddressableType( TypeKind kind )
 
 static bool IsAssignableType( TypeKind kind )
 {
-    return kind == TypeKind::Int
-        || kind == TypeKind::Pointer
+    return IsScalarType( kind )
         || kind == TypeKind::Xfer
         ;
 }
 
 static bool IsEquatable( TypeKind kind )
 {
-    return kind == TypeKind::Int
-        || kind == TypeKind::Pointer
+    return IsScalarType( kind )
         ;
 }
 
@@ -98,8 +96,7 @@ static bool IsAllowedPointerTarget( TypeKind kind )
 
 static bool IsAllowedParamType( TypeKind kind )
 {
-    return kind == TypeKind::Int
-        || kind == TypeKind::Pointer
+    return IsScalarType( kind )
         ;
 }
 
