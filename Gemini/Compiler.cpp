@@ -323,6 +323,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             if ( param->Mode == ParamMode::Value )
             {
                 EmitU8( OP_LDARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
+                IncreaseExprDepth();
             }
             else if ( param->Mode == ParamMode::InOutRef )
             {
@@ -332,15 +333,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
                 IncreaseExprDepth();
 
                 if ( offset > 0 )
-                {
-                    EmitLoadConstant( offset );
-
-                    mCodeBinPtr[0] = OP_PRIM;
-                    mCodeBinPtr[1] = PRIM_ADD;
-                    mCodeBinPtr += 2;
-
-                    DecreaseExprDepth();
-                }
+                    EmitSpilledAddrOffset( offset );
 
                 mCodeBinPtr[0] = OP_LOADI;
                 mCodeBinPtr += 1;
@@ -486,12 +479,10 @@ void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
         return;
     }
 
-    // TODO: dimension?
-
-    EmitCountofArray( countofExpr->Expr->GetDecl(), (ArrayType*) countofExpr->Expr->Type.get(), 0 );
+    EmitCountofArray( countofExpr->Expr->GetDecl(), (ArrayType*) countofExpr->Expr->Type.get() );
 }
 
-void Compiler::EmitCountofArray( Declaration* decl, ArrayType* arrayType, int dimension )
+void Compiler::EmitCountofArray( Declaration* decl, ArrayType* arrayType )
 {
     if ( arrayType->Count != 0 )
     {
@@ -503,7 +494,7 @@ void Compiler::EmitCountofArray( Declaration* decl, ArrayType* arrayType, int di
         auto param = (ParamStorage*) decl;
 
         mCodeBinPtr[0] = OP_LDARG;
-        mCodeBinPtr[1] = param->Offset + 1 + dimension;
+        mCodeBinPtr[1] = param->Offset + 1;
         mCodeBinPtr += 2;
 
         IncreaseExprDepth();
@@ -717,15 +708,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
                 IncreaseExprDepth();
 
                 if ( offset > 0 )
-                {
-                    EmitLoadConstant( offset );
-
-                    mCodeBinPtr[0] = OP_PRIM;
-                    mCodeBinPtr[1] = PRIM_ADD;
-                    mCodeBinPtr += 2;
-
-                    DecreaseExprDepth();
-                }
+                    EmitSpilledAddrOffset( offset );
 
                 mCodeBinPtr[0] = OP_STOREI;
                 mCodeBinPtr += 1;
@@ -981,7 +964,7 @@ void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
 
         auto decl = node.GetBaseDecl();
 
-        EmitCountofArray( decl, &srcArray, 0 );
+        EmitCountofArray( decl, &srcArray );
     }
 }
 
@@ -1721,10 +1704,6 @@ void Compiler::GenerateBinaryPrimitive( BinaryExpr* binary, U8 primitive, const 
     }
 }
 
-void Compiler::VisitRangeExpr( RangeExpr* rangeExpr )
-{
-}
-
 void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset )
 {
     if ( baseDecl == nullptr )
@@ -1774,15 +1753,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                     mCodeBinPtr += 2;
 
                     if ( offset != 0 )
-                    {
-                        EmitLoadConstant( offset );
-
-                        mCodeBinPtr[0] = OP_PRIM;
-                        mCodeBinPtr[1] = PRIM_ADD;
-                        mCodeBinPtr += 2;
-
-                        DecreaseExprDepth();
-                    }
+                        EmitSpilledAddrOffset( offset );
                 }
                 else
                 {
