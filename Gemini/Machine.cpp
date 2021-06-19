@@ -632,6 +632,29 @@ int Machine::Run()
             }
             break;
 
+        case OP_COPYBLOCK:
+            {
+                if ( WouldUnderflow( 3 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                CELL size = mSP[2];
+                CELL source = mSP[1];
+                CELL dest = mSP[0];
+
+                mSP += 3;
+
+                auto [err, pDst] = GetSizedDataPtr( dest, size );
+                if ( err != ERR_NONE )
+                    return err;
+
+                auto [err1, pSrc] = GetSizedDataPtr( source, size );
+                if ( err1 != ERR_NONE )
+                    return err1;
+
+                memmove( pDst, pSrc, size * sizeof( CELL ) );
+            }
+            break;
+
         default:
             return ERR_BAD_OPCODE;
         }
@@ -860,6 +883,21 @@ bool Machine::WouldUnderflow( U16 count ) const
 bool Machine::IsCodeInBounds( U32 address ) const
 {
     return address < (mMod->CodeSize - SENTINEL_SIZE);
+}
+
+std::pair<int, void*> Machine::GetSizedDataPtr( CELL addrWord, CELL size )
+{
+    U8  iMod = CodeAddr::GetModule( addrWord );
+    U16 offs = CodeAddr::GetAddress( addrWord );
+
+    auto [err, mod] = GetDataModule( iMod );
+    if ( err != ERR_NONE )
+        return std::pair( err, nullptr );
+
+    if ( offs >= mod->DataSize || size > (mod->DataSize - offs) )
+        return std::pair( ERR_BAD_ADDRESS, nullptr );
+
+    return std::pair( 0, mod->DataBase + offs );
 }
 
 std::pair<int, const Module*> Machine::GetDataModule( U8 index )

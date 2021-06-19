@@ -40,6 +40,7 @@ static const char* gOpCodes[] =
     "CALLNATIVE.S",
     "INDEX",
     "INDEX.S",
+    "COPYBLOCK",
 };
 
 static const char* gPrimitives[] = 
@@ -104,6 +105,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LOADI:
     case OP_STOREI:
     case OP_RET:
+    case OP_COPYBLOCK:
         break;
 
     case OP_PUSH:

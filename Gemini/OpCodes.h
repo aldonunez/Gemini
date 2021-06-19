@@ -38,6 +38,7 @@ enum OpCode : uint8_t
     OP_CALLNATIVE_S,
     OP_INDEX,
     OP_INDEX_S,
+    OP_COPYBLOCK,
     OP_MAXOPCODE,
 
     // Having each module end with this unsupported opcode ensures that:

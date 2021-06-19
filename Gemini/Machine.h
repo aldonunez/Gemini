@@ -136,6 +136,7 @@ private:
     bool IsCodeInBounds( U32 address ) const;
 
     std::pair<int, const Module*> GetDataModule( U8 index );
+    std::pair<int, void*> GetSizedDataPtr( CELL addrWord, CELL size );
 
     const Module* GetModule( U8 index );
 
