@@ -77,6 +77,13 @@ static bool IsAddressableType( TypeKind kind )
     return kind == TypeKind::Func;
 }
 
+static bool IsStatementType( TypeKind kind )
+{
+    return IsScalarType( kind )
+        || kind == TypeKind::Xfer
+        ;
+}
+
 static bool IsAssignableType( TypeKind kind )
 {
     return IsScalarType( kind )
@@ -613,7 +620,7 @@ void BinderVisitor::VisitLetStatement( LetStatement* letStmt )
 
     letStmt->Body.Accept( this );
 
-    CheckAssignableType( &letStmt->Body );
+    CheckStatementType( &letStmt->Body );
 
     letStmt->Type = letStmt->Body.Type;
 }
@@ -951,7 +958,7 @@ void BinderVisitor::VisitStatementList( StatementList* stmtList )
     {
         stmt->Accept( this );
 
-        CheckAssignableType( stmt.get() );
+        CheckStatementType( stmt.get() );
     }
 
     if ( stmtList->Statements.size() == 0 )
@@ -1062,6 +1069,12 @@ void BinderVisitor::CheckType(
     }
 }
 
+void BinderVisitor::CheckStatementType( Syntax* node )
+{
+    if ( !IsStatementType( node->Type->GetKind() ) )
+        mRep.ThrowError( CERR_SEMANTICS, node, "Expected scalar type" );
+}
+
 void BinderVisitor::CheckAssignableType( Syntax* node )
 {
     if ( !IsAssignableType( node->Type->GetKind() ) )
@@ -1075,7 +1088,7 @@ void BinderVisitor::CheckAndConsolidateClauseType( StatementList& clause, std::s
 
 void BinderVisitor::CheckAndConsolidateClauseType( Syntax* clause, std::shared_ptr<Type>& bodyType )
 {
-    CheckAssignableType( clause );
+    CheckStatementType( clause );
 
     if ( !bodyType || bodyType->GetKind() == TypeKind::Xfer )
         bodyType = clause->Type;
