@@ -7,7 +7,7 @@
 #include "pch.h"
 #include "Machine.h"
 #include "OpCodes.h"
-#include <memory>
+#include <algorithm>
 
 
 /*
@@ -239,6 +239,19 @@ int Machine::Run()
 
                 mSP--;
                 *mSP = *(mSP + 1);
+            }
+            break;
+
+        case OP_OVER:
+            {
+                if ( WouldOverflow() )
+                    return ERR_STACK_OVERFLOW;
+
+                if ( WouldUnderflow( 2 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                mSP--;
+                *mSP = mSP[2];
             }
             break;
 
@@ -632,6 +645,29 @@ int Machine::Run()
             }
             break;
 
+        case OP_COPYBLOCK:
+            {
+                if ( WouldUnderflow( 3 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                CELL size = mSP[2];
+                CELL source = mSP[1];
+                CELL dest = mSP[0];
+
+                mSP += 3;
+
+                auto [err, pDst] = GetSizedDataPtr( dest, size );
+                if ( err != ERR_NONE )
+                    return err;
+
+                auto [err1, pSrc] = GetSizedDataPtr( source, size );
+                if ( err1 != ERR_NONE )
+                    return err1;
+
+                std::copy_n( pSrc, size, pDst );
+            }
+            break;
+
         default:
             return ERR_BAD_OPCODE;
         }
@@ -860,6 +896,24 @@ bool Machine::WouldUnderflow( U16 count ) const
 bool Machine::IsCodeInBounds( U32 address ) const
 {
     return address < (mMod->CodeSize - SENTINEL_SIZE);
+}
+
+std::pair<int, CELL*> Machine::GetSizedDataPtr( CELL addrWord, CELL size )
+{
+    U8  iMod = CodeAddr::GetModule( addrWord );
+    U32 offs = CodeAddr::GetAddress( addrWord );
+
+    auto [err, mod] = GetDataModule( iMod );
+    if ( err != ERR_NONE )
+        return std::pair( err, nullptr );
+
+    if ( size < 0 )
+        return std::pair( ERR_BAD_ADDRESS, nullptr );
+
+    if ( offs >= mod->DataSize || size > mod->DataSize - static_cast<U16>(offs) )
+        return std::pair( ERR_BAD_ADDRESS, nullptr );
+
+    return std::pair( ERR_NONE, mod->DataBase + offs );
 }
 
 std::pair<int, const Module*> Machine::GetDataModule( U8 index )

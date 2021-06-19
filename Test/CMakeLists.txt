@@ -1,6 +1,7 @@
 add_executable(Test
     TestMain.cpp
     TestAlgoly.cpp
+    TestAlgolyCopyArray.cpp
     TestAlgolyMultiArray.cpp
     TestAlgolyStack.cpp
     TestBase.cpp

@@ -104,6 +104,7 @@ static bool IsAssignableType( TypeKind kind )
 {
     return IsScalarType( kind )
         || kind == TypeKind::Xfer
+        || kind == TypeKind::Array
         ;
 }
 
@@ -140,7 +141,8 @@ static bool IsLValue( const Syntax& node )
 {
     if ( node.Kind != SyntaxKind::Name
         && node.Kind != SyntaxKind::DotExpr
-        && node.Kind != SyntaxKind::Index )
+        && node.Kind != SyntaxKind::Index
+        && node.Kind != SyntaxKind::Slice )
     {
         return false;
     }

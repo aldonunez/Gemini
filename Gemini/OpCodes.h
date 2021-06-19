@@ -13,6 +13,7 @@ enum OpCode : uint8_t
 {
     OP_POP,     // TODO: Can this be removed?
     OP_DUP,
+    OP_OVER,
     OP_PUSH,
     OP_NOT,
     OP_LDARG,
@@ -38,6 +39,7 @@ enum OpCode : uint8_t
     OP_CALLNATIVE_S,
     OP_INDEX,
     OP_INDEX_S,
+    OP_COPYBLOCK,
     OP_MAXOPCODE,
 
     // Having each module end with this unsupported opcode ensures that:

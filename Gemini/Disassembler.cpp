@@ -15,6 +15,7 @@ static const char* gOpCodes[] =
 {
     "POP",
     "DUP",
+    "OVER",
     "PUSH",
     "NOT",
     "LDARG",
@@ -40,6 +41,7 @@ static const char* gOpCodes[] =
     "CALLNATIVE.S",
     "INDEX",
     "INDEX.S",
+    "COPYBLOCK",
 };
 
 static const char* gPrimitives[] = 
@@ -100,10 +102,12 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     {
     case OP_POP:
     case OP_DUP:
+    case OP_OVER:
     case OP_NOT:
     case OP_LOADI:
     case OP_STOREI:
     case OP_RET:
+    case OP_COPYBLOCK:
         break;
 
     case OP_PUSH:

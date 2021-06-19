@@ -163,6 +163,13 @@ private:
         };
     };
 
+    struct MemTransfer
+    {
+        int32_t Src;
+        int32_t Dst;
+        int32_t Size;
+    };
+
     enum class ExprKind
     {
         Other,
@@ -255,8 +262,9 @@ private:
     typedef std::vector<Unique<Unit>> UnitVec;
     typedef std::map<int32_t, std::shared_ptr<ModuleDeclaration>> ModIdMap;
 
-    using CodeVec = std::vector<U8>;
-    using GlobalVec = std::vector<I32>;
+    using CodeVec           = std::vector<U8>;
+    using GlobalVec         = std::vector<I32>;
+    using MemTransferVec    = std::vector<MemTransfer>;
 
     struct GenParams
     {
@@ -273,6 +281,8 @@ private:
     ModIdMap        mModulesById;
     FuncPatchMap    mFuncPatchMap;
     AddrRefVec      mLocalAddrRefs;
+    MemTransferVec  mDeferredGlobals;
+
     bool            mInFunc = false;
     Function*       mCurFunc = nullptr;
     LocalSize       mCurExprDepth = 0;
@@ -344,6 +354,8 @@ private:
     void EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitSpilledAddrOffset( int32_t offset );
+    void EmitLoadAggregateCopySource( Syntax* node );
+    void EmitLoadAggregateCopySource( Syntax* node, Type* type );
 
     // Level 3 - functions and special operators
     void GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status );
@@ -353,6 +365,7 @@ private:
     void GenerateReturn( ReturnStatement* retStmt, const GenConfig& config, GenStatus& status );
     void GenerateCond( CondExpr* condExpr, const GenConfig& config, GenStatus& status );
     void GenerateSet( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status );
+    void GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status );
     void GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, GenStatus& status );
     void GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateLet( LetStatement* letStmt, const GenConfig& config, GenStatus& status );
@@ -401,6 +414,7 @@ private:
     void PopPatch( PatchChain* chain );
     void PatchCalls( FuncPatchChain* chain, U32 addr );
     void PushFuncPatch( const std::string& name, CodeRef ref );
+    void CopyDeferredGlobals();
 
     I32 GetSyntaxValue( Syntax* node, const char* message = nullptr );
 

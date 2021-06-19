@@ -9,6 +9,7 @@
 #include "BinderVisitor.h"
 #include "FolderVisitor.h"
 #include "OpCodes.h"
+#include <algorithm>
 #include <stdarg.h>
 #include <string.h>
 #include <stdexcept>
@@ -68,6 +69,8 @@ CompilerErr Compiler::Compile()
         BindAttributes();
         FoldConstants();
         GenerateCode();
+
+        CopyDeferredGlobals();
 
         GenerateSentinel();
 
@@ -288,7 +291,14 @@ void Compiler::GenerateValue( Syntax* node, Declaration* decl, const GenConfig& 
         return;
     }
 
-    EmitLoadScalar( node, decl, 0 );
+    if ( IsScalarType( node->Type->GetKind() ) )
+    {
+        EmitLoadScalar( node, decl, 0 );
+    }
+    else
+    {
+        EmitLoadAggregateCopySource( node );
+    }
 }
 
 void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
@@ -355,6 +365,23 @@ void Compiler::EmitSpilledAddrOffset( int32_t offset )
     EmitU8( OP_INDEX_S, 1 );
 
     DecreaseExprDepth();
+}
+
+void Compiler::EmitLoadAggregateCopySource( Syntax* node )
+{
+    EmitLoadAggregateCopySource( node, node->Type.get() );
+}
+
+void Compiler::EmitLoadAggregateCopySource( Syntax* node, Type* type )
+{
+    int32_t         offset = 0;
+    Declaration*    decl = nullptr;
+
+    EmitLoadConstant( type->GetSize() );
+
+    CalcAddress( node, decl, offset );
+
+    EmitLoadAddress( node, decl, offset );
 }
 
 void Compiler::GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status )
@@ -663,9 +690,45 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
     DecreaseExprDepth();
 }
 
+void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status )
+{
+    // Value
+    Generate( assignment->Right.get() );
+
+    if ( config.discard )
+    {
+        status.discarded = true;
+    }
+    else
+    {
+        Emit( OP_OVER );
+        Emit( OP_OVER );
+        IncreaseExprDepth();
+        IncreaseExprDepth();
+    }
+
+    Declaration*    baseDecl = nullptr;
+    int32_t         offset = 0;
+
+    CalcAddress( assignment->Left.get(), baseDecl, offset );
+
+    EmitLoadAddress( assignment->Left.get(), baseDecl, offset );
+
+    Emit( OP_COPYBLOCK );
+
+    DecreaseExprDepth( 3 );
+
+    // Generating a return value or argument value would need PUSHBLOCK
+}
+
 void Compiler::VisitAssignmentExpr( AssignmentExpr* assignment )
 {
-    GenerateSet( assignment, Config(), Status() );
+    // TODO: Rename GenerateSet GenerateSetScalar
+
+    if ( IsScalarType( assignment->Left->Type->GetKind() ) )
+        GenerateSet( assignment, Config(), Status() );
+    else
+        GenerateSetAggregate( assignment, Config(), Status() );
 }
 
 void Compiler::VisitProcDecl( ProcDecl* procDecl )
@@ -811,7 +874,16 @@ void Compiler::VisitLetStatement( LetStatement* letStmt )
 void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
-        mRep.ThrowSemanticsError( valueElem, "Arrays must be initialized with array initializer" );
+    {
+        Generate( valueElem );
+
+        EmitU8( OP_LDLOCA, offset );
+        Emit( OP_COPYBLOCK );
+
+        IncreaseExprDepth();
+        DecreaseExprDepth( 3 );
+        return;
+    }
 
     auto        initList = (InitList*) valueElem;
     LocalSize   locIndex = offset;
@@ -1678,9 +1750,23 @@ void Compiler::GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenS
     Declaration* baseDecl = nullptr;
     int32_t offset = 0;
 
-    CalcAddress( indexExpr, baseDecl, offset );
+    // Calculate address in each clause below instead of once here,
+    // because it might spill. And in the case of array, the spilled address
+    // must be right after the size.
 
-    EmitLoadScalar( indexExpr, baseDecl, offset );
+    auto& arrayType = (ArrayType&) *indexExpr->Head->Type;
+    auto& elemType = *arrayType.ElemType;
+
+    if ( IsScalarType( elemType.GetKind() ) )
+    {
+        CalcAddress( indexExpr, baseDecl, offset );
+
+        EmitLoadScalar( indexExpr, baseDecl, offset );
+    }
+    else
+    {
+        EmitLoadAggregateCopySource( indexExpr, &elemType );
+    }
 }
 
 void Compiler::VisitIndexExpr( IndexExpr* indexExpr )
@@ -1725,7 +1811,7 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
         return;
     }
 
-    assert( false );
+    EmitLoadAggregateCopySource( sliceExpr );
 }
 
 void Compiler::VisitDotExpr( DotExpr* dotExpr )
@@ -1792,7 +1878,22 @@ void Compiler::AddGlobalData( GlobalSize offset, Syntax* valueElem )
 void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
-        mRep.ThrowSemanticsError( valueElem, "Arrays must be initialized with array initializer" );
+    {
+        // Defer these globals until all function addresses are known and put in source blocks
+
+        Declaration* baseDecl = nullptr;
+        int32_t      srcOffset = 0;
+        MemTransfer  transfer;
+
+        CalcAddress( valueElem, baseDecl, srcOffset );
+
+        transfer.Src = srcOffset;
+        transfer.Dst = offset;
+        transfer.Size = valueElem->Type->GetSize();
+
+        mDeferredGlobals.push_back( transfer );
+        return;
+    }
 
     auto        initList = (InitList*) valueElem;
     GlobalSize  i = 0;
@@ -2001,6 +2102,14 @@ void Compiler::DecreaseExprDepth( LocalSize amount )
     assert( amount <= mCurExprDepth );
 
     mCurExprDepth -= amount;
+}
+
+void Compiler::CopyDeferredGlobals()
+{
+    for ( const auto& transfer : mDeferredGlobals )
+    {
+        std::copy_n( &mGlobals[transfer.Src], transfer.Size, &mGlobals[transfer.Dst] );
+    }
 }
 
 void Compiler::CalculateStackDepth()
