@@ -957,14 +957,26 @@ void BinderVisitor::VisitStatementList( StatementList* stmtList )
     for ( auto& stmt : stmtList->Statements )
     {
         stmt->Accept( this );
-
-        CheckStatementType( stmt.get() );
     }
 
     if ( stmtList->Statements.size() == 0 )
+    {
         stmtList->Type = mIntType;
+    }
     else
+    {
+        if ( !IsStatementType( stmtList->Statements.back()->Type->GetKind() ) )
+        {
+            // REWRITING TREE:
+            Unique<NumberExpr> zero( new NumberExpr() );
+
+            zero->Accept( this );
+
+            stmtList->Statements.push_back( std::move( zero ) );
+        }
+
         stmtList->Type = stmtList->Statements.back()->Type;
+    }
 }
 
 void BinderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
