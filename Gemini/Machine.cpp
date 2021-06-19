@@ -242,6 +242,19 @@ int Machine::Run()
             }
             break;
 
+        case OP_OVER:
+            {
+                if ( WouldOverflow() )
+                    return ERR_STACK_OVERFLOW;
+
+                if ( WouldUnderflow( 2 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                mSP--;
+                *mSP = mSP[2];
+            }
+            break;
+
         case OP_PUSH:
             {
                 U8 count = ReadU8( codePtr );

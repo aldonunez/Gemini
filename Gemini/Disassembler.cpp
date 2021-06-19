@@ -15,6 +15,7 @@ static const char* gOpCodes[] =
 {
     "POP",
     "DUP",
+    "OVER",
     "PUSH",
     "NOT",
     "LDARG",
@@ -106,6 +107,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_STOREI:
     case OP_RET:
     case OP_COPYBLOCK:
+    case OP_OVER:
         break;
 
     case OP_PUSH:
