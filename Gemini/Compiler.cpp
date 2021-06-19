@@ -288,7 +288,21 @@ void Compiler::GenerateValue( Syntax* node, Declaration* decl, const GenConfig& 
         return;
     }
 
-    EmitLoadScalar( node, decl, 0 );
+    if ( IsScalarType( node->Type->GetKind() ) )
+    {
+        EmitLoadScalar( node, decl, 0 );
+    }
+    else
+    {
+        auto&   type = node->Type;
+        int32_t offset = 0;
+
+        EmitLoadConstant( type->GetSize() );
+
+        CalcAddress( node, decl, offset );
+
+        EmitLoadAddress( node, decl, offset );
+    }
 }
 
 void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
@@ -663,9 +677,43 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
     DecreaseExprDepth();
 }
 
+void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status )
+{
+    // Value
+    Generate( assignment->Right.get() );
+
+    if ( config.discard )
+    {
+        status.discarded = true;
+    }
+    else
+    {
+        *mCodeBinPtr++ = OP_OVER;
+        *mCodeBinPtr++ = OP_OVER;
+        IncreaseExprDepth();
+        IncreaseExprDepth();
+    }
+
+    Declaration*    baseDecl = nullptr;
+    int32_t         offset = 0;
+
+    CalcAddress( assignment->Left.get(), baseDecl, offset );
+
+    EmitLoadAddress( assignment->Left.get(), baseDecl, offset );
+
+    *mCodeBinPtr++ = OP_COPYBLOCK;
+
+    // Generating a return value or argument value would need PUSHBLOCK
+}
+
 void Compiler::VisitAssignmentExpr( AssignmentExpr* assignment )
 {
-    GenerateSet( assignment, Config(), Status() );
+    // TODO: Rename GenerateSet GenerateSetScalar
+
+    if ( IsScalarType( assignment->Left->Type->GetKind() ) )
+        GenerateSet( assignment, Config(), Status() );
+    else
+        GenerateSetAggregate( assignment, Config(), Status() );
 }
 
 void Compiler::VisitProcDecl( ProcDecl* procDecl )
@@ -1680,7 +1728,19 @@ void Compiler::GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenS
 
     CalcAddress( indexExpr, baseDecl, offset );
 
-    EmitLoadScalar( indexExpr, baseDecl, offset );
+    auto& arrayType = (ArrayType&) *indexExpr->Head->Type;
+    auto& elemType = *arrayType.ElemType;
+
+    if ( IsScalarType( elemType.GetKind() ) )
+    {
+        EmitLoadScalar( indexExpr, baseDecl, offset );
+    }
+    else
+    {
+        EmitLoadConstant( elemType.GetSize() );
+
+        EmitLoadAddress( indexExpr, baseDecl, offset );
+    }
 }
 
 void Compiler::VisitIndexExpr( IndexExpr* indexExpr )
