@@ -999,21 +999,13 @@ void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus&
 
 int Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType )
 {
-    int argCount = arguments.size();
+    int argCount = 0;
 
     for ( auto i = static_cast<ptrdiff_t>(arguments.size()) - 1; i >= 0; i-- )
     {
         GenerateArg( *arguments[i], funcType->Params[i] );
 
-        // TODO: Roll this into GenerateArg.
-
-        auto& paramType = *funcType->Params[i].Type;
-
-        if ( paramType.GetKind() == TypeKind::Array
-            && ((ArrayType&) paramType).Count == 0 )
-        {
-            argCount++;
-        }
+        argCount += funcType->Params[i].Size;
     }
 
     return argCount;

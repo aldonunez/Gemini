@@ -671,6 +671,7 @@ struct ParamStorage : public Declaration
 {
     ParamSize   Offset = 0;
     ParamMode   Mode = ParamMode::Value;
+    int32_t     Size = 0;
 
     ParamStorage();
 };
@@ -816,6 +817,7 @@ struct ParamSpec
 {
     std::shared_ptr<Type>   Type;
     ParamMode               Mode;
+    int32_t                 Size;
 };
 
 class FuncType : public Type

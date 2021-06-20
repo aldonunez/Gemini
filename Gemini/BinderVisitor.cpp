@@ -151,6 +151,24 @@ static bool IsLValue( const Syntax& node )
     return IsAssignableType( node.Type->GetKind() );
 }
 
+int32_t GetParamSize( Type* type, ParamMode mode )
+{
+    switch ( mode )
+    {
+    case ParamMode::Value:
+        return type->GetSize();
+
+    case ParamMode::InOutRef:
+        if ( type->GetKind() == TypeKind::Array && ((ArrayType&) *type).Count == 0 )
+            return 2;
+
+        return 1;
+
+    default:
+        assert( false );
+        return 1;
+    }
+}
 
 template <typename T, typename... Args>
 std::shared_ptr<T> Make( Args&&... args )
@@ -1005,14 +1023,7 @@ void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
     auto type = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Mode );
 
-    int32_t size = 1;
-
-    if ( paramDecl->Mode == ParamMode::InOutRef
-        && type->GetKind() == TypeKind::Array
-        && ((ArrayType&) *type).Count == 0 )
-    {
-        size = 2;
-    }
+    int32_t size = GetParamSize( type.get(), paramDecl->Mode );
 
     paramDecl->Decl = AddParam( paramDecl, type, paramDecl->Mode, size );
 }
@@ -1139,6 +1150,7 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
         ParamSpec paramSpec;
         paramSpec.Mode = param.Mode;
         paramSpec.Type = param.TypeRef->ReferentType;
+        paramSpec.Size = GetParamSize( paramSpec.Type.get(), param.Mode );
 
         funcType->Params.push_back( paramSpec );
     }
@@ -1409,6 +1421,7 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std
     param->Offset = mParamCount;
     param->Type = type;
     param->Mode = mode;
+    param->Size = size;
     table.insert( SymTable::value_type( declNode->Name, param ) );
 
     mParamCount += size;
@@ -1604,6 +1617,7 @@ std::shared_ptr<FuncType> BinderVisitor::MakeFuncType( ProcDeclBase* procDecl )
         ParamSpec paramSpec;
         paramSpec.Mode = paramDecl->Mode;
         paramSpec.Type = type;
+        paramSpec.Size = GetParamSize( type.get(), paramDecl->Mode );
 
         funcType->Params.push_back( paramSpec );
     }
