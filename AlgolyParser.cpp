@@ -1321,7 +1321,17 @@ Unique<Syntax> AlgolyParser::ParseArrayInitializer()
         if ( mCurToken == TokenCode::Ellipsis )
         {
             ScanToken();
-            initList->HasExtra = true;
+
+            if ( mCurToken == TokenCode::Plus )
+            {
+                ScanToken();
+
+                initList->Fill = ArrayFill::Extrapolate;
+            }
+            else
+            {
+                initList->Fill = ArrayFill::Repeat;
+            }
             break;
         }
         else if ( !first )

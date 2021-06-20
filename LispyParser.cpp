@@ -719,9 +719,14 @@ Unique<Syntax> LispyParser::ParseArrayInitializer()
 
     while ( mCurToken != TokenCode::RParen )
     {
-        if ( mCurToken == TokenCode::Symbol && mCurString == "&extra" )
+        if ( mCurToken == TokenCode::Symbol && mCurString == "&repeat" )
         {
-            initList->HasExtra = true;
+            initList->Fill = ArrayFill::Repeat;
+            ScanToken();
+        }
+        else if ( mCurToken == TokenCode::Symbol && mCurString == "&extra" )
+        {
+            initList->Fill = ArrayFill::Extrapolate;
             ScanToken();
         }
         else

@@ -694,8 +694,24 @@ void BinderVisitor::CheckInitializer(
             CheckInitializer( elemType, value );
         }
 
-        if ( arrayInit.Values.size() < (size_t) arrayType.Count )
-            CheckAllDescendantsHaveDefault( elemType.get(), initializer.get() );
+        if ( arrayInit.Fill == ArrayFill::Repeat )
+        {
+            if ( arrayInit.Values.size() < 1 )
+                mRep.ThrowError( CERR_SEMANTICS, &arrayInit, "Element repetition requires at least one element" );
+        }
+        else if ( arrayInit.Fill == ArrayFill::Extrapolate )
+        {
+            if ( arrayInit.Values.size() < 2 )
+                mRep.ThrowError( CERR_SEMANTICS, &arrayInit, "Element extrapolation requires at least two elements" );
+
+            if ( !IsIntegralType( elemType->GetKind() ) )
+                mRep.ThrowError( CERR_SEMANTICS, &arrayInit, "Elements must be integral to extrapolate them" );
+        }
+        else
+        {
+            if ( arrayInit.Values.size() < (size_t) arrayType.Count )
+                CheckAllDescendantsHaveDefault( elemType.get(), initializer.get() );
+        }
 
         initializer->Type = type;
     }

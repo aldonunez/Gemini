@@ -789,52 +789,58 @@ void Compiler::AddLocalDataArray( int32_t offset, Syntax* valueElem, size_t size
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
 
-    Syntax* lastTwoElems[2] = {};
-    size_t locIndex = offset;
-    size_t i = 0;
-
-    auto initList = (InitList*) valueElem;
+    auto    initList = (InitList*) valueElem;
+    size_t  locIndex = offset;
+    size_t  i = 0;
 
     for ( auto& entry : initList->Values )
     {
         if ( i == size )
             mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
 
-        lastTwoElems[0] = lastTwoElems[1];
-        lastTwoElems[1] = entry.get();
-
         GenerateLocalInit( locIndex, entry.get() );
         i++;
         locIndex -= entry->Type->GetSize();
     }
 
-    I32 prevValue = 0;
-    I32 step = 0;
-
-    if ( initList->HasExtra && lastTwoElems[1] != nullptr )
+    if ( initList->Fill == ArrayFill::Extrapolate && initList->Values.size() > 0 )
     {
-        prevValue = GetSyntaxValue( lastTwoElems[1], "Array initializer extrapolation requires a constant" );
+        size_t count = initList->Values.size();
+        I32 prevValue = 0;
+        I32 step = 0;
 
-        if ( lastTwoElems[0] != nullptr )
+        prevValue = GetSyntaxValue( initList->Values.back().get(), "Array initializer extrapolation requires a constant" );
+
+        if ( initList->Values.size() > 1 )
         {
-            auto prevValue2 = GetOptionalSyntaxValue( lastTwoElems[0] );
+            auto prevValue2 = GetOptionalSyntaxValue( initList->Values[count - 2].get() );
             if ( prevValue2.has_value() )
                 step = prevValue - prevValue2.value();
         }
+
+        for ( ; i < size; i++ )
+        {
+            I32 newValue = prevValue + step;
+
+            EmitLoadConstant( newValue );
+            mCodeBinPtr[0] = OP_STLOC;
+            mCodeBinPtr[1] = (U8) locIndex;
+            mCodeBinPtr += 2;
+            locIndex--;
+            DecreaseExprDepth();
+
+            prevValue = newValue;
+        }
     }
-
-    for ( ; i < size; i++ )
+    else if ( initList->Fill == ArrayFill::Repeat && initList->Values.size() > 0 )
     {
-        I32 newValue = prevValue + step;
+        Syntax* lastNode = initList->Values.back().get();
 
-        EmitLoadConstant( newValue );
-        mCodeBinPtr[0] = OP_STLOC;
-        mCodeBinPtr[1] = (U8) locIndex;
-        mCodeBinPtr += 2;
-        locIndex--;
-        DecreaseExprDepth();
-
-        prevValue = newValue;
+        for ( ; i < size; i++ )
+        {
+            GenerateLocalInit( locIndex, lastNode );
+            locIndex -= lastNode->Type->GetSize();
+        }
     }
 }
 
@@ -1767,10 +1773,9 @@ void Compiler::AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t siz
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
 
-    size_t i = 0;
-    size_t globalIndex = offset;
-
-    auto initList = (InitList*) valueElem;
+    auto    initList = (InitList*) valueElem;
+    size_t  i = 0;
+    size_t  globalIndex = offset;
 
     for ( auto& entry : initList->Values )
     {
@@ -1782,24 +1787,33 @@ void Compiler::AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t siz
         globalIndex += entry->Type->GetSize();
     }
 
-    I32 prevValue = 0;
-    I32 step = 0;
-
-    if ( initList->HasExtra )
+    if ( initList->Fill == ArrayFill::Extrapolate && i >= 1 )
     {
-        if ( i >= 1 )
-            prevValue = mGlobals[offset + i - 1];
+        I32 prevValue = mGlobals[offset + i - 1];
+        I32 step = 0;
 
         if ( i >= 2 )
+        {
             step = prevValue - mGlobals[offset + i - 2];
+        }
+
+        for ( ; i < size; i++ )
+        {
+            I32 newValue = prevValue + step;
+
+            mGlobals[offset + i] = newValue;
+            prevValue = newValue;
+        }
     }
-
-    for ( ; i < size; i++ )
+    else if ( initList->Fill == ArrayFill::Repeat && i >= 1 )
     {
-        I32 newValue = prevValue + step;
+        Syntax* lastNode = initList->Values.back().get();
 
-        mGlobals[offset + i] = newValue;
-        prevValue = newValue;
+        for ( ; i < size; i++ )
+        {
+            GenerateGlobalInit( globalIndex, lastNode );
+            globalIndex += lastNode->Type->GetSize();
+        }
     }
 }
 

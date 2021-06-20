@@ -134,10 +134,17 @@ public:
     virtual void Accept( IVisitor* visitor ) override;
 };
 
+enum class ArrayFill
+{
+    None,
+    Repeat,
+    Extrapolate,
+};
+
 class InitList : public Syntax
 {
 public:
-    bool HasExtra = false;
+    ArrayFill Fill = ArrayFill::None;
 
     std::vector<Unique<Syntax>> Values;
 
