@@ -140,7 +140,7 @@ static bool IsEquatable( TypeKind kind )
 
 static bool IsBoolean( TypeKind kind )
 {
-    return IsNumericCompatible( kind );
+    return IsIntegralType( kind );
 }
 
 static bool IsAllowedPointerTarget( TypeKind kind )
@@ -282,10 +282,10 @@ void BinderVisitor::VisitAsExpr( AsExpr* asExpr )
     auto srcType = asExpr->Inner->Type;
     auto dstType = ((TypeDeclaration*) decl)->ReferentType;
 
-    if ( !IsNumericCompatible( srcType->GetKind() ) )
+    if ( !IsIntegralType( srcType->GetKind() ) )
         mRep.ThrowError( CERR_SEMANTICS, asExpr->Inner.get(), "Type is not numeric compatible" );
 
-    if ( !IsNumericCompatible( dstType->GetKind() ) )
+    if ( !IsIntegralType( dstType->GetKind() ) )
         mRep.ThrowError( CERR_SEMANTICS, asExpr->TargetTypeName.get(), "Type is not numeric compatible" );
 
     asExpr->Type = dstType;
@@ -551,7 +551,7 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
 
     std::shared_ptr<Type> type = constDecl->Initializer->Type;
 
-    if ( IsNumericCompatible( type->GetKind() ) )
+    if ( IsIntegralType( type->GetKind() ) )
     {
         int32_t value = Evaluate( constDecl->Initializer.get(), "Constant initializer is not constant" );
 
