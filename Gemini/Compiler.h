@@ -163,6 +163,13 @@ private:
         };
     };
 
+    struct MemTransfer
+    {
+        int32_t Src;
+        int32_t Dst;
+        int32_t Size;
+    };
+
     enum class ExprKind
     {
         Other,
@@ -256,7 +263,8 @@ private:
     typedef std::map<int32_t, std::shared_ptr<ModuleDeclaration>> ModIdMap;
 
     using CodeVec = std::vector<U8>;
-    using GlobalVec = std::vector<I32>;
+    using GlobalVec         = std::vector<I32>;
+    using MemTransferVec    = std::vector<MemTransfer>;
 
     struct GenParams
     {
@@ -273,6 +281,8 @@ private:
     ModIdMap        mModulesById;
     FuncPatchMap    mFuncPatchMap;
     AddrRefVec      mLocalAddrRefs;
+    MemTransferVec  mDeferredGlobals;
+
     bool            mInFunc = false;
     Function*       mCurFunc = nullptr;
     LocalSize       mCurExprDepth = 0;
@@ -402,6 +412,7 @@ private:
     void PopPatch( PatchChain* chain );
     void PatchCalls( FuncPatchChain* chain, U32 addr );
     void PushFuncPatch( const std::string& name, CodeRef ref );
+    void CopyDeferredGlobals();
 
     I32 GetSyntaxValue( Syntax* node, const char* message = nullptr );
 

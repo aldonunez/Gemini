@@ -69,6 +69,8 @@ CompilerErr Compiler::Compile()
         FoldConstants();
         GenerateCode();
 
+        CopyDeferredGlobals();
+
         GenerateSentinel();
 
         mStatus = CompilerErr::OK;
@@ -859,7 +861,17 @@ void Compiler::VisitLetStatement( LetStatement* letStmt )
 void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
-        mRep.ThrowSemanticsError( valueElem, "Arrays must be initialized with array initializer" );
+    {
+        EmitLoadConstant( valueElem->Type->GetSize() );
+
+        Generate( valueElem );
+
+        mCodeBinPtr[0] = OP_LDLOCA;
+        mCodeBinPtr[1] = offset;
+        mCodeBinPtr[2] = OP_COPYBLOCK;
+        mCodeBinPtr += 3;
+        return;
+    }
 
     auto        initList = (InitList*) valueElem;
     LocalSize   locIndex = offset;
@@ -1852,7 +1864,24 @@ void Compiler::AddGlobalData( GlobalSize offset, Syntax* valueElem )
 void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
-        mRep.ThrowSemanticsError( valueElem, "Arrays must be initialized with array initializer" );
+    {
+        // TODO: tell it not to spill
+
+        // Defer these globals until all function addresses are known and put in source blocks
+
+        Declaration* baseDecl = nullptr;
+        int32_t      srcOffset = 0;
+        MemTransfer  transfer;
+
+        CalcAddress( valueElem, baseDecl, srcOffset );
+
+        transfer.Src = srcOffset;
+        transfer.Dst = offset;
+        transfer.Size = valueElem->Type->GetSize();
+
+        mDeferredGlobals.push_back( transfer );
+        return;
+    }
 
     auto        initList = (InitList*) valueElem;
     GlobalSize  i = 0;
@@ -2061,6 +2090,14 @@ void Compiler::DecreaseExprDepth( LocalSize amount )
     assert( amount <= mCurExprDepth );
 
     mCurExprDepth -= amount;
+}
+
+void Compiler::CopyDeferredGlobals()
+{
+    for ( const auto& transfer : mDeferredGlobals )
+    {
+        std::copy_n( &mGlobals[transfer.Src], transfer.Size, &mGlobals[transfer.Dst] );
+    }
 }
 
 void Compiler::CalculateStackDepth()
