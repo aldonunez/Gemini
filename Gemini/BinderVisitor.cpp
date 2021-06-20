@@ -849,28 +849,32 @@ void BinderVisitor::CheckInitializer(
         auto& recordType = (RecordType&) *type;
 
         std::set<std::string> alreadyInit;
+        SymTable notInit = recordType.Fields;
 
         for ( auto& fieldInit : recordInit.Fields )
         {
-            auto it = recordType.Fields.find( fieldInit->Name );
-
-            if ( it == recordType.Fields.end() )
-                mRep.ThrowError( CERR_SEMANTICS, fieldInit.get(), "Field not found: ", fieldInit->Name.c_str() );
-
             if ( alreadyInit.find( fieldInit->Name ) != alreadyInit.end() )
                 mRep.ThrowError( CERR_SEMANTICS, fieldInit.get(), "Field already initialized" );
 
-            alreadyInit.insert( fieldInit->Name );
+            auto it = notInit.find( fieldInit->Name );
+
+            if ( it == notInit.end() )
+                mRep.ThrowError( CERR_SEMANTICS, fieldInit.get(), "Field not found: ", fieldInit->Name.c_str() );
 
             auto fieldDecl = it->second;
 
             CheckInitializer( fieldDecl->Type, fieldInit->Initializer );
 
             fieldInit->Decl = fieldDecl;
+
+            alreadyInit.insert( fieldInit->Name );
+            notInit.erase( it );
         }
 
-        if ( alreadyInit.size() != recordType.Fields.size() )
-            mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Not all fields were initialized" );
+        for ( auto& [_, decl] : notInit )
+        {
+            CheckAllDescendantsHaveDefault( decl->Type.get(), initializer.get() );
+        }
 
         initializer->Type = type;
     }
@@ -896,9 +900,7 @@ void BinderVisitor::CheckAllDescendantsHaveDefault( Type* type, Syntax* node )
 
         for ( auto& [_, decl] : recordType->Fields )
         {
-            auto& typeDecl = (TypeDeclaration&) *decl;
-
-            CheckAllDescendantsHaveDefault( typeDecl.ReferentType.get(), node );
+            CheckAllDescendantsHaveDefault( decl->Type.get(), node );
         }
     }
     else if ( type->GetKind() == TypeKind::Pointer )
