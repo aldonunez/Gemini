@@ -652,9 +652,8 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
         if ( varDecl->Initializer != nullptr )
             CheckInitializer( type, varDecl->Initializer );
-
-        if ( varDecl->Initializer == nullptr && type->GetKind() == TypeKind::Pointer )
-            mRep.ThrowError( CERR_SEMANTICS, varDecl, "Pointers must be initialized" );
+        else
+            CheckAllDescendantsHaveDefault( type.get(), varDecl );
     }
 
     if ( !IsStorageType( type->GetKind() ) )
