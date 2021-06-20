@@ -66,6 +66,12 @@ bool IsScalarType( TypeKind kind )
         ;
 }
 
+bool IsIntegralType( TypeKind kind )
+{
+    return kind == TypeKind::Int
+        ;
+}
+
 static bool IsAddressableType( TypeKind kind )
 {
     return kind == TypeKind::Func;
@@ -672,8 +678,7 @@ void BinderVisitor::CheckInitializer(
 
         std::shared_ptr<Type> elemType = arrayType.ElemType;
 
-        if ( arrayType.Count < (int32_t) arrayInit.Values.size()
-            || (elemType->GetKind() == TypeKind::Pointer && arrayType.Count != arrayInit.Values.size()) )
+        if ( arrayType.Count < (int32_t) arrayInit.Values.size() )
         {
             mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Wrong number of array elements" );
         }
@@ -683,6 +688,9 @@ void BinderVisitor::CheckInitializer(
             CheckInitializer( elemType, value );
         }
 
+        if ( arrayInit.Values.size() < (size_t) arrayType.Count )
+            CheckAllDescendantsHaveDefault( elemType.get(), initializer.get() );
+
         initializer->Type = type;
     }
     else
@@ -690,6 +698,20 @@ void BinderVisitor::CheckInitializer(
         initializer->Accept( this );
 
         CheckType( type, initializer->Type, initializer.get() );
+    }
+}
+
+void BinderVisitor::CheckAllDescendantsHaveDefault( Type* type, Syntax* node )
+{
+    if ( type->GetKind() == TypeKind::Array )
+    {
+        auto arrayType = (ArrayType*) type;
+
+        CheckAllDescendantsHaveDefault( arrayType->ElemType.get(), node );
+    }
+    else if ( type->GetKind() == TypeKind::Pointer )
+    {
+        mRep.ThrowError( CERR_SEMANTICS, node, "Pointers must be initialized" );
     }
 }
 

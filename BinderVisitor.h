@@ -113,6 +113,7 @@ private:
     void CheckInitializer(
         const std::shared_ptr<Type>& type,
         const Unique<Syntax>& initializer );
+    void CheckAllDescendantsHaveDefault( Type* type, Syntax* node );
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );
@@ -141,3 +142,4 @@ private:
 
 
 bool IsScalarType( TypeKind kind );
+bool IsIntegralType( TypeKind kind );

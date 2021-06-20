@@ -221,6 +221,8 @@ int Machine::Run()
                     return ERR_STACK_OVERFLOW;
 
                 mSP -= count;
+
+                std::fill( mSP, mSP + count, 0 );
             }
             break;
 
