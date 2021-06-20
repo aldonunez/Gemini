@@ -101,6 +101,7 @@ static bool IsAddressableDeclaration( DeclKind kind )
 bool IsScalarType( TypeKind kind )
 {
     return kind == TypeKind::Int
+        || kind == TypeKind::Enum
         || kind == TypeKind::Pointer
         ;
 }
@@ -108,6 +109,7 @@ bool IsScalarType( TypeKind kind )
 bool IsIntegralType( TypeKind kind )
 {
     return kind == TypeKind::Int
+        || kind == TypeKind::Enum
         ;
 }
 
@@ -127,7 +129,6 @@ static bool IsAssignableType( TypeKind kind )
 {
     return IsScalarType( kind )
         || kind == TypeKind::Xfer
-        || kind == TypeKind::Enum
         ;
 }
 
@@ -139,7 +140,7 @@ static bool IsEquatable( TypeKind kind )
 
 static bool IsBoolean( TypeKind kind )
 {
-    return kind == TypeKind::Int;
+    return IsNumericCompatible( kind );
 }
 
 static bool IsAllowedPointerTarget( TypeKind kind )
@@ -150,13 +151,6 @@ static bool IsAllowedPointerTarget( TypeKind kind )
 static bool IsAllowedParamType( TypeKind kind )
 {
     return IsScalarType( kind )
-        ;
-}
-
-static bool IsNumericCompatible( TypeKind kind )
-{
-    return kind == TypeKind::Int
-        || kind == TypeKind::Enum
         ;
 }
 
@@ -656,11 +650,10 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 
         auto member = Make<EnumMember>( value, enumType );
 
-        //member->Kind = DeclKind::EnumMember;
         member->Kind = DeclKind::Const;
         member->Value = value;
 
-        enumType->ByNameTable.insert( { memberDef->Name, member } );
+        enumType->ByNameTable.insert( SymTable::value_type( memberDef->Name, member ) );
     }
 
     enumTypeRef->Type = mTypeType;

@@ -640,7 +640,6 @@ bool IntType::IsAssignableFrom( Type* other ) const
     return other != nullptr
         && (other->GetKind() == TypeKind::Int
             || other->GetKind() == TypeKind::Xfer
-            || other->GetKind() == TypeKind::Enum
             );
 }
 
@@ -748,13 +747,7 @@ EnumType::EnumType() :
 
 bool EnumType::IsAssignableFrom( Type* other ) const
 {
-    if ( other == nullptr || other->GetKind() != TypeKind::Enum )
-        return false;
-
-    auto otherEnum = (EnumType*) other;
-
-    // TODO: check the other enum's identity
-    return true;
+    return other == this;
 }
 
 int32_t EnumType::GetSize() const
