@@ -890,6 +890,17 @@ void BinderVisitor::CheckAllDescendantsHaveDefault( Type* type, Syntax* node )
 
         CheckAllDescendantsHaveDefault( arrayType->ElemType.get(), node );
     }
+    else if ( type->GetKind() == TypeKind::Record )
+    {
+        auto recordType = (RecordType*) type;
+
+        for ( auto& [_, decl] : recordType->Fields )
+        {
+            auto& typeDecl = (TypeDeclaration&) *decl;
+
+            CheckAllDescendantsHaveDefault( typeDecl.ReferentType.get(), node );
+        }
+    }
     else if ( type->GetKind() == TypeKind::Pointer )
     {
         mRep.ThrowSemanticsError( node, "Pointers must be initialized" );
