@@ -1193,6 +1193,7 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
         Unique<NameExpr> localSym( new NameExpr() );
         localSym->String = "$testKey";
         localSym->Decl = caseExpr->TestKeyDecl;
+        localSym->Type = localSym->Decl->Type;
         caseExpr->TestKey = std::move( localSym );
     }
 
