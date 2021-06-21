@@ -46,6 +46,7 @@ class AlgolyParser
         By,
         Case,
         Const,
+        Countof,
         Def,
         Do,
         Downto,
@@ -175,6 +176,7 @@ private:
     Unique<Syntax> ParseIndexing( Unique<Syntax>&& head );
     Unique<Syntax> ParseDotExpr( Unique<Syntax>&& head );
     Unique<Syntax> ParseIndexingOrDot( Unique<Syntax>&& head );
+    Unique<Syntax> ParseCountof();
 
     bool IsTokenOrOp();
     bool IsTokenAndOp();

@@ -42,6 +42,7 @@ static const char* gTokenNames[] =
     "by",
     "case",
     "const",
+    "countof",
     "def",
     "do",
     "downto",
@@ -426,6 +427,7 @@ void AlgolyParser::ReadSymbolOrKeyword()
         { "by",     TokenCode::By },
         { "case",   TokenCode::Case },
         { "const",  TokenCode::Const },
+        { "countof",TokenCode::Countof },
         { "def",    TokenCode::Def },
         { "do",     TokenCode::Do },
         { "downto", TokenCode::Downto },
@@ -929,6 +931,10 @@ Unique<Syntax> AlgolyParser::ParseSingle()
         elem = ParseNumber();
         break;
 
+    case TokenCode::Countof:
+        elem = ParseCountof();
+        break;
+
     default:
         ThrowSyntaxError( "Expected expression" );
     }
@@ -1064,6 +1070,20 @@ Unique<Syntax> AlgolyParser::ParseIndexingOrDot( Unique<Syntax>&& head )
     }
 
     return expr;
+}
+
+Unique<Syntax> AlgolyParser::ParseCountof()
+{
+    auto countofExpr = Make<CountofExpr>();
+
+    ScanToken();
+    ScanToken( TokenCode::LParen );
+
+    countofExpr->Expr = ParseExpr();
+
+    ScanToken( TokenCode::RParen );
+
+    return countofExpr;
 }
 
 Unique<Syntax> AlgolyParser::ParseLet()

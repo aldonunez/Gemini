@@ -418,6 +418,28 @@ void Compiler::VisitReturnStatement( ReturnStatement* retStmt )
     GenerateReturn( retStmt, Config(), Status() );
 }
 
+// TODO: move
+void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
+{
+    if ( Config().discard )
+    {
+        Status().discarded = true;
+        return;
+    }
+
+    auto& arrayType = (ArrayType&) *countofExpr->Expr->Type;
+
+    if ( arrayType.Count != 0 )
+    {
+        EmitLoadConstant( arrayType.Count );
+    }
+    else
+    {
+        assert( false );
+        mRep.ThrowInternalError();
+    }
+}
+
 void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenStatus& status )
 {
     PatchChain  falseChain;

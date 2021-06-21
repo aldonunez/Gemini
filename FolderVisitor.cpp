@@ -160,6 +160,22 @@ void FolderVisitor::VisitConstDecl( ConstDecl* constDecl )
     mLastValue.reset();
 }
 
+void FolderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
+{
+    Fold( countofExpr->Expr );
+
+    auto& arrayType = (ArrayType&) *countofExpr->Expr->Type;
+
+    if ( arrayType.Count != 0 )
+    {
+        mLastValue = arrayType.Count;
+    }
+    else
+    {
+        mLastValue.reset();
+    }
+}
+
 void FolderVisitor::VisitDotExpr( DotExpr* dotExpr )
 {
     if ( dotExpr->GetDecl()->Kind == DeclKind::Const )

@@ -346,6 +346,14 @@ public:
     virtual void Accept( IVisitor* visitor ) override;
 };
 
+class CountofExpr : public Syntax
+{
+public:
+    Unique<Syntax>      Expr;
+
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
 class LetStatement : public Syntax
 {
 public:
@@ -476,6 +484,7 @@ public:
     virtual void VisitCaseExpr( CaseExpr* caseExpr );
     virtual void VisitCondExpr( CondExpr* condExpr );
     virtual void VisitConstDecl( ConstDecl* constDecl );
+    virtual void VisitCountofExpr( CountofExpr* countofExpr );
     virtual void VisitDotExpr( DotExpr* dotExpr );
     virtual void VisitForStatement( ForStatement* forStmt );
     virtual void VisitImportDecl( ImportDecl* importDecl );

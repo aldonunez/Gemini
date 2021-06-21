@@ -30,6 +30,7 @@ public:
     virtual void VisitCaseExpr( CaseExpr* caseExpr ) override;
     virtual void VisitCondExpr( CondExpr* condExpr ) override;
     virtual void VisitConstDecl( ConstDecl* constDecl ) override;
+    virtual void VisitCountofExpr( CountofExpr* countofExpr ) override;
     virtual void VisitDotExpr( DotExpr* dotExpr ) override;
     virtual void VisitForStatement( ForStatement* forStmt ) override;
     virtual void VisitIndexExpr( IndexExpr* indexExpr ) override;

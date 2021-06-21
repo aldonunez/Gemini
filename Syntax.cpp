@@ -166,6 +166,11 @@ void ConstDecl::Accept( IVisitor* visitor )
     visitor->VisitConstDecl( this );
 }
 
+void CountofExpr::Accept( IVisitor* visitor )
+{
+    visitor->VisitCountofExpr( this );
+}
+
 void DotExpr::Accept( IVisitor* visitor )
 {
     visitor->VisitDotExpr( this );
@@ -355,6 +360,10 @@ void IVisitor::VisitCondExpr( CondExpr* condExpr )
 }
 
 void IVisitor::VisitConstDecl( ConstDecl* constDecl )
+{
+}
+
+void IVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 {
 }
 
