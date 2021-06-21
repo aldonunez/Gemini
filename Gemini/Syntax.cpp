@@ -112,11 +112,6 @@ Declaration* DotExpr::GetDecl()
     return Decl.get();
 }
 
-RangeExpr::RangeExpr()
-{
-    Kind = SyntaxKind::Range;
-}
-
 Unit::Unit( const std::string& fileName )
 {
     mFileName.resize( fileName.size() + 1 );
@@ -291,11 +286,6 @@ void ProcTypeRef::Accept( Visitor* visitor )
     visitor->VisitProcTypeRef( this );
 }
 
-void RangeExpr::Accept( IVisitor* visitor )
-{
-    visitor->VisitRangeExpr( this );
-}
-
 void ReturnStatement::Accept( Visitor* visitor )
 {
     visitor->VisitReturnStatement( this );
@@ -346,10 +336,6 @@ std::optional<int32_t> GetFinalOptionalSyntaxValue( Syntax* node )
         assert( number->Value >= INT32_MIN && number->Value <= INT32_MAX );
 
         return (int32_t) number->Value;
-    }
-    else if ( node->Kind == SyntaxKind::Range )
-    {
-        return GetOptionalSyntaxValue( ((RangeExpr*) node)->First.get() );
     }
 
     return std::optional<int32_t>();
@@ -476,10 +462,6 @@ void Visitor::VisitProcDecl( ProcDecl* procDecl )
 }
 
 void Visitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
-{
-}
-
-void IVisitor::VisitRangeExpr( RangeExpr* rangeExpr )
 {
 }
 

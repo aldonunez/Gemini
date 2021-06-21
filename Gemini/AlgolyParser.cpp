@@ -1146,25 +1146,6 @@ Unique<Syntax> AlgolyParser::ParseQualifiedName()
     return name;
 }
 
-Unique<Syntax> AlgolyParser::ParseRangeOrExpr()
-{
-    auto expr = ParseExpr();
-
-    if ( mCurToken == TokenCode::DotDot )
-    {
-        auto range = Make<RangeExpr>();
-
-        ScanToken();
-
-        range->First = std::move( expr );
-        range->Last = ParseExpr();
-
-        return range;
-    }
-
-    return expr;
-}
-
 Unique<Syntax> AlgolyParser::ParseCountof()
 {
     auto countofExpr = Make<CountofExpr>();

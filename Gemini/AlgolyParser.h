@@ -192,7 +192,6 @@ private:
     Unique<Syntax> ParseDotExpr( Unique<Syntax>&& head );
     Unique<Syntax> ParseIndexingOrDot( Unique<Syntax>&& head );
     Unique<Syntax> ParseQualifiedName();
-    Unique<Syntax> ParseRangeOrExpr();
     Unique<Syntax> ParseCountof();
 
     bool IsTokenOrOp();

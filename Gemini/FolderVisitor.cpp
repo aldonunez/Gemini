@@ -310,13 +310,6 @@ void FolderVisitor::VisitProc( ProcDecl* procDecl )
     mLastValue.reset();
 }
 
-void FolderVisitor::VisitRangeExpr( RangeExpr* rangeExpr )
-{
-    Fold( rangeExpr->First );
-    Fold( rangeExpr->Last );
-    mLastValue.reset();
-}
-
 void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
 {
     Fold( retStmt->Inner );
