@@ -21,6 +21,7 @@ static const char* gTokenNames[] =
     "]",
     ":=",
     ":",
+    "..",
     "...",
     "+",
     "-",
@@ -218,6 +219,11 @@ AlgolyParser::TokenCode AlgolyParser::ScanToken()
             NextChar();
             NextChar();
             mCurToken = TokenCode::Ellipsis;
+        }
+        else if ( PeekChar() == '.' )
+        {
+            NextChar();
+            mCurToken = TokenCode::DotDot;
         }
         else
         {
@@ -991,17 +997,37 @@ Unique<Syntax> AlgolyParser::ParseCall( Unique<Syntax>&& head, bool indirect, bo
 
 Unique<Syntax> AlgolyParser::ParseIndexing( Unique<Syntax>&& head )
 {
-    auto indexing = Make<IndexExpr>();
-
-    indexing->Head = std::move( head );
+    Unique<Syntax> expr;
 
     ScanToken();
 
-    indexing->Index = ParseExpr();
+    auto index = ParseExpr();
+
+    if ( mCurToken == TokenCode::DotDot )
+    {
+        auto slice = Make<SliceExpr>();
+
+        ScanToken();
+
+        slice->Head = std::move( head );
+        slice->FirstIndex = std::move( index );
+        slice->LastIndex = ParseExpr();
+
+        expr = std::move( slice );
+    }
+    else
+    {
+        auto indexing = Make<IndexExpr>();
+
+        indexing->Head = std::move( head );
+        indexing->Index = std::move( index );
+
+        expr = std::move( indexing );
+    }
 
     ScanToken( TokenCode::RBracket );
 
-    return indexing;
+    return expr;
 }
 
 Unique<Syntax> AlgolyParser::ParseDotExpr( Unique<Syntax>&& head )

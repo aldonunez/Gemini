@@ -967,6 +967,45 @@ void BinderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
     retStmt->Type = mXferType;
 }
 
+void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
+{
+    sliceExpr->Head->Accept( this );
+    sliceExpr->FirstIndex->Accept( this );
+    sliceExpr->LastIndex->Accept( this );
+
+    if ( sliceExpr->Head->Type->GetKind() != TypeKind::Array )
+        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->Head.get(), "Only arrays can be sliced" );
+
+    if ( sliceExpr->FirstIndex->Type->GetKind() != TypeKind::Int )
+        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->FirstIndex.get(), "Range bounds must be integers" );
+
+    if ( sliceExpr->LastIndex->Type->GetKind() != TypeKind::Int )
+        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->LastIndex.get(), "Range bounds must be integers" );
+
+    auto arrayType = (ArrayType*) sliceExpr->Head->Type.get();
+
+    int32_t firstVal = Evaluate( sliceExpr->FirstIndex.get() );
+    int32_t lastVal = Evaluate( sliceExpr->LastIndex.get() );
+
+    if ( firstVal >= lastVal )
+        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->LastIndex.get(), "Range is not in increasing order" );
+
+    if ( firstVal < 0 )
+        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
+
+    if ( arrayType->Count > 0 )
+    {
+        if ( lastVal > arrayType->Count )
+            mRep.ThrowError( CERR_SEMANTICS, sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
+    }
+
+    int32_t size = lastVal - firstVal;
+
+    auto slicedArrayType = Make<ArrayType>( size, arrayType->ElemType );
+
+    sliceExpr->Type = slicedArrayType;
+}
+
 void BinderVisitor::VisitStatementList( StatementList* stmtList )
 {
     for ( auto& stmt : stmtList->Statements )

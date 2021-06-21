@@ -1705,6 +1705,31 @@ void Compiler::CalcAddress( Syntax* expr, Declaration*& baseDecl, int32_t& offse
     offset = status.offset;
 }
 
+void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
+{
+    const GenConfig& config = Config();
+    GenStatus& status = Status();
+
+    if ( config.discard )
+    {
+        status.discarded = true;
+        return;
+    }
+    else if ( config.calcAddr )
+    {
+        Generate( sliceExpr->Head.get(), config, status );
+
+        auto arrayType = (ArrayType&) *sliceExpr->Head->Type;
+
+        int32_t indexVal = GetSyntaxValue( sliceExpr->FirstIndex.get(), "" );
+
+        status.offset += indexVal * arrayType.ElemType->GetSize();
+        return;
+    }
+
+    assert( false );
+}
+
 void Compiler::VisitDotExpr( DotExpr* dotExpr )
 {
     GenerateValue( dotExpr, dotExpr->GetDecl(), Config(), Status() );

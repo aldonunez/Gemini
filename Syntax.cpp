@@ -256,6 +256,11 @@ void ReturnStatement::Accept( IVisitor* visitor )
     visitor->VisitReturnStatement( this );
 }
 
+void SliceExpr::Accept( IVisitor* visitor )
+{
+    visitor->VisitSliceExpr( this );
+}
+
 void StatementList::Accept( IVisitor* visitor )
 {
     visitor->VisitStatementList( this );
@@ -422,6 +427,10 @@ void IVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 }
 
 void IVisitor::VisitReturnStatement( ReturnStatement* retStmt )
+{
+}
+
+void IVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 {
 }
 

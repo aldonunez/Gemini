@@ -25,6 +25,7 @@ class AlgolyParser
         RBracket,
         Assign,
         Colon,
+        DotDot,
         Ellipsis,
         Plus,
         Minus,

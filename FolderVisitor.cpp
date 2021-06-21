@@ -285,6 +285,14 @@ void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
     mLastValue.reset();
 }
 
+void FolderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
+{
+    sliceExpr->Head->Accept( this );
+    Fold( sliceExpr->FirstIndex );
+    Fold( sliceExpr->LastIndex );
+    mLastValue.reset();
+}
+
 void FolderVisitor::VisitStatementList( StatementList* stmtList )
 {
     for ( auto& stmt : stmtList->Statements )

@@ -295,6 +295,16 @@ public:
     virtual void Accept( IVisitor* visitor ) override;
 };
 
+class SliceExpr : public Syntax
+{
+public:
+    Unique<Syntax> Head;
+    Unique<Syntax> FirstIndex;
+    Unique<Syntax> LastIndex;
+
+    virtual void Accept( IVisitor* visitor ) override;
+};
+
 class DotExpr : public Syntax
 {
 public:
@@ -484,6 +494,7 @@ public:
     virtual void VisitProcDecl( ProcDecl* procDecl );
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef );
     virtual void VisitReturnStatement( ReturnStatement* retStmt );
+    virtual void VisitSliceExpr( SliceExpr* sliceExpr );
     virtual void VisitStatementList( StatementList* stmtmList );
     virtual void VisitTypeDecl( TypeDecl* typeDecl );
     virtual void VisitUnaryExpr( UnaryExpr* unary );

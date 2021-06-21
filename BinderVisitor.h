@@ -81,6 +81,7 @@ public:
     virtual void VisitProcDecl( ProcDecl* procDecl ) override;
     virtual void VisitProcTypeRef( ProcTypeRef* procTypeRef ) override;
     virtual void VisitReturnStatement( ReturnStatement* retStmt ) override;
+    virtual void VisitSliceExpr( SliceExpr* sliceExpr ) override;
     virtual void VisitStatementList( StatementList* stmtList ) override;
     virtual void VisitTypeDecl( TypeDecl* typeDecl ) override;
     virtual void VisitUnaryExpr( UnaryExpr* unary ) override;
