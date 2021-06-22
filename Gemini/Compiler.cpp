@@ -501,33 +501,6 @@ void Compiler::EmitCountofArray( Declaration* decl, ArrayType* arrayType )
     }
 }
 
-void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
-{
-    if ( Config().discard )
-    {
-        Status().discarded = true;
-        return;
-    }
-
-    auto& arrayType = (ArrayType&) *countofExpr->Expr->Type;
-
-    if ( arrayType.Count != 0 )
-    {
-        EmitLoadConstant( arrayType.Count );
-    }
-    else
-    {
-        // Only ref params are allowed to take open array types
-        auto param = (ParamStorage*) countofExpr->Expr->GetDecl();
-
-        mCodeBinPtr[0] = OP_LDARG;
-        mCodeBinPtr[1] = param->Offset + 1;
-        mCodeBinPtr += 2;
-
-        IncreaseExprDepth();
-    }
-}
-
 void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenStatus& status )
 {
     PatchChain  falseChain;

@@ -1160,20 +1160,6 @@ Unique<Syntax> AlgolyParser::ParseCountof()
     return countofExpr;
 }
 
-Unique<Syntax> AlgolyParser::ParseCountof()
-{
-    auto countofExpr = Make<CountofExpr>();
-
-    ScanToken();
-    ScanToken( TokenCode::LParen );
-
-    countofExpr->Expr = ParseExpr();
-
-    ScanToken( TokenCode::RParen );
-
-    return countofExpr;
-}
-
 Unique<Syntax> AlgolyParser::ParseLet()
 {
     auto letNode = Make<LetStatement>();

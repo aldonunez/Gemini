@@ -409,14 +409,6 @@ public:
     virtual void Accept( IVisitor* visitor ) override;
 };
 
-class CountofExpr : public Syntax
-{
-public:
-    Unique<Syntax>      Expr;
-
-    virtual void Accept( Visitor* visitor ) override;
-};
-
 class LetStatement : public Syntax
 {
 public:
