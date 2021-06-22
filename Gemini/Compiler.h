@@ -344,7 +344,7 @@ private:
     void EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitSpilledAddrOffset( int32_t offset );
-    void EmitCountofArray( Declaration* decl, ArrayType* arrayType );
+    void EmitCountofArray( Syntax* arrayNode );
 
     // Level 3 - functions and special operators
     void GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status );

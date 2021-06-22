@@ -479,17 +479,27 @@ void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
         return;
     }
 
-    EmitCountofArray( countofExpr->Expr->GetDecl(), (ArrayType*) countofExpr->Expr->Type.get() );
+    EmitCountofArray( countofExpr->Expr.get() );
 }
 
-void Compiler::EmitCountofArray( Declaration* decl, ArrayType* arrayType )
+void Compiler::EmitCountofArray( Syntax* arrayNode )
 {
-    if ( arrayType->Count != 0 )
+    ArrayType& arrayType = (ArrayType&) *arrayNode->Type;
+
+    if ( arrayType.Count != 0 )
     {
-        EmitLoadConstant( arrayType->Count );
+        EmitLoadConstant( arrayType.Count );
     }
     else
     {
+        Declaration*    decl = nullptr;
+        int32_t         offset = 0;
+
+        CalcAddress( arrayNode, decl, offset );
+
+        if ( decl->Kind != DeclKind::Param )
+            mRep.ThrowInternalError();
+
         // Only ref params are allowed to take open array types
         auto param = (ParamStorage*) decl;
 
@@ -933,11 +943,7 @@ void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
     if ( paramSpec.Type->GetKind() == TypeKind::Array
         && ((ArrayType&) *paramSpec.Type).Count == 0 )
     {
-        auto& srcArray = (ArrayType&) *node.Type;
-
-        auto decl = node.GetBaseDecl();
-
-        EmitCountofArray( decl, &srcArray );
+        EmitCountofArray( &node );
     }
 }
 
