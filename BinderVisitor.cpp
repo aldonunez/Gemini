@@ -1052,7 +1052,7 @@ void BinderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
 
     typeDecl->TypeRef->Accept( this );
 
-    AddType( typeDecl->Name, typeDecl->TypeRef->ReferentType );
+    AddType( typeDecl->Name, typeDecl->TypeRef->ReferentType, true );
 }
 
 void BinderVisitor::VisitUnaryExpr( UnaryExpr* unary )
@@ -1185,6 +1185,13 @@ I32 BinderVisitor::Evaluate( Syntax* node, const char* message )
         mRep.ThrowError( CERR_SEMANTICS, node, message );
     else
         mRep.ThrowError( CERR_SEMANTICS, node, "Expected a constant value" );
+}
+
+std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
+{
+    FolderVisitor folder( mRep.GetLog() );
+
+    return folder.Evaluate( node );
 }
 
 
@@ -1322,7 +1329,7 @@ std::shared_ptr<Function> BinderVisitor::AddForward( const std::string& name )
     return func;
 }
 
-std::shared_ptr<TypeDeclaration> BinderVisitor::AddType( const std::string& name, std::shared_ptr<Type> type )
+std::shared_ptr<TypeDeclaration> BinderVisitor::AddType( const std::string& name, std::shared_ptr<Type> type, bool isPublic )
 {
     CheckDuplicateGlobalSymbol( name );
 
@@ -1331,6 +1338,10 @@ std::shared_ptr<TypeDeclaration> BinderVisitor::AddType( const std::string& name
     typeDecl->Type = mTypeType;
     typeDecl->ReferentType = type;
     mGlobalTable.insert( SymTable::value_type( name, typeDecl ) );
+
+    if ( isPublic )
+        mPublicTable.insert( SymTable::value_type( name, typeDecl ) );
+
     return typeDecl;
 }
 
@@ -1354,7 +1365,7 @@ void BinderVisitor::MakeStdEnv()
     mXferType.reset( new XferType() );
     mIntType.reset( new IntType() );
 
-    AddType( "int", mIntType );
+    AddType( "int", mIntType, false );
     AddConst( "false", mIntType, 0, false );
     AddConst( "true", mIntType, 1, false );
 }

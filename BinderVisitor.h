@@ -100,6 +100,7 @@ private:
     std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef );
 
     I32 Evaluate( Syntax* node, const char* message = nullptr );
+    std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
 
     void CheckType(
         const std::shared_ptr<Type>& left,
@@ -129,7 +130,7 @@ private:
     std::shared_ptr<Constant> AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, bool isPublic );
     std::shared_ptr<Function> AddFunc( const std::string& name, int address );
     std::shared_ptr<Function> AddForward( const std::string& name );
-    std::shared_ptr<TypeDeclaration> AddType( const std::string& name, std::shared_ptr<Type> type );
+    std::shared_ptr<TypeDeclaration> AddType( const std::string& name, std::shared_ptr<Type> type, bool isPublic );
     void AddModule( const std::string& name, std::shared_ptr<ModuleDeclaration> moduleDecl );
     void CheckDuplicateGlobalSymbol( const std::string& name );
 

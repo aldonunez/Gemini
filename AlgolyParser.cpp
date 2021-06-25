@@ -1378,6 +1378,8 @@ Unique<Syntax> AlgolyParser::ParseArrayInitializer()
             {
                 initList->Fill = ArrayFill::Repeat;
             }
+
+            SkipLineEndings();
             break;
         }
         else if ( !first )
