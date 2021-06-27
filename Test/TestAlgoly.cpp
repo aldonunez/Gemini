@@ -835,6 +835,20 @@ TEST_CASE( "Algoly: Local array, fptr elem and repeat init", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 11 );
 }
 
+TEST_CASE( "Algoly: Local array repeat init with call and binary", "[algoly]" )
+{
+    const char code[] =
+        "var m := 2, n := 3, p := 4\n"
+        "def a\n"
+        "  var ar: [2] of [2] := [[B(p), m*n]...]\n"
+        "  ar[0][0] + ar[0][1] + ar[1][0] + ar[1][1]\n"
+        "end\n"
+        "def B(x) x*x end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 44, 0, 11 );
+}
+
 TEST_CASE( "Algoly: Global array, int complex elem and repeat init, complex indexing", "[algoly]" )
 {
     const char code[] =
