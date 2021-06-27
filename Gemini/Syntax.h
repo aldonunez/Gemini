@@ -866,7 +866,7 @@ public:
 
     EnumType();
 
-    virtual bool IsAssignableFrom( Type* other ) const override;
+    virtual bool IsEqual( Type* other ) const override;
     virtual int32_t GetSize() const override;
 };
 

@@ -745,7 +745,7 @@ EnumType::EnumType() :
 {
 }
 
-bool EnumType::IsAssignableFrom( Type* other ) const
+bool EnumType::IsEqual( Type* other ) const
 {
     return other == this;
 }
