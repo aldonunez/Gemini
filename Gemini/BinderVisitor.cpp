@@ -859,7 +859,7 @@ void BinderVisitor::CheckInitializer(
             auto it = notInit.find( fieldInit->Name );
 
             if ( it == notInit.end() )
-                mRep.ThrowError( CERR_SEMANTICS, fieldInit.get(), "Field not found: ", fieldInit->Name.c_str() );
+                mRep.ThrowError( CERR_SEMANTICS, fieldInit.get(), "Field not found: %s", fieldInit->Name.c_str() );
 
             auto fieldDecl = it->second;
 
