@@ -568,6 +568,12 @@ struct ParamStorage : public Declaration
     int Offset;
 };
 
+struct CallSite
+{
+    int16_t     ExprDepth;
+    std::string FunctionName;
+};
+
 struct Function : public Declaration
 {
     std::string Name;
@@ -587,7 +593,7 @@ struct Function : public Declaration
     bool        IsDepthKnown;
     bool        CallsIndirectly;
 
-    std::list<std::string> CalledFunctions;
+    std::list<CallSite> CalledFunctions;
 };
 
 struct NativeFunction : public Declaration

@@ -525,6 +525,9 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
 
     if ( !foundCatchAll )
     {
+        // Restore the expression depth, so that it doesn't accumulate
+        mCurExprDepth = exprDepth;
+
         if ( !config.discard )
         {
             mCodeBinPtr[0] = OP_LDC_S;
@@ -916,7 +919,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         WriteU24( mCodeBinPtr, addr );
 
         if ( mInFunc )
-            mCurFunc->CalledFunctions.push_back( func->Name );
+            mCurFunc->CalledFunctions.push_back( { mCurExprDepth, func->Name } );
     }
     else
     {
@@ -1203,7 +1206,8 @@ void Compiler::GenerateCase( CaseExpr* caseExpr, const GenConfig& config, GenSta
 
 void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config, GenStatus& status )
 {
-    PatchChain exitChain;
+    PatchChain  exitChain;
+    int         exprDepth = mCurExprDepth;
 
     const GenConfig& statementConfig = config;
 
@@ -1229,6 +1233,9 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
     {
         PatchChain falseChain;
         PatchChain trueChain;
+
+        // Restore the expression depth, so that it doesn't accumulate
+        mCurExprDepth = exprDepth;
 
         int i = 0;
 
@@ -1270,6 +1277,9 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
 
         Patch( &falseChain );
     }
+
+    // Restore the expression depth, so that it doesn't accumulate
+    mCurExprDepth = exprDepth;
 
     if ( caseExpr->Fallback != nullptr )
     {
@@ -2108,14 +2118,14 @@ void Compiler::CalculateStackDepth( Function* func )
     // TODO: Put Machine::FRAME_WORDS somewhere common, and use it here.
 
     func->IsCalculating = true;
-    func->IndividualStackUsage = 2 + func->LocalCount + func->ExprDepth;
+    func->IndividualStackUsage = 2 + func->LocalCount;
 
     int16_t maxChildDepth = 0;
-    int16_t maxChildStackUsage = 0;
+    int16_t maxChildStackUsage = func->ExprDepth;
 
-    for ( const auto& name : func->CalledFunctions )
+    for ( const auto& site : func->CalledFunctions )
     {
-        if ( auto it = mGlobalTable.find( name );
+        if ( auto it = mGlobalTable.find( site.FunctionName );
             it != mGlobalTable.end() )
         {
             if ( it->second->Kind != DeclKind::Func )
@@ -2125,8 +2135,10 @@ void Compiler::CalculateStackDepth( Function* func )
 
             CalculateStackDepth( childFunc );
 
+            int16_t childStackUsage = childFunc->TreeStackUsage + site.ExprDepth;
+
             maxChildDepth = std::max( maxChildDepth, childFunc->CallDepth );
-            maxChildStackUsage = std::max( maxChildStackUsage, childFunc->TreeStackUsage );
+            maxChildStackUsage = std::max( maxChildStackUsage, childStackUsage );
 
             if ( childFunc->CallsIndirectly )
                 func->CallsIndirectly = true;
