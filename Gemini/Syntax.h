@@ -579,6 +579,7 @@ struct Function : public Declaration
     std::string Name;
     int         Address;
     int         ModIndex;
+    bool        IsLambda;
 
     int16_t     LocalCount;
     int16_t     ParamCount;

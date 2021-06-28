@@ -610,6 +610,20 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
     auto funcType = MakeFuncType( lambdaExpr->Proc.get() );
 
     lambdaExpr->Type = Make<PointerType>( funcType );
+
+    {
+        char name[32];
+
+        sprintf_s( name, "$Lambda$%d", mLambdas.size() - 1 );
+
+        std::shared_ptr<Function> func = AddFunc( name, INT32_MAX );
+
+        lambdaExpr->Proc->Name = name;
+        lambdaExpr->Proc->Decl = func;
+
+        func->IsLambda = true;
+        func->Type = funcType;
+    }
 }
 
 void BinderVisitor::VisitLetStatement( LetStatement* letStmt )
@@ -1099,26 +1113,8 @@ void BinderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
 
 void BinderVisitor::BindLambdas()
 {
-    int i = 0;
-
     for ( auto lambdaExpr : mLambdas )
     {
-        char name[32];
-
-        sprintf_s( name, "$Lambda$%d", i );
-        i++;
-
-        std::shared_ptr<Function> func = AddFunc( name, INT32_MAX );
-
-        lambdaExpr->Proc->Name = name;
-        lambdaExpr->Proc->Decl = func;
-
-        // Lambda expressions were already visited. So they have a type
-
-        auto pointerType = (PointerType*) lambdaExpr->Type.get();
-
-        func->Type = pointerType->TargetType;
-
         VisitProc( lambdaExpr->Proc.get() );
     }
 }
