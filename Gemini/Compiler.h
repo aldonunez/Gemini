@@ -148,7 +148,7 @@ public:
         PatchChain& operator=( PatchChain&& other ) noexcept
         {
             std::swap( First, other.First );
-            std::swap( PatchedPtr, other.PatchedPtr );
+            PatchedPtr = other.PatchedPtr;
             return *this;
         }
     };
