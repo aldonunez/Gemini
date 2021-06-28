@@ -135,6 +135,22 @@ public:
                 delete link;
             }
         }
+
+        PatchChain( PatchChain&& other ) noexcept
+        {
+            First = other.First;
+            PatchedPtr = other.PatchedPtr;
+
+            other.First = nullptr;
+            other.PatchedPtr = nullptr;
+        }
+
+        PatchChain& operator=( PatchChain&& other ) noexcept
+        {
+            std::swap( First, other.First );
+            std::swap( PatchedPtr, other.PatchedPtr );
+            return *this;
+        }
     };
 
     using PatchMap = std::map<std::string, PatchChain>;
