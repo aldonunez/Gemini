@@ -621,3 +621,45 @@ TEST_CASE( "Algoly: array of record of record of array, loop indexing", "[algoly
 
     TestCompileAndRunAlgoly( code, sizeof code, 35, 0, 17 );
 }
+
+TEST_CASE( "Algoly: read global array of array of repeating record with fptr and default init int, loop indexing", "[algoly][record]" )
+{
+    const char code[] =
+        // Output: 12
+        "type Q = record a, b: &proc end\n"
+        "var ar: [2] of [2] of Q := [[{b: &B}...]...]\n"
+        "var total := 0\n"
+        "def a \n"
+        "  for i := 0 to 1 do\n"
+        "    for j := 0 to 1 do\n"
+        "      total := total + (ar[i][j].b)() + ar[i][j].a\n"
+        "    end\n"
+        "  end\n"
+        "  total\n"
+        "end\n"
+        "def B 3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 12, 0, 7 );
+}
+
+TEST_CASE( "Algoly: read local array of array of repeating record with fptr and default init int, loop indexing", "[algoly][record]" )
+{
+    const char code[] =
+        // Output: 12
+        "type Q = record a, b: &proc end\n"
+        "var total := 0\n"
+        "def a \n"
+        "  var ar: [2] of [2] of Q := [[{b: &B}...]...]\n"
+        "  for i := 0 to 1 do\n"
+        "    for j := 0 to 1 do\n"
+        "      total := total + (ar[i][j].b)() + ar[i][j].a\n"
+        "    end\n"
+        "  end\n"
+        "  total\n"
+        "end\n"
+        "def B 3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 12, 0, 7+8 );
+}
