@@ -705,6 +705,8 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
 
     *mCodeBinPtr++ = OP_COPYBLOCK;
 
+    DecreaseExprDepth( 3 );
+
     // Generating a return value or argument value would need PUSHBLOCK
 }
 
@@ -870,6 +872,8 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
         mCodeBinPtr[1] = offset;
         mCodeBinPtr[2] = OP_COPYBLOCK;
         mCodeBinPtr += 3;
+
+        DecreaseExprDepth( 3 );
         return;
     }
 
