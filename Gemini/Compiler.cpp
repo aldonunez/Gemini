@@ -967,6 +967,8 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
 
         if ( !status.spilledAddr )
             EmitLoadAddress( &node, status.baseDecl, status.offset );
+        else if ( status.offset > 0 )
+            EmitSpilledAddrOffset( status.offset );
         break;
     }
 }

@@ -1078,6 +1078,8 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
             procDecl->Name.c_str(), ProcDecl::MaxParams );
     }
 
+    mParamCount = 0;
+
     for ( auto& parameter : procDecl->Params )
     {
         parameter->Accept( this );
@@ -1085,7 +1087,6 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
 
     mMaxLocalCount = 0;
     mCurLocalCount = 0;
-    mParamCount = 0;
 
     mCurFunc = func;
 
