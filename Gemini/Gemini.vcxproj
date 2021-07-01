@@ -103,10 +103,6 @@
     <ClCompile Include="Compiler.cpp" />
     <ClCompile Include="Disassembler.cpp" />
     <ClCompile Include="FolderVisitor.cpp" />
-    <ClCompile Include="Gemini.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="LispyParser.cpp" />
     <ClCompile Include="Machine.cpp" />
     <ClCompile Include="stdafx.cpp">
