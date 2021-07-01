@@ -270,7 +270,12 @@ void FolderVisitor::VisitNextStatement( NextStatement* nextStmt )
 
 void FolderVisitor::VisitNumberExpr( NumberExpr* numberExpr )
 {
-    mLastValue = numberExpr->Value;
+    assert( numberExpr->Value >= INT32_MIN );
+
+    if ( numberExpr->Value > INT32_MAX )
+        mRep.ThrowError( CERR_SEMANTICS, numberExpr, "Number out of range" );
+
+    mLastValue = (int32_t) numberExpr->Value;
 }
 
 void FolderVisitor::VisitParamDecl( ParamDecl* paramDecl )
@@ -325,6 +330,16 @@ void FolderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
 
 void FolderVisitor::VisitUnaryExpr( UnaryExpr* unary )
 {
+    if ( unary->Op == "-" && unary->Inner->Kind == SyntaxKind::Number )
+    {
+        int64_t value = ((NumberExpr&) *unary->Inner).Value;
+
+        assert( value >= 0 && value <= (uint32_t) INT32_MAX + 1 );
+
+        mLastValue = (int32_t) -value;
+        return;
+    }
+
     Fold( unary->Inner );
 
     if ( mLastValue.has_value() )

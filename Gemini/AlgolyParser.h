@@ -88,7 +88,7 @@ class AlgolyParser
 
     TokenCode       mCurToken;
     std::string     mCurString;
-    int             mCurNumber;
+    int64_t         mCurNumber;
 
     int             mTokLine;
     int             mTokCol;
@@ -185,7 +185,6 @@ private:
     bool IsTokenAdditiveOp();
     bool IsTokenMultiplicativeOp();
 
-    I32 ParseRawNumber();
     std::string ParseRawSymbol();
     std::string ParseAsRawSymbol();
 
@@ -195,7 +194,7 @@ private:
     Unique<NumberExpr> WrapNumber();
     Unique<NameExpr> WrapSymbol();
 
-    Unique<NumberExpr> MakeNumber( int32_t value );
+    Unique<NumberExpr> MakeNumber( int64_t value );
     Unique<NameExpr> MakeSymbol( const char* string );
 
     template <typename T, typename... Args>

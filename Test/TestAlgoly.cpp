@@ -16,7 +16,7 @@
 */
 
 
-TEST_CASE( "Algoly: simple", "[algoly]" )
+TEST_CASE( "Algoly: little number", "[algoly]" )
 {
     const char code[] =
         "def a 33 end"

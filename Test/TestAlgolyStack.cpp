@@ -27,10 +27,28 @@ TEST_CASE( "Algoly: StackUse: little number", "[algoly][stack]" )
 TEST_CASE( "Algoly: StackUse: big number", "[algoly][stack]" )
 {
     const char code[] =
-        "def a 333 end"
+        "def a 2147483647 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 333, 0, 3 );
+    TestCompileAndRunAlgoly( code, sizeof code, 2147483647, 0, 3 );
+}
+
+TEST_CASE( "Algoly: StackUse: negate negative min number", "[algoly][stack]" )
+{
+    const char code[] =
+        "def a - -2147483648 end"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, -2147483648, 0, 3 );
+}
+
+TEST_CASE( "Algoly: StackUse: negative min number", "[algoly][stack]" )
+{
+    const char code[] =
+        "def a -2147483648 end"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, -2147483648, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: unary not", "[algoly][stack]" )

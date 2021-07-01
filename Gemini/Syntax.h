@@ -84,10 +84,10 @@ public:
 class NumberExpr : public Syntax
 {
 public:
-    int32_t Value;
+    int64_t Value;
 
     NumberExpr();
-    NumberExpr( int32_t value );
+    NumberExpr( int64_t value );
 
     virtual void Accept( IVisitor* visitor ) override;
 };

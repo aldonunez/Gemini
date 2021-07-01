@@ -211,7 +211,7 @@ void Compiler::GenerateNumber( NumberExpr* number, const GenConfig& config, GenS
         return;
     }
 
-    EmitLoadConstant( number->Value );
+    EmitLoadConstant( (int32_t) number->Value );
 }
 
 void Compiler::EmitLoadConstant( int32_t value )

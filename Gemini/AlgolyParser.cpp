@@ -410,7 +410,13 @@ void AlgolyParser::ReadNumber()
     if ( IsIdentifierInitial( PeekChar() ) )
         ThrowSyntaxError( "syntax error : bad number" );
 
-    mCurNumber = atoi( mCurString.c_str() );
+    unsigned long value = strtoul( mCurString.c_str(), NULL, 10 );
+
+    if ( value == ULONG_MAX && errno == ERANGE
+        || value > (uint32_t) INT32_MAX + 1 )
+        ThrowSyntaxError( "Number out of range" );
+
+    mCurNumber = value;
 
     mCurToken = TokenCode::Number;
 }
@@ -888,7 +894,7 @@ Unique<Syntax> AlgolyParser::ParseUnary()
         auto unary = Make<UnaryExpr>();
 
         unary->Op = ParseAsRawSymbol();
-        unary->Inner = ParseSingle();
+        unary->Inner = ParseUnary();
 
         return unary;
     }
@@ -1650,16 +1656,6 @@ Unique<Syntax> AlgolyParser::ParseNext()
     return Make<NextStatement>();
 }
 
-I32 AlgolyParser::ParseRawNumber()
-{
-    if ( mCurToken != TokenCode::Number )
-        ThrowSyntaxError( "Expected number" );
-
-    I32 number = mCurNumber;
-    ScanToken();
-    return number;
-}
-
 Unique<NumberExpr> AlgolyParser::ParseNumber()
 {
     if ( mCurToken != TokenCode::Number )
@@ -1710,7 +1706,7 @@ Unique<NameExpr> AlgolyParser::WrapSymbol()
     return MakeSymbol( mCurString.c_str() );
 }
 
-Unique<NumberExpr> AlgolyParser::MakeNumber( int32_t value )
+Unique<NumberExpr> AlgolyParser::MakeNumber( int64_t value )
 {
     NumberExpr* number = new NumberExpr();
     number->Kind = SyntaxKind::Number;

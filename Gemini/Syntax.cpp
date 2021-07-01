@@ -34,7 +34,7 @@ NumberExpr::NumberExpr() :
 {
 }
 
-NumberExpr::NumberExpr( int32_t value ) :
+NumberExpr::NumberExpr( int64_t value ) :
     Value( value )
 {
     Kind = SyntaxKind::Number;
@@ -302,7 +302,10 @@ std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node )
     if ( node->Kind == SyntaxKind::Number )
     {
         auto number = (NumberExpr*) node;
-        return number->Value;
+
+        assert( number->Value >= INT32_MIN && number->Value <= INT32_MAX );
+
+        return (int32_t) number->Value;
     }
 
     return std::optional<int32_t>();
