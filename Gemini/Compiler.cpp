@@ -1801,7 +1801,15 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
         return;
     }
 
-    assert( false );
+    auto&           type = sliceExpr->Type;
+    int32_t         offset = 0;
+    Declaration*    decl = nullptr;
+
+    EmitLoadConstant( type->GetSize() );
+
+    CalcAddress( sliceExpr, decl, offset );
+
+    EmitLoadAddress( sliceExpr, decl, offset );
 }
 
 void Compiler::VisitDotExpr( DotExpr* dotExpr )

@@ -30,6 +30,7 @@ enum class SyntaxKind
     Name,
     AddrOfExpr,
     Index,
+    Slice,
     DotExpr,
     ArrayInitializer,
     ConstDecl,
@@ -325,6 +326,8 @@ public:
     Unique<Syntax> Head;
     Unique<Syntax> FirstIndex;
     Unique<Syntax> LastIndex;
+
+    SliceExpr();
 
     virtual void Accept( Visitor* visitor ) override;
 };

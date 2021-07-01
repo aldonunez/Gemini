@@ -87,6 +87,11 @@ IndexExpr::IndexExpr()
     Kind = SyntaxKind::Index;
 }
 
+SliceExpr::SliceExpr()
+{
+    Kind = SyntaxKind::Slice;
+}
+
 DotExpr::DotExpr()
 {
     Kind = SyntaxKind::DotExpr;
