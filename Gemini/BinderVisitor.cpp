@@ -566,8 +566,6 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
     indexExpr->Head->Accept( this );
     indexExpr->Index->Accept( this );
 
-    auto decl = indexExpr->Head->GetDecl();
-
     if ( indexExpr->Head->Type->GetKind() != TypeKind::Array )
         mRep.ThrowError( CERR_SEMANTICS, indexExpr->Head.get(), "Only arrays can be indexed" );
 
@@ -575,6 +573,17 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
         mRep.ThrowError( CERR_SEMANTICS, indexExpr->Index.get(), "Index only supports integers" );
 
     auto arrayType = (ArrayType*) indexExpr->Head->Type.get();
+
+    if ( arrayType->Count > 0 )
+    {
+        std::optional<int32_t> optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+
+        if ( optIndexVal.has_value() )
+        {
+            if ( optIndexVal.value() < 0 || optIndexVal.value() >= arrayType->Count )
+                mRep.ThrowError( CERR_SEMANTICS, indexExpr->Index.get(), "Index must be within bounds of array" );
+        }
+    }
 
     indexExpr->Type = arrayType->ElemType;
 }
