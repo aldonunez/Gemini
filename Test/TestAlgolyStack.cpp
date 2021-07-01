@@ -525,6 +525,36 @@ TEST_CASE( "Algoly: StackUse: assign call addrof", "[algoly][stack]" )
     TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
 }
 
+TEST_CASE( "Algoly: StackUse: global chain assign 3 fptr", "[algoly][stack]" )
+{
+    const char code[] =
+        "var f := &B, g := &B, h := &B\n"
+        "def a()\n"
+        "  f := g := h := &C\n"
+        "  (f)() + (g)() + (h)()\n"
+        "end\n"
+        "def B 8 end\n"
+        "def C 3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 4 );
+}
+
+TEST_CASE( "Algoly: StackUse: local chain assign 3 fptr", "[algoly][stack]" )
+{
+    const char code[] =
+        "def a()\n"
+        "  var f := &B, g := &B, h := &B\n"
+        "  f := g := h := &C\n"
+        "  (f)() + (g)() + (h)()\n"
+        "end\n"
+        "def B 8 end\n"
+        "def C 3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 4+3 );
+}
+
 TEST_CASE( "Algoly: StackUse: even call tree", "[algoly][stack]" )
 {
     const char code[] =
