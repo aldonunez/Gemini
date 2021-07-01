@@ -1289,3 +1289,45 @@ TEST_CASE( "Algoly: PassRef: local pass whole to open array slice open array", "
 
     TestCompileAndRunAlgoly( code, sizeof code, 29, 0, 13 + 9 );
 }
+
+TEST_CASE( "Algoly: PassRef: countof global pass whole to open array slice open array", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "var c := 0\n"
+        "var ar: [3] of [3] := [[3, 4, 5], [6, 7, 8], [9, 10, 11]]\n"
+        "def a\n"
+        "  c := B(ar)\n"
+        "  ar[2][0] + ar[2][1] + ar[2][2] + c\n"
+        "end\n"
+        "def B( var arr: [] of [3]) \n"    // 6
+        "  C( arr[1..3] ) + \n"
+        "  countof( arr )*100 + countof( arr )*1000\n"
+        "end\n"
+        "def C( var array: [] of [3])\n"  // 10
+        "  countof( array ) + countof( array[0] )*10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 30+300+3000+2+30, 0, 12 );
+}
+
+TEST_CASE( "Algoly: PassRef: countof local pass whole to open array slice open array", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "var c := 0\n"
+        "def a\n"
+        "  var ar: [3] of [3] := [[3, 4, 5], [6, 7, 8], [9, 10, 11]]\n"
+        "  c := B(ar)\n"
+        "  ar[2][0] + ar[2][1] + ar[2][2] + c\n"
+        "end\n"
+        "def B( var arr: [] of [3]) \n"    // 6
+        "  C( arr[1..3] ) + \n"
+        "  countof( arr )*100 + countof( arr )*1000\n"
+        "end\n"
+        "def C( var array: [] of [3])\n"  // 10
+        "  countof( array ) + countof( array[0] )*10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 30+300+3000+2+30, 0, 12 + 9 );
+}
