@@ -1,3 +1,9 @@
+// Gemini Languages and Virtual Machine
+// Copyright 2019 Aldo J. Nunez
+//
+// Licensed under the Apache License, Version 2.0.
+// See the LICENSE.txt file for details.
+
 #include "stdafx.h"
 #include "Compiler.h"
 #include "OpCodes.h"
