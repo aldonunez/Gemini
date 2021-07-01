@@ -25,6 +25,73 @@ TEST_CASE( "Algoly: little number", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 33 );
 }
 
+TEST_CASE( "Algoly: infer number", "[algoly]" )
+{
+    const char code[] =
+        "var x := 33\n"
+        "def a x end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+}
+
+TEST_CASE( "Algoly: infer fptr", "[algoly]" )
+{
+    const char code[] =
+        "var f := &B\n"
+        "def a; (f)() end\n"
+        "def B 99 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 99 );
+}
+
+TEST_CASE( "Algoly: infer array", "[algoly]" )
+{
+    const char code[] =
+        "var ar := [1, 2, 3]\n"
+        "def a ar[0] + ar[1] + ar[2] + countof(ar) end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 6 + 3 );
+}
+
+TEST_CASE( "Algoly: infer array repeat", "[algoly]" )
+{
+    const char code[] =
+        "var ar := [1, 2, 3...]\n"
+        "def a ar[0] + ar[1] + ar[2] + countof(ar) end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 6 + 3 );
+}
+
+TEST_CASE( "Algoly: infer array of array", "[algoly]" )
+{
+    const char code[] =
+        "var ar := [[1, 2], [3, 4], [5, 6]]\n"
+        "def a\n"
+        "  ar[0][0] + ar[0][1] + ar[1][0] + ar[1][1] + ar[2][0] + ar[2][1] + \n"
+        "  countof(ar) + countof(ar[0])*10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 21 + 3 + 20 );
+}
+
+TEST_CASE( "Algoly: infer array of array repeat", "[algoly]" )
+{
+    const char code[] =
+        "var ar := [[1, 2], [3, 4], [5, 6]...]\n"
+        "def a\n"
+        "  ar[0][0] + ar[0][1] + ar[1][0] + ar[1][1] + ar[2][0] + ar[2][1] + \n"
+        "  countof(ar) + countof(ar[0])*10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 21 + 3 + 20 );
+}
+
 TEST_CASE( "Algoy: 2 funcs, call predefine", "[algoly]" )
 {
     const char code[] =
