@@ -43,7 +43,6 @@ CompilerErr Compiler::Compile()
         FoldConstants();
         GenerateCode();
 
-        GenerateLambdas();
         GenerateSentinel();
     }
     catch ( CompilerException& ex )
@@ -659,32 +658,10 @@ void Compiler::VisitProcDecl( ProcDecl* procDecl )
     GenerateProc( procDecl, func );
 }
 
-void Compiler::GenerateLambda( LambdaExpr* lambdaExpr, const GenConfig& config, GenStatus& status )
-{
-    if ( config.discard )
-    {
-        status.discarded = true;
-        return;
-    }
-
-    *mCodeBinPtr = OP_LDC;
-    mCodeBinPtr++;
-
-    DeferredLambda lambda = { 0 };
-    lambda.Definition = lambdaExpr->Proc.get();
-    lambda.Patch = mCodeBinPtr;
-    mLambdas.push_back( lambda );
-
-    // Add the reference to the deferred lambda just linked
-    mLocalAddrRefs.push_back( { AddrRefKind::Lambda, mLambdas.size() - 1 } );
-
-    WriteU32( mCodeBinPtr, 0 );
-    IncreaseExprDepth();
-}
-
 void Compiler::VisitLambdaExpr( LambdaExpr* lambdaExpr )
 {
-    GenerateLambda( lambdaExpr, Config(), Status() );
+    assert( false );
+    mRep.ThrowInternalError( "LambdaExpr was not transformed" );
 }
 
 void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, GenStatus& status )
@@ -1880,24 +1857,6 @@ void Compiler::AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t siz
     }
 }
 
-void Compiler::GenerateLambdas()
-{
-    long i = 0;
-
-    for ( auto it = mLambdas.begin(); it != mLambdas.end(); it++, i++ )
-    {
-        int address = mCodeBinPtr - mCodeBin;
-        int addrWord = CodeAddr::Build( address, mModIndex );
-        StoreU32( it->Patch, addrWord );
-
-        auto func = (Function*) it->Definition->GetDecl();
-
-        func->Address = address;
-
-        GenerateProc( it->Definition, func );
-    }
-}
-
 void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
 {
     mInFunc = true;
@@ -1951,10 +1910,6 @@ void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
 
             switch ( ref.Kind )
             {
-            case AddrRefKind::Lambda:
-                ppInst = &mLambdas[ref.LambdaIndex].Patch;
-                break;
-
             case AddrRefKind::Inst:
                 ppInst = ref.InstPtr;
                 break;

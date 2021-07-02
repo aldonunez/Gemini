@@ -162,15 +162,8 @@ public:
     using PatchMap = std::map<std::string, PatchChain>;
 
 private:
-    struct DeferredLambda
-    {
-        ProcDecl*   Definition;
-        U8*         Patch;
-    };
-
     enum class AddrRefKind
     {
-        Lambda,
         Inst,
     };
 
@@ -179,7 +172,6 @@ private:
         AddrRefKind Kind;
         union
         {
-            size_t  LambdaIndex;
             U8**    InstPtr;
         };
     };
@@ -272,7 +264,6 @@ private:
         ConjClauseGenerator NegativeGenerator;
     };
 
-    typedef std::vector<DeferredLambda> LambdaVec;
     typedef std::vector<AddrRef> AddrRefVec;
     typedef std::vector<Unique<Unit>> UnitVec;
     typedef std::vector<std::shared_ptr<ModuleDeclaration>> ModVec;
@@ -294,7 +285,6 @@ private:
     SymTable        mModuleTable;
     SymTable        mPublicTable;
     PatchMap        mPatchMap;
-    LambdaVec       mLambdas;
     AddrRefVec      mLocalAddrRefs;
     bool            mInFunc = false;
     Function*       mCurFunc = nullptr;
@@ -373,7 +363,6 @@ private:
     void GenerateReturn( ReturnStatement* retStmt, const GenConfig& config, GenStatus& status );
     void GenerateCond( CondExpr* condExpr, const GenConfig& config, GenStatus& status );
     void GenerateSet( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status );
-    void GenerateLambda( LambdaExpr* lambdaExpr, const GenConfig& config, GenStatus& status );
     void GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, GenStatus& status );
     void GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateLet( LetStatement* letStmt, const GenConfig& config, GenStatus& status );
@@ -395,7 +384,6 @@ private:
     void GenerateUnaryPrimitive( Syntax* elem, const GenConfig& config, GenStatus& status );
     void GenerateBinaryPrimitive( BinaryExpr* binary, int primitive, const GenConfig& config, GenStatus& status );
 
-    void GenerateLambdas();
     void GenerateProc( ProcDecl* procDecl, Function* func );
     void GenerateImplicitProgn( StatementList* stmtList, const GenConfig& config, GenStatus& status );
     void GenerateStatements( StatementList* list, const GenConfig& config, GenStatus& status );
