@@ -18,10 +18,11 @@ class BinderVisitor : public IVisitor
     // But since shared_ptr is used, instead of internal ref counts,
     // this is not robust.
 
-    using LambdaVec = std::vector<LambdaExpr*>;
+    using LambdaVec = std::vector<Unique<ProcDecl>>;
 
     friend class LocalScope;
 
+    Unique<Syntax>  mReplacementNode;
     LambdaVec       mLambdas;
     SymStack        mSymStack;
     SymTable&       mGlobalTable;
@@ -97,7 +98,9 @@ public:
     virtual void VisitWhileStatement( WhileStatement* whileStmt ) override;
 
 private:
-    void BindLambdas();
+    void Visit( Unique<Syntax>& child );
+
+    void BindLambdas( Unit* unit );
 
     void VisitProc( ProcDecl* procDecl );
     void VisitLetBinding( DataDecl* varDecl );

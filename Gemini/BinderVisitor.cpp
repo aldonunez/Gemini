@@ -168,7 +168,7 @@ void BinderVisitor::Bind( Unit* unit )
     unit->Accept( this );
 
     BindProcs( unit );
-    BindLambdas();
+    BindLambdas( unit );
 }
 
 size_t BinderVisitor::GetDataSize()
@@ -178,7 +178,7 @@ size_t BinderVisitor::GetDataSize()
 
 void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 {
-    addrOf->Inner->Accept( this );
+    Visit( addrOf->Inner );
 
     auto innerType = addrOf->Inner->Type;
     auto decl = addrOf->Inner->GetDecl();
@@ -194,7 +194,7 @@ void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 
 void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 {
-    typeRef->SizeExpr->Accept( this );
+    Visit( typeRef->SizeExpr );
 
     std::shared_ptr<Type> elemType;
 
@@ -223,8 +223,8 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 
 void BinderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
 {
-    assignment->Left->Accept( this );
-    assignment->Right->Accept( this );
+    Visit( assignment->Left );
+    Visit( assignment->Right );
 
     if ( assignment->Left->Kind == SyntaxKind::Name )
     {
@@ -247,8 +247,8 @@ void BinderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
 
 void BinderVisitor::VisitBinaryExpr( BinaryExpr* binary )
 {
-    binary->Left->Accept( this );
-    binary->Right->Accept( this );
+    Visit( binary->Left );
+    Visit( binary->Right );
 
     if ( binary->Op == "=" || binary->Op == "<>" )
     {
@@ -281,7 +281,7 @@ void BinderVisitor::VisitBreakStatement( BreakStatement* breakStmt )
 
 void BinderVisitor::VisitCallExpr( CallExpr* call )
 {
-    call->Head->Accept( this );
+    Visit( call->Head );
 
     std::shared_ptr<FuncType> funcType;
 
@@ -313,7 +313,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
 
     for ( auto& arg : call->Arguments )
     {
-        arg->Accept( this );
+        Visit( arg );
 
         CheckType( funcType->ParamTypes[i], arg->Type, arg.get() );
         i++;
@@ -324,7 +324,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
 
 void BinderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
 {
-    callOrSymbol->Symbol->Accept( this );
+    Visit( callOrSymbol->Symbol );
 
     auto decl = callOrSymbol->Symbol->GetDecl();
 
@@ -347,7 +347,7 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
 {
     LocalScope localScope( *this );
 
-    caseExpr->TestKey->Accept( this );
+    Visit( caseExpr->TestKey );
 
     if ( caseExpr->TestKey->Type->GetKind() != TypeKind::Int )
         mRep.ThrowError( CERR_SEMANTICS, caseExpr->TestKey.get(), "Case only supports integers" );
@@ -365,7 +365,7 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
     {
         for ( auto& key : clause->Keys )
         {
-            key->Accept( this );
+            Visit( key );
 
             if ( key->Type->GetKind() != TypeKind::Int )
                 mRep.ThrowError( CERR_SEMANTICS, key.get(), "Case key only supports integers" );
@@ -402,7 +402,7 @@ void BinderVisitor::VisitCondExpr( CondExpr* condExpr )
 
     for ( auto& clause : condExpr->Clauses )
     {
-        clause->Condition->Accept( this );
+        Visit( clause->Condition );
 
         if ( !IsBoolean( clause->Condition->Type->GetKind() ) )
             mRep.ThrowError( CERR_SEMANTICS, clause->Condition.get(), "Expected scalar type" );
@@ -455,7 +455,7 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
     if ( !constDecl->Initializer )
         mRep.ThrowInternalError( "Missing constant initializer" );
 
-    constDecl->Initializer->Accept( this );
+    Visit( constDecl->Initializer );
 
     if ( constDecl->TypeRef )
     {
@@ -487,7 +487,7 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
 
 void BinderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 {
-    countofExpr->Expr->Accept( this );
+    Visit( countofExpr->Expr );
 
     if ( countofExpr->Expr->Type->GetKind() != TypeKind::Array )
         mRep.ThrowError( CERR_SEMANTICS, countofExpr->Expr.get(), "Countof applies to arrays" );
@@ -497,7 +497,7 @@ void BinderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 
 void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
 {
-    dotExpr->Head->Accept( this );
+    Visit( dotExpr->Head );
 
     if ( dotExpr->Head->Type->GetKind() == TypeKind::Module )
     {
@@ -529,11 +529,11 @@ void BinderVisitor::VisitForStatement( ForStatement* forStmt )
 
     forStmt->IndexDecl = local;
 
-    forStmt->First->Accept( this );
-    forStmt->Last->Accept( this );
+    Visit( forStmt->First );
+    Visit( forStmt->Last );
 
     if ( forStmt->Step )
-        forStmt->Step->Accept( this );
+        Visit( forStmt->Step );
 
     forStmt->Body.Accept( this );
 
@@ -569,8 +569,8 @@ void BinderVisitor::VisitImportDecl( ImportDecl* importDecl )
 
 void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 {
-    indexExpr->Head->Accept( this );
-    indexExpr->Index->Accept( this );
+    Visit( indexExpr->Head );
+    Visit( indexExpr->Index );
 
     if ( indexExpr->Head->Type->GetKind() != TypeKind::Array )
         mRep.ThrowError( CERR_SEMANTICS, indexExpr->Head.get(), "Only arrays can be indexed" );
@@ -600,7 +600,7 @@ void BinderVisitor::VisitInitList( InitList* initList )
 
     for ( auto& value : initList->Values )
     {
-        value->Accept( this );
+        Visit( value );
 
         if ( !elemType )
             elemType = value->Type;
@@ -620,6 +620,7 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
     // defer the lambda until the the end where it can be treated as
     // a top level procedure
 
+#if 0
     mLambdas.push_back( lambdaExpr );
 
     auto funcType = MakeFuncType( lambdaExpr->Proc.get() );
@@ -639,6 +640,35 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
         func->IsLambda = true;
         func->Type = funcType;
     }
+#else
+    char name[32];
+
+    sprintf_s( name, "$Lambda$%d", mLambdas.size() );
+
+    auto funcType = MakeFuncType( lambdaExpr->Proc.get() );
+
+    auto pointerType = Make<PointerType>( funcType );
+
+    std::shared_ptr<Function> func = AddFunc( name, INT32_MAX );
+
+    func->Type = funcType;
+
+    lambdaExpr->Proc->Name = name;
+    lambdaExpr->Proc->Decl = func;
+
+    mLambdas.push_back( std::move( lambdaExpr->Proc ) );
+
+    Unique<NameExpr> nameExpr( new NameExpr() );
+    nameExpr->String = name;
+    nameExpr->Decl = func;
+    nameExpr->Type = funcType;
+
+    Unique<AddrOfExpr> addrOf( new AddrOfExpr() );
+    addrOf->Inner = std::move( nameExpr );
+    addrOf->Type = pointerType;
+
+    mReplacementNode = std::move( addrOf );
+#endif
 }
 
 void BinderVisitor::VisitLetStatement( LetStatement* letStmt )
@@ -676,7 +706,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
     if ( varDecl->TypeRef == nullptr )
     {
         if ( varDecl->Initializer != nullptr )
-            varDecl->Initializer->Accept( this );
+            Visit( varDecl->Initializer );
 
         if ( varDecl->Initializer == nullptr )
             type = mIntType;
@@ -782,7 +812,7 @@ void BinderVisitor::VisitLoopStatement( LoopStatement* loopStmt )
 
     if ( loopStmt->Condition != nullptr )
     {
-        loopStmt->Condition->Accept( this );
+        Visit( loopStmt->Condition );
 
         if ( !IsBoolean( loopStmt->Condition->Type->GetKind() ) )
             mRep.ThrowError( CERR_SEMANTICS, loopStmt->Condition.get(), "Loop condition only supports integers" );
@@ -812,7 +842,7 @@ void BinderVisitor::VisitNameExpr( NameExpr* nameExpr )
 
 void BinderVisitor::VisitNameTypeRef( NameTypeRef* nameTypeRef )
 {
-    nameTypeRef->QualifiedName->Accept( this );
+    Visit( nameTypeRef->QualifiedName );
 
     auto decl = nameTypeRef->QualifiedName->GetDecl();
 
@@ -997,7 +1027,7 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 
 void BinderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
 {
-    retStmt->Inner->Accept( this );
+    Visit( retStmt->Inner );
 
     auto funcType = (FuncType*) mCurFunc->Type.get();
 
@@ -1008,9 +1038,9 @@ void BinderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
 
 void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 {
-    sliceExpr->Head->Accept( this );
-    sliceExpr->FirstIndex->Accept( this );
-    sliceExpr->LastIndex->Accept( this );
+    Visit( sliceExpr->Head );
+    Visit( sliceExpr->FirstIndex );
+    Visit( sliceExpr->LastIndex );
 
     if ( sliceExpr->Head->Type->GetKind() != TypeKind::Array )
         mRep.ThrowError( CERR_SEMANTICS, sliceExpr->Head.get(), "Only arrays can be sliced" );
@@ -1049,7 +1079,7 @@ void BinderVisitor::VisitStatementList( StatementList* stmtList )
 {
     for ( auto& stmt : stmtList->Statements )
     {
-        stmt->Accept( this );
+        Visit( stmt );
     }
 
     if ( stmtList->Statements.size() == 0 )
@@ -1086,7 +1116,7 @@ void BinderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
 
 void BinderVisitor::VisitUnaryExpr( UnaryExpr* unary )
 {
-    unary->Inner->Accept( this );
+    Visit( unary->Inner );
 
     if ( unary->Inner->Type->GetKind() != TypeKind::Int )
         mRep.ThrowError( CERR_SEMANTICS, unary->Inner.get(), "Unary expression only supports integers" );
@@ -1115,7 +1145,7 @@ void BinderVisitor::VisitVarDecl( VarDecl* varDecl )
 
 void BinderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
 {
-    whileStmt->Condition->Accept( this );
+    Visit( whileStmt->Condition );
 
     if ( !IsBoolean( whileStmt->Condition->Type->GetKind() ) )
         mRep.ThrowError( CERR_SEMANTICS, whileStmt->Condition.get(), "While condition only supports integers" );
@@ -1126,11 +1156,14 @@ void BinderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
 }
 
 
-void BinderVisitor::BindLambdas()
+void BinderVisitor::BindLambdas( Unit* unit )
 {
-    for ( auto lambdaExpr : mLambdas )
+    for ( auto& proc : mLambdas )
     {
-        VisitProc( lambdaExpr->Proc.get() );
+        // The proc already has a Declaration object
+        VisitProc( proc.get() );
+
+        unit->FuncDeclarations.push_back( std::move( proc ) );
     }
 }
 
@@ -1441,4 +1474,14 @@ std::shared_ptr<Type> BinderVisitor::VisitFuncReturnType( Unique<TypeRef>& typeR
     }
 
     return mIntType;
+}
+
+void BinderVisitor::Visit( Unique<Syntax>& child )
+{
+    child->Accept( this );
+
+    if ( mReplacementNode )
+    {
+        child = std::move( mReplacementNode );
+    }
 }
