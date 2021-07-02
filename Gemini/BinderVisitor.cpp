@@ -620,30 +620,9 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
     // defer the lambda until the the end where it can be treated as
     // a top level procedure
 
-#if 0
-    mLambdas.push_back( lambdaExpr );
-
-    auto funcType = MakeFuncType( lambdaExpr->Proc.get() );
-
-    lambdaExpr->Type = Make<PointerType>( funcType );
-
-    {
-        char name[32];
-
-        sprintf_s( name, "$Lambda$%d", mLambdas.size() - 1 );
-
-        std::shared_ptr<Function> func = AddFunc( name, INT32_MAX );
-
-        lambdaExpr->Proc->Name = name;
-        lambdaExpr->Proc->Decl = func;
-
-        func->IsLambda = true;
-        func->Type = funcType;
-    }
-#else
     char name[32];
 
-    sprintf_s( name, "$Lambda$%d", mLambdas.size() );
+    sprintf_s( name, "$Lambda$%zu", mLambdas.size() );
 
     auto funcType = MakeFuncType( lambdaExpr->Proc.get() );
 
@@ -668,7 +647,6 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
     addrOf->Type = pointerType;
 
     mReplacementNode = std::move( addrOf );
-#endif
 }
 
 void BinderVisitor::VisitLetStatement( LetStatement* letStmt )
