@@ -12,18 +12,29 @@ TEST_CASE( "Algoly: simple const fptr", "[algoly][ptr-const]" )
     TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
 }
 
-#if 0
-// TODO: Also global
-TEST_CASE( "Algoly: simple const lambda", "[algoly][ptr-const]" )
+TEST_CASE( "Algoly: global const lambda", "[algoly][ptr-const]" )
 {
     const char code[] =
-        "def a const f = lambda 3 end; (f)() end\n"
-        //"def C -> int 3 end\n"
+        "const f = lambda 3 end\n"
+        "def a\n"
+        "  (f)()\n"
+        "end\n"
         ;
 
     TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
 }
-#endif
+
+TEST_CASE( "Algoly: local const lambda", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "def a\n"
+        "  const f = lambda 3 end\n"
+        "  (f)()\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+}
 
 TEST_CASE( "Algoly: const &proc no typeref, &proc(int) typeref, copy const, call", "[algoly][ptr-const]" )
 {
