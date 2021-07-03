@@ -123,8 +123,8 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_STMOD:
         {
             int iMod = ReadU8( mCodePtr );
-            int addr = ReadU16( mCodePtr );
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " $%02X, $%04X", iMod, addr );
+            U16 dataAddr = ReadU16( mCodePtr );
+            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " $%02X, $%04X", iMod, dataAddr );
         }
         break;
 
@@ -139,11 +139,11 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_CALL:
         {
             U8 callFlags = *mCodePtr++;
-            int addr = ReadU24( mCodePtr );
+            U32 funcAddr = ReadU24( mCodePtr );
             charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten),
                 "%s(%d) $%06X",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),
-                CallFlags::GetCount( callFlags ), addr );
+                CallFlags::GetCount( callFlags ), funcAddr );
         }
         break;
 
@@ -173,7 +173,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_CALLNATIVE:
         {
             U8 callFlags = *mCodePtr++;
-            int id = ReadU32( mCodePtr );
+            U32 id = ReadU32( mCodePtr );
             charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten),
                 "%s(%d) $%08X",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),

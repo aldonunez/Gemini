@@ -135,7 +135,7 @@ std::shared_ptr<T> Make( Args&&... args )
 
 
 BinderVisitor::BinderVisitor(
-    int modIndex,
+    ModSize modIndex,
     SymTable& globalTable,
     SymTable& moduleTable,
     SymTable& publicTable,
@@ -209,10 +209,12 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
         elemType = mIntType;
     }
 
-    int32_t size = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
+    int32_t rawSize = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
 
-    if ( size <= 0 )
+    if ( rawSize <= 0 )
         mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Array size must be positive" );
+
+    ArraySize size = CheckArraySize( static_cast<size_t>(rawSize), elemType.get(), typeRef->SizeExpr.get() );
 
     if ( !IsStorageType( elemType->GetKind() ) )
         mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Element type is not allowed" );
@@ -614,9 +616,9 @@ void BinderVisitor::VisitInitList( InitList* initList )
     if ( !elemType )
         elemType = mIntType;
 
-    // TODO: Cast to ArraySize instead
+    ArraySize size = CheckArraySize( initList->Values.size(), elemType.get(), initList );
 
-    initList->Type = Make<ArrayType>( static_cast<int32_t>( initList->Values.size() ), elemType );
+    initList->Type = Make<ArrayType>( size, elemType );
 }
 
 void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
@@ -711,7 +713,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
     if ( !IsStorageType( type->GetKind() ) )
         mRep.ThrowError( CERR_SEMANTICS, varDecl, "Variables cannot take this type" );
 
-    int32_t size = type->GetSize();
+    ArraySize size = type->GetSize();
 
     if ( size == 0 )
     {
@@ -787,6 +789,21 @@ void BinderVisitor::CheckAllDescendantsHaveDefault( Type* type, Syntax* node )
     {
         mRep.ThrowError( CERR_SEMANTICS, node, "Pointers must be initialized" );
     }
+}
+
+ArraySize BinderVisitor::CheckArraySize( size_t rawSize, Type* elemType, Syntax* node )
+{
+    if ( rawSize > ArraySizeMax )
+        mRep.ThrowError( CERR_SEMANTICS, node, "Size is too big" );
+
+    ArraySize size = static_cast<ArraySize>(rawSize);
+
+    auto fullSize = static_cast<uint_fast64_t>(size) * elemType->GetSize();
+
+    if ( fullSize > ArraySizeMax )
+        mRep.ThrowError( CERR_SEMANTICS, node, "Size is too big" );
+
+    return size;
 }
 
 void BinderVisitor::VisitLoopStatement( LoopStatement* loopStmt )
@@ -984,7 +1001,7 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
     }
 
     func->LocalCount = mMaxLocalCount;
-    func->ParamCount = (int16_t) procDecl->Params.size();
+    func->ParamCount = static_cast<ParamSize>(procDecl->Params.size());
 
     auto funcType = (FuncType*) func->Type.get();
 
@@ -1051,7 +1068,9 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
             mRep.ThrowError( CERR_SEMANTICS, sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
     }
 
-    int32_t size = lastVal - firstVal;
+    int32_t rawSize = lastVal - firstVal;
+
+    ArraySize size = CheckArraySize( static_cast<size_t>(rawSize), arrayType->ElemType.get(), sliceExpr );
 
     auto slicedArrayType = Make<ArrayType>( size, arrayType->ElemType );
 
@@ -1324,7 +1343,7 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std:
     return constant;
 }
 
-std::shared_ptr<Function> BinderVisitor::AddFunc( const std::string& name, int address )
+std::shared_ptr<Function> BinderVisitor::AddFunc( const std::string& name, CodeSize address )
 {
     CheckDuplicateGlobalSymbol( name );
 

@@ -11,11 +11,11 @@
 #include <optional>
 
 
-class FolderVisitor : public IVisitor
+class FolderVisitor final : public IVisitor
 {
-    Reporter                mRep;
     std::optional<int32_t>  mLastValue;
     bool                    mFoldNodes;
+    Reporter                mRep;
 
     std::shared_ptr<IntType>    mIntType;
 

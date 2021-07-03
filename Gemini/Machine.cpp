@@ -36,18 +36,19 @@ callm <uint8> <uint8> <uint24>
 
 
 Machine::Machine() :
+    mSP( nullptr ),
     mStack( nullptr ),
     mStackSize( 0 ),
     mFramePtr(),
-    mSP( nullptr ),
     mEnv( nullptr ),
     mScriptCtx( 0 ),
     mNativeContinuation( nullptr ),
     mNativeContinuationContext( 0 ),
     mNativeContinuationFlags( 0 ),
-    mMod(),
     mModIndex(),
-    mPC()
+    mPC(),
+    mMod(),
+    mStackMod{}
 {
 }
 
@@ -57,7 +58,7 @@ void Machine::Init( CELL* stack, U16 stackSize, IEnvironment* environment, UserC
     mEnv = environment;
 }
 
-void Machine::Init( CELL* stack, U16 stackSize, int modIndex, const Module* module, UserContext scriptCtx )
+void Machine::Init( CELL* stack, U16 stackSize, U8 modIndex, const Module* module, UserContext scriptCtx )
 {
     Init( stack, stackSize, scriptCtx );
     mEnv = this;
@@ -312,8 +313,8 @@ int Machine::Run()
 
         case OP_LDLOCA:
             {
-                int index = ReadU8( codePtr );
-                long offset = mFramePtr - 1 - index;
+                U8  index = ReadU8( codePtr );
+                I32 offset = mFramePtr - 1 - index;
 
                 if ( offset < 0 )
                     return ERR_BAD_ADDRESS;
@@ -391,7 +392,7 @@ int Machine::Run()
 
                 U32 addrWord = Pop();
                 U8  iMod = CodeAddr::GetModule( addrWord );
-                U16 addr = CodeAddr::GetAddress( addrWord );
+                U32 addr = CodeAddr::GetAddress( addrWord );
 
                 auto [err, mod] = GetDataModule( iMod );
                 if ( err != ERR_NONE )
@@ -412,7 +413,7 @@ int Machine::Run()
                 U32 addrWord = Pop();
                 U32 value = Pop();
                 U8  iMod = CodeAddr::GetModule( addrWord );
-                U16 addr = CodeAddr::GetAddress( addrWord );
+                U32 addr = CodeAddr::GetAddress( addrWord );
 
                 auto [err, mod] = GetDataModule( iMod );
                 if ( err != ERR_NONE )
@@ -579,11 +580,19 @@ int Machine::Run()
                 if ( WouldUnderflow( 2 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                CELL base = mSP[1];
+                U32  base = mSP[1];
                 CELL index = mSP[0];
                 U32  stride = ReadU32( codePtr );
 
-                mSP[1] = base + (index * stride);
+                if ( index < 0 )
+                    return ERR_BAD_ADDRESS;
+
+                auto newAddr = base + (static_cast<U64>(index) * stride);
+
+                if ( newAddr > CodeAddr::ToModuleMax( base ) )
+                    return ERR_BAD_ADDRESS;
+
+                mSP[1] = static_cast<CELL>(newAddr);
                 mSP++;
             }
             break;
@@ -593,11 +602,19 @@ int Machine::Run()
                 if ( WouldUnderflow( 2 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                CELL base = mSP[1];
+                U32  base = mSP[1];
                 CELL index = mSP[0];
                 U8   stride = ReadU8( codePtr );
 
-                mSP[1] = base + (index * stride);
+                if ( index < 0 )
+                    return ERR_BAD_ADDRESS;
+
+                auto newAddr = base + (static_cast<U64>(index) * stride);
+
+                if ( newAddr > CodeAddr::ToModuleMax( base ) )
+                    return ERR_BAD_ADDRESS;
+
+                mSP[1] = static_cast<CELL>(newAddr);
                 mSP++;
             }
             break;

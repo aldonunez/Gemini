@@ -314,11 +314,11 @@ void TestCompileAndRun(
     NativeFunc* natives
 )
 {
-    U8      bin1[1024];
-    size_t  binSize = 0;
-    CELL    data1[1024];
-    size_t  dataSize = 0;
-    int16_t maxStack = 0;
+    U8          bin1[1024];
+    size_t      binSize = 0;
+    CELL        data1[1024];
+    size_t      dataSize = 0;
+    uint32_t    maxStack = 0;
 
     CompilerEnv env;
     CompilerLog log;

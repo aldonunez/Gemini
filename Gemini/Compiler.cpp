@@ -13,7 +13,7 @@
 #include "FolderVisitor.h"
 
 
-Compiler::Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog* log, int modIndex ) :
+Compiler::Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
     mCodeBin( codeBin ),
     mCodeBinPtr( codeBin ),
     mCodeBinEnd( codeBin + codeBinLen ),
@@ -268,6 +268,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
     switch ( decl->Kind )
     {
     case DeclKind::Global:
+        assert( offset >= 0 && offset <= GlobalSizeMax );
         mCodeBinPtr[0] = OP_LDMOD;
         mCodeBinPtr[1] = ((GlobalStorage*) decl)->ModIndex;
         mCodeBinPtr += 2;
@@ -276,6 +277,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Local:
+        assert( offset >= 0 && offset <= LocalSizeMax );
         mCodeBinPtr[0] = OP_LDLOC;
         mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset - offset;
         mCodeBinPtr += 2;
@@ -283,6 +285,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Param:
+        assert( offset >= 0 && offset <= ParamSizeMax );
         mCodeBinPtr[0] = OP_LDARG;
         mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset + offset;
         mCodeBinPtr += 2;
@@ -300,6 +303,8 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::LoadedAddress:
+        assert( offset >= 0 && offset <= ArraySizeMax );
+
         if ( offset > 0 )
             EmitSpilledAddrOffset( offset );
 
@@ -352,8 +357,8 @@ void Compiler::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
 
 void Compiler::GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status )
 {
-    auto& op = binary->Op;
-    int primitive;
+    auto&   op = binary->Op;
+    U8      primitive;
 
     if ( op == "+" )
         primitive = PRIM_ADD;
@@ -450,7 +455,7 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
     PatchChain  falseChain;
     PatchChain  leaveChain;
     bool        foundCatchAll = false;
-    int         exprDepth = mCurExprDepth;
+    LocalSize   exprDepth = mCurExprDepth;
     U8*         startPtr = mCodeBinPtr;
 
     GenConfig statementConfig = GenConfig::Statement( config.discard )
@@ -591,6 +596,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
     switch ( decl->Kind )
     {
     case DeclKind::Global:
+        assert( offset >= 0 && offset <= GlobalSizeMax );
         mCodeBinPtr[0] = OP_STMOD;
         mCodeBinPtr[1] = ((GlobalStorage*) decl)->ModIndex;
         mCodeBinPtr += 2;
@@ -598,12 +604,14 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     case DeclKind::Local:
+        assert( offset >= 0 && offset <= LocalSizeMax );
         mCodeBinPtr[0] = OP_STLOC;
         mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset - offset;
         mCodeBinPtr += 2;
         break;
 
     case DeclKind::Param:
+        assert( offset >= 0 && offset <= ParamSizeMax );
         mCodeBinPtr[0] = OP_STARG;
         mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset + offset;
         mCodeBinPtr += 2;
@@ -620,6 +628,8 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     case DeclKind::LoadedAddress:
+        assert( offset >= 0 && offset <= ArraySizeMax );
+
         if ( offset > 0 )
             EmitSpilledAddrOffset( offset );
 
@@ -672,8 +682,6 @@ void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, Ge
         return;
     }
 
-    auto func = (Function*) addrOf->Inner->GetDecl();
-
     mCodeBinPtr[0] = OP_LDC;
     mCodeBinPtr++;
 
@@ -684,7 +692,8 @@ void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, Ge
 
 void Compiler::EmitFuncAddress( Function* func, uint8_t*& dstPtr )
 {
-    U32 addr = 0, modIndex = 0;
+    U32     addr = 0;
+    ModSize modIndex = 0;
 
     if ( func->Address != INT32_MAX )
     {
@@ -758,7 +767,7 @@ void Compiler::GenerateLetBinding( DataDecl* binding )
     GenerateLocalInit( local->Offset, binding->Initializer.get() );
 }
 
-void Compiler::GenerateLocalInit( int32_t offset, Syntax* initializer )
+void Compiler::GenerateLocalInit( LocalSize offset, Syntax* initializer )
 {
     if ( initializer == nullptr )
         return;
@@ -792,7 +801,7 @@ void Compiler::VisitLetStatement( LetStatement* letStmt )
 
 // TODO: try to merge this with AddGlobalDataArray. Separate the array processing from the code generation
 
-void Compiler::AddLocalDataArray( int32_t offset, Syntax* valueElem, size_t size )
+void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
@@ -859,7 +868,7 @@ void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus&
 
 void Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments )
 {
-    for ( ptrdiff_t i = static_cast<ptrdiff_t>( arguments.size() ) - 1; i >= 0; i-- )
+    for ( auto i = static_cast<ptrdiff_t>( arguments.size() ) - 1; i >= 0; i-- )
     {
         Generate( arguments[i].get() );
     }
@@ -906,7 +915,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
     }
     else
     {
-        int opCode = 0;
+        U8  opCode = 0;
         I32 id = 0;
 
         if ( decl->Kind == DeclKind::Func )
@@ -973,8 +982,8 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
 
     auto local = (LocalStorage*) forStmt->IndexDecl.get();
 
-    int primitive;
-    int step;
+    U8      primitive;
+    int32_t step;
 
     if ( 0 == strcmp( forStmt->Comparison.c_str(), "below" ) )
     {
@@ -1190,7 +1199,7 @@ void Compiler::GenerateCase( CaseExpr* caseExpr, const GenConfig& config, GenSta
 void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config, GenStatus& status )
 {
     PatchChain  exitChain;
-    int         exprDepth = mCurExprDepth;
+    LocalSize   exprDepth = mCurExprDepth;
 
     const GenConfig& statementConfig = config;
 
@@ -1220,7 +1229,7 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
         // Restore the expression depth, so that it doesn't accumulate
         mCurExprDepth = exprDepth;
 
-        int i = 0;
+        size_t i = 0;
 
         for ( auto& key : clause->Keys )
         {
@@ -1297,8 +1306,8 @@ void Compiler::VisitUnaryExpr( UnaryExpr* unary )
 void Compiler::GenerateComparison( BinaryExpr* binary, const GenConfig& config, GenStatus& status )
 {
     auto& op = binary->Op;
-    int positivePrimitive;
-    int negativePrimitive;
+    U8  positivePrimitive;
+    U8  negativePrimitive;
 
     if ( op == "=" )
     {
@@ -1565,7 +1574,7 @@ void Compiler::GenerateUnaryPrimitive( Syntax* elem, const GenConfig& config, Ge
     }
 }
 
-void Compiler::GenerateBinaryPrimitive( BinaryExpr* binary, int primitive, const GenConfig& config, GenStatus& status )
+void Compiler::GenerateBinaryPrimitive( BinaryExpr* binary, U8 primitive, const GenConfig& config, GenStatus& status )
 {
     if ( config.discard )
     {
@@ -1599,6 +1608,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
         switch ( baseDecl->Kind )
         {
         case DeclKind::Global:
+            assert( offset >= 0 && offset <= GlobalSizeMax );
             addrWord = CodeAddr::Build(
                 ((GlobalStorage*) baseDecl)->Offset + offset,
                 ((GlobalStorage*) baseDecl)->ModIndex );
@@ -1608,6 +1618,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
             break;
 
         case DeclKind::Local:
+            assert( offset >= 0 && offset <= LocalSizeMax );
             mCodeBinPtr[0] = OP_LDLOCA;
             mCodeBinPtr[1] = ((LocalStorage*) baseDecl)->Offset - offset;
             mCodeBinPtr += 2;
@@ -1667,7 +1678,7 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
     else if ( arrayType.ElemType->GetSize() > 1 )
     {
         mCodeBinPtr[0] = OP_INDEX_S;
-        mCodeBinPtr[1] = arrayType.ElemType->GetSize();
+        mCodeBinPtr[1] = static_cast<U8>(arrayType.ElemType->GetSize());
         mCodeBinPtr += 2;
     }
     else
@@ -1757,7 +1768,7 @@ void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenSta
     GenerateGlobalInit( global->Offset, varDecl->Initializer.get() );
 }
 
-void Compiler::GenerateGlobalInit( int32_t offset, Syntax* initializer )
+void Compiler::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
 {
     if ( initializer == nullptr )
         return;
@@ -1785,7 +1796,7 @@ void Compiler::VisitVarDecl( VarDecl* varDecl )
     GenerateDefvar( varDecl, Config(), Status() );
 }
 
-void Compiler::AddGlobalData( U32 offset, Syntax* valueElem )
+void Compiler::AddGlobalData( GlobalSize offset, Syntax* valueElem )
 {
     if ( valueElem->Type->GetKind() == TypeKind::Pointer )
     {
@@ -1808,14 +1819,14 @@ void Compiler::AddGlobalData( U32 offset, Syntax* valueElem )
     }
 }
 
-void Compiler::AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t size )
+void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
 
-    auto    initList = (InitList*) valueElem;
-    GlobalSize i = 0;
-    GlobalSize globalIndex = offset;
+    auto        initList = (InitList*) valueElem;
+    GlobalSize  i = 0;
+    GlobalSize  globalIndex = offset;
 
     for ( auto& entry : initList->Values )
     {
@@ -2011,13 +2022,16 @@ I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
 
 void Compiler::IncreaseExprDepth()
 {
+    if ( mCurExprDepth == LocalSizeMax )
+        mRep.ThrowError( CERR_SEMANTICS, NULL, "Expression is too deep" );
+
     mCurExprDepth++;
 
     if ( mMaxExprDepth < mCurExprDepth )
         mMaxExprDepth = mCurExprDepth;
 }
 
-void Compiler::DecreaseExprDepth( int amount )
+void Compiler::DecreaseExprDepth( LocalSize amount )
 {
     assert( amount >= 0 );
     assert( amount <= mCurExprDepth );
@@ -2054,7 +2068,7 @@ void Compiler::CalculateStackDepth()
 
             // Only count parameters of publics, if that's ever a distinction
 
-            int16_t stackUsage = func->TreeStackUsage + func->ParamCount;
+            uint32_t stackUsage = func->TreeStackUsage + func->ParamCount;
 
             callStats->MaxCallDepth  = std::max( callStats->MaxCallDepth,  func->CallDepth );
             callStats->MaxStackUsage = std::max( callStats->MaxStackUsage, stackUsage );
@@ -2081,8 +2095,8 @@ void Compiler::CalculateStackDepth( Function* func )
     func->IsCalculating = true;
     func->IndividualStackUsage = 2 + func->LocalCount;
 
-    int16_t maxChildDepth = 0;
-    int16_t maxChildStackUsage = func->ExprDepth;
+    uint32_t maxChildDepth = 0;
+    uint32_t maxChildStackUsage = func->ExprDepth;
 
     for ( const auto& site : func->CalledFunctions )
     {
@@ -2096,7 +2110,7 @@ void Compiler::CalculateStackDepth( Function* func )
 
             CalculateStackDepth( childFunc );
 
-            int16_t childStackUsage = childFunc->TreeStackUsage + site.ExprDepth;
+            uint32_t childStackUsage = childFunc->TreeStackUsage + site.ExprDepth;
 
             maxChildDepth = std::max( maxChildDepth, childFunc->CallDepth );
             maxChildStackUsage = std::max( maxChildStackUsage, childStackUsage );

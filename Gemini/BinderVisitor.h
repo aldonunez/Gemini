@@ -10,7 +10,7 @@
 #include "Compiler.h"
 
 
-class BinderVisitor : public IVisitor
+class BinderVisitor final : public IVisitor
 {
     using SymStack = std::vector<SymTable*>;
 
@@ -33,7 +33,7 @@ class BinderVisitor : public IVisitor
 
     Function*       mCurFunc = nullptr;
 
-    int             mModIndex = 0;
+    ModSize         mModIndex = 0;
     LocalSize       mCurLevelLocalCount = 0;
     LocalSize       mCurLocalCount = 0;
     LocalSize       mMaxLocalCount = 0;
@@ -47,7 +47,7 @@ class BinderVisitor : public IVisitor
 
 public:
     BinderVisitor(
-        int modIndex,
+        ModSize modIndex,
         SymTable& globalTable,
         SymTable& moduleTable,
         SymTable& publicTable,
@@ -127,6 +127,7 @@ private:
         const std::shared_ptr<Type>& type,
         const Unique<Syntax>& initializer );
     void CheckAllDescendantsHaveDefault( Type* type, Syntax* node );
+    ArraySize CheckArraySize( size_t rawSize, Type* elemType, Syntax* node );
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );
@@ -136,7 +137,7 @@ private:
     std::shared_ptr<Declaration> AddStorage( const std::string& name, std::shared_ptr<Type> type, size_t size, DeclKind declKind );
     std::shared_ptr<Constant> AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, SymTable& table );
     std::shared_ptr<Constant> AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, bool isPublic );
-    std::shared_ptr<Function> AddFunc( const std::string& name, int address );
+    std::shared_ptr<Function> AddFunc( const std::string& name, CodeSize address );
     std::shared_ptr<Function> AddForward( const std::string& name );
     std::shared_ptr<TypeDeclaration> AddType( const std::string& name, std::shared_ptr<Type> type, bool isPublic );
     void AddModule( const std::string& name, std::shared_ptr<ModuleDeclaration> moduleDecl );

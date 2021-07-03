@@ -9,7 +9,7 @@
 #include <assert.h>
 
 
-enum
+enum : uint8_t
 {
     OP_DUP,
     OP_PUSH,
@@ -52,7 +52,7 @@ enum
 };
 
 
-enum
+enum : uint8_t
 {
     PRIM_ADD,
     PRIM_SUB,
@@ -84,7 +84,7 @@ class CallFlags
     };
 
 public:
-    static U8 Build( int count, bool autoPop )
+    static U8 Build( U8 count, bool autoPop )
     {
         assert( (count & CountMask) == count );
 
@@ -148,5 +148,10 @@ struct CodeAddr
     static uint8_t GetModule( uint32_t addrWord )
     {
         return addrWord >> 24;
+    }
+
+    static uint32_t ToModuleMax( uint32_t addrWord )
+    {
+        return addrWord | 0xFFFFFF;
     }
 };

@@ -41,6 +41,8 @@ struct ExternalFunc
 class ICompilerEnv
 {
 public:
+    virtual ~ICompilerEnv() { }
+
     virtual bool AddExternal( const std::string& name, ExternalKind kind, int address ) = 0;
     virtual bool FindExternal( const std::string& name, ExternalFunc* func ) = 0;
     virtual bool AddGlobal( const std::string& name, int offset ) = 0;
@@ -56,19 +58,21 @@ enum LogCategory
 class ICompilerLog
 {
 public:
+    virtual ~ICompilerLog() { }
+
     virtual void Add( LogCategory category, const char* fileName, int line, int column, const char* message ) = 0;
 };
 
 struct CallStats
 {
-    int16_t     MaxCallDepth;
-    int16_t     MaxStackUsage;
+    uint32_t    MaxCallDepth;
+    uint32_t    MaxStackUsage;
     bool        Recurses;
 };
 
 struct CompilerStats
 {
-    int         CodeBytesWritten;
+    CodeSize    CodeBytesWritten;
     bool        CallsIndirectly;
     CallStats   Lambda;
     CallStats   Static;
@@ -112,7 +116,7 @@ public:
 };
 
 
-class Compiler : public IVisitor
+class Compiler final : public IVisitor
 {
 public:
     struct InstPatch
@@ -190,7 +194,7 @@ private:
         bool        tailRet;
 
         Declaration*    baseDecl;
-        int32_t         offset;
+        ArraySize       offset;
         bool            spilledAddr;
     };
 
@@ -288,12 +292,12 @@ private:
     AddrRefVec      mLocalAddrRefs;
     bool            mInFunc = false;
     Function*       mCurFunc = nullptr;
-    int16_t         mCurExprDepth = 0;
-    int16_t         mMaxExprDepth = 0;
+    LocalSize       mCurExprDepth = 0;
+    LocalSize       mMaxExprDepth = 0;
 
     ICompilerEnv*   mEnv = nullptr;
     Reporter        mRep;
-    int             mModIndex = 0;
+    ModSize         mModIndex = 0;
 
     std::vector<GenParams> mGenStack;
 
@@ -305,7 +309,7 @@ private:
     std::shared_ptr<Declaration> mLoadedAddrDecl;
 
 public:
-    Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog* log, int modIndex = 0 );
+    Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog* log, ModSize modIndex = 0 );
 
     void AddUnit( Unique<Unit>&& unit );
     void AddModule( std::shared_ptr<ModuleDeclaration> moduleDecl );
@@ -341,12 +345,12 @@ private:
     void GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
-    void GenerateGlobalInit( int32_t offset, Syntax* initializer );
+    void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );
 
     void CalcAddress( Syntax* dotExpr, Declaration*& baseDecl, int32_t& offset );
 
-    void AddGlobalData( U32 offset, Syntax* valueElem );
-    void AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t size );
+    void AddGlobalData( GlobalSize offset, Syntax* valueElem );
+    void AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t size );
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
@@ -367,8 +371,8 @@ private:
     void GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateLet( LetStatement* letStmt, const GenConfig& config, GenStatus& status );
     void GenerateLetBinding( DataDecl* binding );
-    void GenerateLocalInit( int32_t offset, Syntax* initializer );
-    void AddLocalDataArray( int32_t offset, Syntax* valueElem, size_t size );
+    void GenerateLocalInit( LocalSize offset, Syntax* initializer );
+    void AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size );
 
     void GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status );
@@ -382,7 +386,7 @@ private:
     void GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config, GenStatus& status );
 
     void GenerateUnaryPrimitive( Syntax* elem, const GenConfig& config, GenStatus& status );
-    void GenerateBinaryPrimitive( BinaryExpr* binary, int primitive, const GenConfig& config, GenStatus& status );
+    void GenerateBinaryPrimitive( BinaryExpr* binary, U8 primitive, const GenConfig& config, GenStatus& status );
 
     void GenerateProc( ProcDecl* procDecl, Function* func );
     void GenerateImplicitProgn( StatementList* stmtList, const GenConfig& config, GenStatus& status );
@@ -414,7 +418,7 @@ private:
 
     // Stack usage
     void IncreaseExprDepth();
-    void DecreaseExprDepth( int amount = 1 );
+    void DecreaseExprDepth( LocalSize amount = 1 );
     void CalculateStackDepth();
     void CalculateStackDepth( Function* func );
 

@@ -495,6 +495,8 @@ std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
 class IVisitor
 {
 public:
+    virtual ~IVisitor() { }
+
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf );
     virtual void VisitArrayTypeRef( ArrayTypeRef* typeRef );
     virtual void VisitAssignmentExpr( AssignmentExpr* assignment );
@@ -598,17 +600,17 @@ struct CallSite
 struct Function : public Declaration
 {
     std::string Name;
-    int         Address;
-    int         ModIndex;
+    CodeSize    Address;
+    ModSize     ModIndex;
     bool        IsLambda;
 
-    int16_t     LocalCount;
-    int16_t     ParamCount;
-    int16_t     ExprDepth;
+    LocalSize   LocalCount;
+    ParamSize   ParamCount;
+    LocalSize   ExprDepth;
 
-    int16_t     CallDepth;
-    int16_t     IndividualStackUsage;
-    int16_t     TreeStackUsage;
+    uint32_t    CallDepth;
+    uint32_t    IndividualStackUsage;
+    uint32_t    TreeStackUsage;
 
     bool        IsCalculating;
     bool        IsRecursive;
@@ -662,10 +664,12 @@ protected:
     Type( TypeKind kind );
 
 public:
+    virtual ~Type() { }
+
     TypeKind GetKind() const;
     virtual bool IsEqual( Type* other ) const;
     virtual bool IsAssignableFrom( Type* other ) const;
-    virtual int32_t GetSize() const;
+    virtual ArraySize GetSize() const;
 };
 
 class TypeType : public Type
@@ -695,20 +699,20 @@ public:
 
     virtual bool IsEqual( Type* other ) const override;
     virtual bool IsAssignableFrom( Type* other ) const override;
-    virtual int32_t GetSize() const override;
+    virtual ArraySize GetSize() const override;
 };
 
 class ArrayType : public Type
 {
 public:
-    int32_t Count;
+    ArraySize Count;
     std::shared_ptr<Type> ElemType;
 
-    ArrayType( int32_t count, std::shared_ptr<Type> elemType );
+    ArrayType( ArraySize count, std::shared_ptr<Type> elemType );
 
     virtual bool IsEqual( Type* other ) const override;
     virtual bool IsAssignableFrom( Type* other ) const override;
-    virtual int32_t GetSize() const override;
+    virtual ArraySize GetSize() const override;
 };
 
 class FuncType : public Type
@@ -730,5 +734,5 @@ public:
     PointerType( std::shared_ptr<Type> target );
 
     virtual bool IsEqual( Type* other ) const override;
-    virtual int32_t GetSize() const override;
+    virtual ArraySize GetSize() const override;
 };

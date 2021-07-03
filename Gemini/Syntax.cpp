@@ -491,7 +491,7 @@ bool Type::IsAssignableFrom( Type* other ) const
     return IsEqual( other );
 }
 
-int32_t Type::GetSize() const
+ArraySize Type::GetSize() const
 {
     return 0;
 }
@@ -540,13 +540,13 @@ bool IntType::IsAssignableFrom( Type* other ) const
             );
 }
 
-int32_t IntType::GetSize() const
+ArraySize IntType::GetSize() const
 {
     return 1;
 }
 
 
-ArrayType::ArrayType( int32_t count, std::shared_ptr<Type> elemType ) :
+ArrayType::ArrayType( ArraySize count, std::shared_ptr<Type> elemType ) :
     Type( TypeKind::Array ),
     Count( count ),
     ElemType( elemType )
@@ -582,7 +582,7 @@ bool ArrayType::IsAssignableFrom( Type* other ) const
     return Count >= otherArray->Count;
 }
 
-int32_t ArrayType::GetSize() const
+ArraySize ArrayType::GetSize() const
 {
     return Count * ElemType->GetSize();
 }
@@ -631,7 +631,7 @@ bool PointerType::IsEqual( Type* other ) const
     return TargetType->IsEqual( otherPointer->TargetType.get() );
 }
 
-int32_t PointerType::GetSize() const
+ArraySize PointerType::GetSize() const
 {
     return 1;
 }

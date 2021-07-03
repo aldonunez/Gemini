@@ -12,6 +12,7 @@
 typedef unsigned char U8;
 typedef unsigned short U16;
 typedef unsigned int U32;
+typedef unsigned long long U64;
 typedef signed char I8;
 typedef signed short I16;
 typedef signed int I32;
@@ -32,7 +33,7 @@ T ReadPacked( const uint8_t*& p )
         | ((Size > 2) ? (p[2] << 16) : 0)
         | ((Size > 3) ? (p[3] << 24) : 0);
 
-    constexpr unsigned int Shift = (sizeof( T ) - Size) * 8;
+    constexpr unsigned int Shift = (sizeof( T ) - Size) * CHAR_BIT;
 
     p += Size;
 
