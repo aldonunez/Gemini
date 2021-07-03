@@ -598,7 +598,7 @@ void BinderVisitor::VisitInitList( InitList* initList )
 {
     std::shared_ptr<Type> elemType;
 
-    if ( initList->Values.size() > AOffsetMax )
+    if ( initList->Values.size() > ArraySizeMax )
         mRep.ThrowError( CERR_SEMANTICS, initList, "Array initializer is too long" );
 
     for ( auto& value : initList->Values )
@@ -614,7 +614,7 @@ void BinderVisitor::VisitInitList( InitList* initList )
     if ( !elemType )
         elemType = mIntType;
 
-    // TODO: Cast to AOffset instead
+    // TODO: Cast to ArraySize instead
 
     initList->Type = Make<ArrayType>( static_cast<int32_t>( initList->Values.size() ), elemType );
 }
@@ -1242,7 +1242,7 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( const std::string& name, 
 
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
     param->Kind = DeclKind::Param;
-    param->Offset = static_cast<POffset>( table.size() );
+    param->Offset = static_cast<ParamSize>( table.size() );
     param->Type = type;
     table.insert( SymTable::value_type( name, param ) );
     return param;
@@ -1252,17 +1252,17 @@ std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( const std::string& name, 
 {
     assert( size >= 1 );
 
-    if ( (LOffsetMax - mCurLocalCount) < size )
+    if ( (LocalSizeMax - mCurLocalCount) < size )
         mRep.ThrowError( CERR_SEMANTICS, 0, 0, "Local exceeds capacity: %s", name.c_str() );
 
     std::shared_ptr<LocalStorage> local( new LocalStorage() );
     local->Kind = DeclKind::Local;
-    local->Offset = static_cast<LOffset>( mCurLocalCount + size - 1 );
+    local->Offset = static_cast<LocalSize>( mCurLocalCount + size - 1 );
     local->Type = type;
     mSymStack.back()->insert( SymTable::value_type( name, local ) );
 
-    mCurLocalCount += static_cast<LOffset>( size );
-    mCurLevelLocalCount += static_cast<LOffset>( size );
+    mCurLocalCount += static_cast<LocalSize>( size );
+    mCurLevelLocalCount += static_cast<LocalSize>( size );
 
     if ( mCurLocalCount > mMaxLocalCount )
         mMaxLocalCount = mCurLocalCount;
@@ -1274,7 +1274,7 @@ std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name
 {
     CheckDuplicateGlobalSymbol( name );
 
-    if ( (GOffsetMax - mGlobalSize) < size )
+    if ( (GlobalSizeMax - mGlobalSize) < size )
         mRep.ThrowError( CERR_SEMANTICS, 0, 0, "Global exceeds capacity: %s", name.c_str() );
 
     std::shared_ptr<GlobalStorage> global( new GlobalStorage() );
@@ -1284,7 +1284,7 @@ std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name
     global->Type = type;
     mGlobalTable.insert( SymTable::value_type( name, global ) );
 
-    mGlobalSize += static_cast<GOffset>( size );
+    mGlobalSize += static_cast<GlobalSize>( size );
 
     mPublicTable.insert( SymTable::value_type( name, global ) );
 

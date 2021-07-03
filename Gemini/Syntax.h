@@ -34,19 +34,19 @@ enum class SyntaxKind
 };
 
 
-using COffset = uint_least32_t;
-using GOffset = uint_least16_t;
-using LOffset = uint_least8_t;
-using POffset = uint_least8_t;
-using AOffset = GOffset;
-using MIndex  = uint_least8_t;
+using CodeSize      = uint_least32_t;
+using GlobalSize    = uint_least16_t;
+using LocalSize     = uint_least8_t;
+using ParamSize     = uint_least8_t;
+using ArraySize     = GlobalSize;
+using ModSize       = uint_least8_t;
 
-constexpr COffset COffsetMax = 16777214;
-constexpr GOffset GOffsetMax = 65534;
-constexpr LOffset LOffsetMax = 126;
-constexpr POffset POffsetMax = 126;
-constexpr AOffset AOffsetMax = GOffsetMax;
-constexpr MIndex  MIndexMax = 126;
+constexpr CodeSize      CodeSizeMax = 16777214;
+constexpr GlobalSize    GlobalSizeMax = 65534;
+constexpr LocalSize     LocalSizeMax = 126;
+constexpr ParamSize     ParamSizeMax = 126;
+constexpr ArraySize     ArraySizeMax = GlobalSizeMax;
+constexpr ModSize       ModSizeMax = 126;
 
 
 class IVisitor;
@@ -440,8 +440,8 @@ public:
 class ProcDeclBase : public DeclSyntax
 {
 public:
-    constexpr static int16_t MaxParams = POffsetMax + 1;
-    constexpr static int16_t MaxLocals = LOffsetMax + 1;
+    constexpr static int16_t MaxParams = ParamSizeMax + 1;
+    constexpr static int16_t MaxLocals = LocalSizeMax + 1;
 
     std::vector<Unique<DataDecl>>   Params;
     Unique<TypeRef>                 ReturnTypeRef;
@@ -575,18 +575,18 @@ struct Constant : public Declaration
 
 struct GlobalStorage : public Declaration
 {
-    GOffset Offset;
-    MIndex  ModIndex;
+    GlobalSize  Offset;
+    ModSize     ModIndex;
 };
 
 struct LocalStorage : public Declaration
 {
-    LOffset Offset;
+    LocalSize   Offset;
 };
 
 struct ParamStorage : public Declaration
 {
-    POffset Offset;
+    ParamSize   Offset;
 };
 
 struct CallSite

@@ -34,10 +34,10 @@ class BinderVisitor : public IVisitor
     Function*       mCurFunc = nullptr;
 
     int             mModIndex = 0;
-    LOffset         mCurLevelLocalCount = 0;
-    LOffset         mCurLocalCount = 0;
-    LOffset         mMaxLocalCount = 0;
-    GOffset         mGlobalSize = 0;
+    LocalSize       mCurLevelLocalCount = 0;
+    LocalSize       mCurLocalCount = 0;
+    LocalSize       mMaxLocalCount = 0;
+    GlobalSize      mGlobalSize = 0;
     int             mNextNativeId = 0;
 
     std::shared_ptr<TypeType>   mTypeType;
