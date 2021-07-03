@@ -17,5 +17,5 @@ class Disassembler
 public:
     Disassembler( const U8* code );
 
-    int Disassemble( char* disassembly, size_t capacity );
+    int32_t Disassemble( char* disassembly, size_t capacity );
 };

@@ -15,6 +15,7 @@ int VerifyModule( const Module* mod )
         return ERR_BAD_ARG;
 
     if ( mod->CodeBase == nullptr
+        || mod->CodeSize > MAX_MODULE_CODE_SIZE
         || mod->CodeSize <= SENTINEL_SIZE )
         return ERR_BAD_MODULE;
 

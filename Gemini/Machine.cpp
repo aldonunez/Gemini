@@ -437,7 +437,7 @@ int Machine::Run()
         case OP_B:
             {
                 BranchInst::TOffset offset = BranchInst::ReadOffset( codePtr );
-                I32 addr = (codePtr - mMod->CodeBase) + offset;
+                I32 addr = static_cast<I32>(codePtr - mMod->CodeBase) + offset;
 
                 if ( !IsCodeInBounds( addr ) )
                     return ERR_BAD_ADDRESS;
@@ -452,7 +452,7 @@ int Machine::Run()
                     return ERR_STACK_UNDERFLOW;
 
                 BranchInst::TOffset offset = BranchInst::ReadOffset( codePtr );
-                I32 addr = (codePtr - mMod->CodeBase) + offset;
+                I32 addr = static_cast<I32>(codePtr - mMod->CodeBase) + offset;
 
                 if ( !IsCodeInBounds( addr ) )
                     return ERR_BAD_ADDRESS;
@@ -469,7 +469,7 @@ int Machine::Run()
                     return ERR_STACK_UNDERFLOW;
 
                 BranchInst::TOffset offset = BranchInst::ReadOffset( codePtr );
-                I32 addr = (codePtr - mMod->CodeBase) + offset;
+                I32 addr = static_cast<I32>(codePtr - mMod->CodeBase) + offset;
 
                 if ( !IsCodeInBounds( addr ) )
                     return ERR_BAD_ADDRESS;
@@ -561,7 +561,7 @@ int Machine::Run()
                 }
 
                 // If the native call yields, then we have to remember where we were.
-                mPC = codePtr - mMod->CodeBase;
+                mPC = static_cast<U32>( codePtr - mMod->CodeBase );
 
                 NativeCode nativeCode;
 
@@ -622,13 +622,13 @@ StackFrame* Machine::PushFrame( const U8* curCodePtr, U8 callFlags )
     mSP -= FRAME_WORDS;
     auto frame = (StackFrame*) mSP;
 
-    U32 retAddr = curCodePtr - mMod->CodeBase;
+    U32 retAddr = static_cast<U32>( curCodePtr - mMod->CodeBase );
 
     frame->RetAddrWord = CodeAddr::Build( retAddr, mModIndex );
     frame->CallFlags = callFlags;
     frame->FrameAddr = mFramePtr;
 
-    mFramePtr = (CELL*) frame - mStack;
+    mFramePtr = static_cast<U16>( mSP - mStack );
 
     return frame;
 }

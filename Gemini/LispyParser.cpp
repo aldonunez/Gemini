@@ -46,6 +46,10 @@ LispyParser::LispyParser( const char* codeText, int codeTextLen, const char* fil
     mTokCol( 0 ),
     mRep( log )
 {
+    // Column numbers start at 1 and depend on the position in the code.
+    // So make sure (text length + 1) is in range.
+    assert( codeTextLen < INT_MAX );
+
     if ( mCodeTextPtr < mCodeTextEnd )
     {
         mCurChar = *mCodeTextPtr;
@@ -90,7 +94,7 @@ LispyParser::LispyParser( const char* codeText, int codeTextLen, const char* fil
 
 int LispyParser::GetColumn()
 {
-    return mCodeTextPtr - mLineStart + 1;
+    return static_cast<int>(mCodeTextPtr - mLineStart) + 1;
 }
 
 int LispyParser::PeekChar() const
