@@ -337,7 +337,7 @@ private:
 
     void AddGlobalData( GlobalSize offset, Syntax* valueElem );
     void AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t size );
-    void AddGlobalDataRecord( int32_t offset, Syntax* recordValue );
+    void AddGlobalDataRecord( GlobalSize offset, Syntax* recordValue );
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
@@ -361,7 +361,7 @@ private:
     void GenerateLetBinding( DataDecl* binding );
     void GenerateLocalInit( LocalSize offset, Syntax* initializer );
     void AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size );
-    void AddLocalDataRecord( int32_t offset, Syntax* recordValue );
+    void AddLocalDataRecord( LocalSize offset, Syntax* recordValue );
 
     void GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status );

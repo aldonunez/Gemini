@@ -874,7 +874,7 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
     }
 }
 
-void Compiler::AddLocalDataRecord( int32_t offset, Syntax* recordValue )
+void Compiler::AddLocalDataRecord( LocalSize offset, Syntax* recordValue )
 {
     auto recordInit = (RecordInitializer*) recordValue;
 
@@ -1892,7 +1892,7 @@ void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t 
     }
 }
 
-void Compiler::AddGlobalDataRecord( int32_t offset, Syntax* recordValue )
+void Compiler::AddGlobalDataRecord( GlobalSize offset, Syntax* recordValue )
 {
     if ( recordValue->Kind != SyntaxKind::RecordInitializer )
         mRep.ThrowError( CERR_SEMANTICS, recordValue, "Records must be initialized with record initializer" );

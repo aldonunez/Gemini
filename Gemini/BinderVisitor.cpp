@@ -1182,11 +1182,14 @@ void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 {
     auto recordType = Make<RecordType>();
 
-    int32_t offset = 0;
+    ArraySize offset = 0;
 
     for ( auto& fieldDef : recordTypeRef->Fields )
     {
         fieldDef->Accept( this );
+
+        if ( fieldDef->Type->GetSize() > (ArraySizeMax - offset) )
+            mRep.ThrowError( CERR_SEMANTICS, fieldDef.get(), "Record type is too big" );
 
         auto field = Make<FieldStorage>();
 

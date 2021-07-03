@@ -664,7 +664,7 @@ struct ParamStorage : public Declaration
 
 struct FieldStorage : public Declaration
 {
-    int Offset;
+    ArraySize   Offset;
 };
 
 struct CallSite
@@ -837,7 +837,7 @@ public:
     RecordType();
 
     virtual bool IsAssignableFrom( Type* other ) const override;
-    virtual int32_t GetSize() const override;
+    virtual ArraySize GetSize() const override;
 };
 
 
