@@ -38,14 +38,14 @@ using CodeSize      = uint_least32_t;
 using GlobalSize    = uint_least16_t;
 using LocalSize     = uint_least8_t;
 using ParamSize     = uint_least8_t;
-using ArraySize     = GlobalSize;
+using DataSize      = GlobalSize;
 using ModSize       = uint_least8_t;
 
 constexpr CodeSize      CodeSizeMax = 16777214;
 constexpr GlobalSize    GlobalSizeMax = 65534;
 constexpr LocalSize     LocalSizeMax = 126;
 constexpr ParamSize     ParamSizeMax = 126;
-constexpr ArraySize     ArraySizeMax = GlobalSizeMax;
+constexpr DataSize      DataSizeMax = GlobalSizeMax;
 constexpr ModSize       ModSizeMax = 126;
 
 
@@ -669,7 +669,7 @@ public:
     TypeKind GetKind() const;
     virtual bool IsEqual( Type* other ) const;
     virtual bool IsAssignableFrom( Type* other ) const;
-    virtual ArraySize GetSize() const;
+    virtual DataSize GetSize() const;
 };
 
 class TypeType : public Type
@@ -699,20 +699,20 @@ public:
 
     virtual bool IsEqual( Type* other ) const override;
     virtual bool IsAssignableFrom( Type* other ) const override;
-    virtual ArraySize GetSize() const override;
+    virtual DataSize GetSize() const override;
 };
 
 class ArrayType : public Type
 {
 public:
-    ArraySize Count;
+    DataSize Count;
     std::shared_ptr<Type> ElemType;
 
-    ArrayType( ArraySize count, std::shared_ptr<Type> elemType );
+    ArrayType( DataSize count, std::shared_ptr<Type> elemType );
 
     virtual bool IsEqual( Type* other ) const override;
     virtual bool IsAssignableFrom( Type* other ) const override;
-    virtual ArraySize GetSize() const override;
+    virtual DataSize GetSize() const override;
 };
 
 class FuncType : public Type
@@ -734,5 +734,5 @@ public:
     PointerType( std::shared_ptr<Type> target );
 
     virtual bool IsEqual( Type* other ) const override;
-    virtual ArraySize GetSize() const override;
+    virtual DataSize GetSize() const override;
 };

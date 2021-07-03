@@ -127,7 +127,7 @@ private:
         const std::shared_ptr<Type>& type,
         const Unique<Syntax>& initializer );
     void CheckAllDescendantsHaveDefault( Type* type, Syntax* node );
-    ArraySize CheckArraySize( size_t rawSize, Type* elemType, Syntax* node );
+    DataSize CheckArraySize( size_t rawSize, Type* elemType, Syntax* node );
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );

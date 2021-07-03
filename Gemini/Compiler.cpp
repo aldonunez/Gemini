@@ -303,7 +303,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::LoadedAddress:
-        assert( offset >= 0 && offset <= ArraySizeMax );
+        assert( offset >= 0 && offset <= DataSizeMax );
 
         if ( offset > 0 )
             EmitSpilledAddrOffset( offset );
@@ -628,7 +628,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     case DeclKind::LoadedAddress:
-        assert( offset >= 0 && offset <= ArraySizeMax );
+        assert( offset >= 0 && offset <= DataSizeMax );
 
         if ( offset > 0 )
             EmitSpilledAddrOffset( offset );

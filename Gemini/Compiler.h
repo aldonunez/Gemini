@@ -194,7 +194,7 @@ private:
         bool        tailRet;
 
         Declaration*    baseDecl;
-        ArraySize       offset;
+        DataSize        offset;
         bool            spilledAddr;
     };
 

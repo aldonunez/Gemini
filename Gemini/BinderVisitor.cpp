@@ -214,7 +214,7 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
     if ( rawSize <= 0 )
         mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Array size must be positive" );
 
-    ArraySize size = CheckArraySize( static_cast<size_t>(rawSize), elemType.get(), typeRef->SizeExpr.get() );
+    DataSize size = CheckArraySize( static_cast<size_t>(rawSize), elemType.get(), typeRef->SizeExpr.get() );
 
     if ( !IsStorageType( elemType->GetKind() ) )
         mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Element type is not allowed" );
@@ -600,7 +600,7 @@ void BinderVisitor::VisitInitList( InitList* initList )
 {
     std::shared_ptr<Type> elemType;
 
-    if ( initList->Values.size() > ArraySizeMax )
+    if ( initList->Values.size() > DataSizeMax )
         mRep.ThrowError( CERR_SEMANTICS, initList, "Array initializer is too long" );
 
     for ( auto& value : initList->Values )
@@ -616,7 +616,7 @@ void BinderVisitor::VisitInitList( InitList* initList )
     if ( !elemType )
         elemType = mIntType;
 
-    ArraySize size = CheckArraySize( initList->Values.size(), elemType.get(), initList );
+    DataSize size = CheckArraySize( initList->Values.size(), elemType.get(), initList );
 
     initList->Type = Make<ArrayType>( size, elemType );
 }
@@ -713,7 +713,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
     if ( !IsStorageType( type->GetKind() ) )
         mRep.ThrowError( CERR_SEMANTICS, varDecl, "Variables cannot take this type" );
 
-    ArraySize size = type->GetSize();
+    DataSize size = type->GetSize();
 
     if ( size == 0 )
     {
@@ -791,16 +791,16 @@ void BinderVisitor::CheckAllDescendantsHaveDefault( Type* type, Syntax* node )
     }
 }
 
-ArraySize BinderVisitor::CheckArraySize( size_t rawSize, Type* elemType, Syntax* node )
+DataSize BinderVisitor::CheckArraySize( size_t rawSize, Type* elemType, Syntax* node )
 {
-    if ( rawSize > ArraySizeMax )
+    if ( rawSize > DataSizeMax )
         mRep.ThrowError( CERR_SEMANTICS, node, "Size is too big" );
 
-    ArraySize size = static_cast<ArraySize>(rawSize);
+    DataSize size = static_cast<DataSize>(rawSize);
 
     auto fullSize = static_cast<uint_fast64_t>(size) * elemType->GetSize();
 
-    if ( fullSize > ArraySizeMax )
+    if ( fullSize > DataSizeMax )
         mRep.ThrowError( CERR_SEMANTICS, node, "Size is too big" );
 
     return size;
@@ -1070,7 +1070,7 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 
     int32_t rawSize = lastVal - firstVal;
 
-    ArraySize size = CheckArraySize( static_cast<size_t>(rawSize), arrayType->ElemType.get(), sliceExpr );
+    DataSize size = CheckArraySize( static_cast<size_t>(rawSize), arrayType->ElemType.get(), sliceExpr );
 
     auto slicedArrayType = Make<ArrayType>( size, arrayType->ElemType );
 
