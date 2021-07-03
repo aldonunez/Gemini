@@ -750,7 +750,7 @@ bool EnumType::IsEqual( Type* other ) const
     return other == this;
 }
 
-int32_t EnumType::GetSize() const
+ArraySize EnumType::GetSize() const
 {
     return 1;
 }

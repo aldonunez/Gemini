@@ -867,7 +867,7 @@ public:
     EnumType();
 
     virtual bool IsEqual( Type* other ) const override;
-    virtual int32_t GetSize() const override;
+    virtual ArraySize GetSize() const override;
 };
 
 }
