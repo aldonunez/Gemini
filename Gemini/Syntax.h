@@ -794,7 +794,7 @@ struct ParamSpec
 {
     std::shared_ptr<Type>   Type;
     ParamMode               Mode;
-    int32_t                 Size;
+    ParamSize               Size;
 };
 
 class FuncType : public Type

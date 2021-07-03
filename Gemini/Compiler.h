@@ -365,7 +365,7 @@ private:
     void GenerateArg( Syntax& node, ParamSpec& paramSpec );
     void GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status );
-    int GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType );
+    ParamSize GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType );
     void GenerateFor( ForStatement* forStmt, const GenConfig& config, GenStatus& status );
     void GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& config, GenStatus& status );
     void GenerateDo( WhileStatement* whileStmt, const GenConfig& config, GenStatus& status );

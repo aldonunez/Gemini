@@ -809,7 +809,7 @@ void Compiler::GenerateFuncall( CallExpr* call, const GenConfig& config, GenStat
     auto ptrType = (PointerType*) call->Head->Type.get();
     auto funcType = (FuncType*) ptrType->TargetType.get();
 
-    int argCount = GenerateCallArgs( call->Arguments, funcType );
+    ParamSize argCount = GenerateCallArgs( call->Arguments, funcType );
 
     Generate( call->Head.get() );
 
@@ -978,13 +978,16 @@ void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus&
     GenerateCall( call->Head->GetDecl(), call->Arguments, config, status );
 }
 
-int Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType )
+ParamSize Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType )
 {
-    int argCount = 0;
+    ParamSize argCount = 0;
 
     for ( auto i = static_cast<ptrdiff_t>(arguments.size()) - 1; i >= 0; i-- )
     {
         GenerateArg( *arguments[i], funcType->Params[i] );
+
+        if ( funcType->Params[i].Size > (ParamSizeMax - argCount) )
+            mRep.ThrowError( CERR_SEMANTICS, arguments[i].get(), "Too many arguments" );
 
         argCount += funcType->Params[i].Size;
     }
@@ -996,7 +999,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
 {
     auto funcType = (FuncType*) decl->Type.get();
 
-    int argCount = GenerateCallArgs( arguments, funcType );
+    ParamSize argCount = GenerateCallArgs( arguments, funcType );
 
     U8 callFlags = CallFlags::Build( argCount, config.discard );
 
