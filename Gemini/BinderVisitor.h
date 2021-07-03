@@ -34,10 +34,10 @@ class BinderVisitor : public IVisitor
     Function*       mCurFunc = nullptr;
 
     int             mModIndex = 0;
-    int             mCurLevelLocalCount = 0;
-    int             mCurLocalCount = 0;
-    int             mMaxLocalCount = 0;
-    int             mGlobalSize = 0;
+    LocalSize       mCurLevelLocalCount = 0;
+    LocalSize       mCurLocalCount = 0;
+    LocalSize       mMaxLocalCount = 0;
+    GlobalSize      mGlobalSize = 0;
     int             mNextNativeId = 0;
 
     std::shared_ptr<TypeType>   mTypeType;
@@ -131,7 +131,6 @@ private:
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );
     std::shared_ptr<ParamStorage> AddParam( const std::string& name, std::shared_ptr<Type> type );
-    std::shared_ptr<LocalStorage> AddLocal( SymTable& table, const std::string& name, std::shared_ptr<Type> type, int offset );
     std::shared_ptr<LocalStorage> AddLocal( const std::string& name, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<GlobalStorage> AddGlobal( const std::string& name, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<Declaration> AddStorage( const std::string& name, std::shared_ptr<Type> type, size_t size, DeclKind declKind );

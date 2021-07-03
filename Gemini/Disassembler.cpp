@@ -62,9 +62,9 @@ Disassembler::Disassembler( const U8* code )
 {
 }
 
-int Disassembler::Disassemble( char* disassembly, size_t capacity )
+int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 {
-    U32 addr = mCodePtr - mCodeBin;
+    U32 addr = static_cast<int32_t>(mCodePtr - mCodeBin);
 
     const U8* origCodePtr = mCodePtr;
     U8 op = *mCodePtr++;
@@ -198,7 +198,7 @@ int Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_BTRUE:
         {
             int offset = BranchInst::ReadOffset( mCodePtr );
-            int target = mCodePtr - mCodeBin + offset;
+            int target = static_cast<int32_t>(mCodePtr - mCodeBin) + offset;
             charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " $%06X", target );
         }
         break;
@@ -216,5 +216,5 @@ int Disassembler::Disassemble( char* disassembly, size_t capacity )
     disassembly += charsWritten;
     totalCharsWritten += charsWritten;
 
-    return mCodePtr - origCodePtr;
+    return static_cast<int32_t>(mCodePtr - origCodePtr);
 }

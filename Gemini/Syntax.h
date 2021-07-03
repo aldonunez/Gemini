@@ -34,6 +34,21 @@ enum class SyntaxKind
 };
 
 
+using CodeSize      = uint_least32_t;
+using GlobalSize    = uint_least16_t;
+using LocalSize     = uint_least8_t;
+using ParamSize     = uint_least8_t;
+using ArraySize     = GlobalSize;
+using ModSize       = uint_least8_t;
+
+constexpr CodeSize      CodeSizeMax = 16777214;
+constexpr GlobalSize    GlobalSizeMax = 65534;
+constexpr LocalSize     LocalSizeMax = 126;
+constexpr ParamSize     ParamSizeMax = 126;
+constexpr ArraySize     ArraySizeMax = GlobalSizeMax;
+constexpr ModSize       ModSizeMax = 126;
+
+
 class IVisitor;
 
 class Syntax;
@@ -425,8 +440,8 @@ public:
 class ProcDeclBase : public DeclSyntax
 {
 public:
-    constexpr static int16_t MaxParams = 127;
-    constexpr static int16_t MaxLocals = 127;
+    constexpr static int16_t MaxParams = ParamSizeMax + 1;
+    constexpr static int16_t MaxLocals = LocalSizeMax + 1;
 
     std::vector<Unique<DataDecl>>   Params;
     Unique<TypeRef>                 ReturnTypeRef;
@@ -560,18 +575,18 @@ struct Constant : public Declaration
 
 struct GlobalStorage : public Declaration
 {
-    int Offset;
-    int ModIndex;
+    GlobalSize  Offset;
+    ModSize     ModIndex;
 };
 
 struct LocalStorage : public Declaration
 {
-    int Offset;
+    LocalSize   Offset;
 };
 
 struct ParamStorage : public Declaration
 {
-    int Offset;
+    ParamSize   Offset;
 };
 
 struct CallSite

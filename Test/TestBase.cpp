@@ -69,7 +69,6 @@ public:
     bool FindExternal( const std::string& name, ExternalFunc* func );
 
     void SetCurrentModule( Module* mod );
-    bool AddNative( const std::string& name, NativeFunc func );
 
     void SetNativeFuncs( NativeFunc* natives )
     {
@@ -93,13 +92,15 @@ public:
     bool AddGlobal( const std::string& name, int offset ) override;
     bool FindGlobal( const std::string& name, int& offset ) override;
 
-    size_t GetModuleCount()
+    ModSize GetModuleCount()
     {
-        return mMods.size();
+        return (ModSize) mMods.size();
     }
 
     Module* AddModule()
     {
+        assert( mMods.size() < ModSizeMax );
+
         mMods.push_back( { } );
         mCurMod = &mMods.back();
         return &mMods.back();
@@ -122,8 +123,12 @@ bool CompilerEnv::AddExternal( const std::string& name, ExternalKind kind, int a
     if ( it != mFuncMap.end() )
         return false;
 
+    using TId = decltype(ExternalFunc::Id);
+
+    assert( mFuncMap.size() < static_cast<size_t>( std::numeric_limits<TId>::max() ) );
+
     ExternalFunc func;
-    func.Id = mFuncMap.size();
+    func.Id = static_cast<TId>( mFuncMap.size() );
     func.Kind = kind;
     func.Address = address;
     mFuncMap.insert( FuncMap::value_type( name, func ) );
@@ -152,25 +157,6 @@ bool CompilerEnv::FindExternal( const std::string& name, ExternalFunc* func )
 void CompilerEnv::SetCurrentModule( Module* mod )
 {
     mCurMod = mod;
-}
-
-bool CompilerEnv::AddNative( const std::string& name, NativeFunc proc )
-{
-    auto it = mFuncMap.find( name );
-    if ( it != mFuncMap.end() )
-        return false;
-
-    ExternalFunc func;
-    func.Id = mFuncMap.size();
-    func.Kind = External_Native;
-    func.Address = 0;
-    mFuncMap.insert( FuncMap::value_type( name, func ) );
-
-    MachineFunc macFunc;
-    macFunc.Kind = External_Native;
-    macFunc.NativeCode.Proc = proc;
-    mIdMap.insert( IdMap::value_type( func.Id, macFunc ) );
-    return true;
 }
 
 bool CompilerEnv::FindByteCode( U32 id, ByteCode* byteCode )
@@ -352,16 +338,18 @@ void TestCompileAndRun(
             Unique<Unit> unit;
 
             const char* code = *unitSource;
-            int codeLen = strlen( code );
+            size_t codeLen = strlen( code );
+
+            assert( codeLen < INT_MAX );
 
             if ( lang == Language::Gema )
             {
-                AlgolyParser parser( code, codeLen, moduleSource->Name, &log );
+                AlgolyParser parser( code, (int) codeLen, moduleSource->Name, &log );
                 unit = parser.Parse();
             }
             else if ( lang == Language::Geml )
             {
-                LispyParser parser( code, codeLen, moduleSource->Name, &log );
+                LispyParser parser( code, (int) codeLen, moduleSource->Name, &log );
                 unit = parser.Parse();
             }
 

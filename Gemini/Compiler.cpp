@@ -59,7 +59,7 @@ void Compiler::GetStats( CompilerStats& stats )
 {
     if ( mCompiled && !mCalculatedStats )
     {
-        mStats.CodeBytesWritten = mCodeBinPtr - mCodeBin;
+        mStats.CodeBytesWritten = static_cast<CodeSize>( mCodeBinPtr - mCodeBin );
 
         CalculateStackDepth();
 
@@ -643,7 +643,7 @@ void Compiler::VisitAssignmentExpr( AssignmentExpr* assignment )
 
 void Compiler::VisitProcDecl( ProcDecl* procDecl )
 {
-    U32 addr = (mCodeBinPtr - mCodeBin);
+    U32 addr = static_cast<CodeSize>( mCodeBinPtr - mCodeBin );
 
     auto func = (Function*) procDecl->Decl.get();
 
@@ -721,7 +721,7 @@ void Compiler::GenerateFuncall( CallExpr* call, const GenConfig& config, GenStat
 
     Generate( call->Head.get() );
 
-    int argCount = call->Arguments.size();
+    ParamSize argCount = static_cast<ParamSize>( call->Arguments.size() );
 
     mCodeBinPtr[0] = OP_CALLI;
     mCodeBinPtr[1] = CallFlags::Build( argCount, config.discard );
@@ -798,8 +798,8 @@ void Compiler::AddLocalDataArray( int32_t offset, Syntax* valueElem, size_t size
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
 
     auto    initList = (InitList*) valueElem;
-    size_t  locIndex = offset;
-    size_t  i = 0;
+    LocalSize locIndex = offset;
+    LocalSize i = 0;
 
     for ( auto& entry : initList->Values )
     {
@@ -859,7 +859,7 @@ void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus&
 
 void Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments )
 {
-    for ( int i = arguments.size() - 1; i >= 0; i-- )
+    for ( ptrdiff_t i = static_cast<ptrdiff_t>( arguments.size() ) - 1; i >= 0; i-- )
     {
         Generate( arguments[i].get() );
     }
@@ -869,7 +869,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
 {
     GenerateCallArgs( arguments );
 
-    int argCount = arguments.size();
+    ParamSize argCount = static_cast<ParamSize>( arguments.size() );
     U8 callFlags = CallFlags::Build( argCount, config.discard );
 
     if ( decl == nullptr )
@@ -1528,7 +1528,7 @@ void Compiler::Patch( PatchChain* chain, U8* targetPtr )
         if ( diff < BranchInst::OffsetMin || diff > BranchInst::OffsetMax )
             mRep.ThrowError( CERR_UNSUPPORTED, nullptr, "Branch target is too far." );
 
-        BranchInst::StoreOffset( &link->Inst[1], diff );
+        BranchInst::StoreOffset( &link->Inst[1], static_cast<BranchInst::TOffset>( diff ) );
     }
 
     chain->PatchedPtr = target;
@@ -1814,8 +1814,8 @@ void Compiler::AddGlobalDataArray( int32_t offset, Syntax* valueElem, size_t siz
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
 
     auto    initList = (InitList*) valueElem;
-    size_t  i = 0;
-    size_t  globalIndex = offset;
+    GlobalSize i = 0;
+    GlobalSize globalIndex = offset;
 
     for ( auto& entry : initList->Values )
     {

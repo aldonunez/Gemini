@@ -18,6 +18,8 @@ typedef signed int I32;
 
 
 constexpr uint8_t SENTINEL_SIZE = 6;
+constexpr uint32_t MAX_MODULE_CODE_SIZE = ((1ul << 24) - 2);
+constexpr uint16_t MAX_MODULE_DATA_SIZE = UINT16_MAX - 1;
 
 
 template <typename T, size_t Size = sizeof( T )>
