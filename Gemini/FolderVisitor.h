@@ -52,7 +52,6 @@ public:
     virtual void VisitReturnStatement( ReturnStatement* retStmt ) override;
     virtual void VisitSliceExpr( SliceExpr* sliceExpr ) override;
     virtual void VisitStatementList( StatementList* stmtList ) override;
-    virtual void VisitTypeDecl( TypeDecl* typeDecl ) override;
     virtual void VisitUnaryExpr( UnaryExpr* unary ) override;
     virtual void VisitUnit( Unit* unit ) override;
     virtual void VisitVarDecl( VarDecl* varDecl ) override;

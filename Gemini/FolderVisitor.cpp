@@ -136,7 +136,7 @@ void FolderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
     {
         for ( auto& key : clause->Keys )
         {
-            key->Accept( this );
+            Fold( key );
         }
 
         clause->Body.Accept( this );
@@ -328,10 +328,6 @@ void FolderVisitor::VisitStatementList( StatementList* stmtList )
     }
 
     mLastValue.reset();
-}
-
-void FolderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
-{
 }
 
 void FolderVisitor::VisitUnaryExpr( UnaryExpr* unary )
