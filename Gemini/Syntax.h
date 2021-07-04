@@ -664,7 +664,9 @@ struct ParamStorage : public Declaration
 
 struct FieldStorage : public Declaration
 {
-    DataSize    Offset;
+    DataSize    Offset = 0;
+
+    FieldStorage();
 };
 
 struct CallSite

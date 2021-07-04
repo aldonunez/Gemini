@@ -558,6 +558,11 @@ ParamStorage::ParamStorage() :
 {
 }
 
+FieldStorage::FieldStorage() :
+    Declaration( DeclKind::Field )
+{
+}
+
 Function::Function() :
     Declaration( DeclKind::Func )
 {

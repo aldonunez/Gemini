@@ -1193,7 +1193,6 @@ void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 
         auto field = Make<FieldStorage>();
 
-        field->Kind = DeclKind::Field;
         field->Offset = offset;
         field->Type = fieldDef->Type;
 
