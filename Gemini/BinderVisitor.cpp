@@ -1336,7 +1336,7 @@ std::shared_ptr<Function> BinderVisitor::AddFunc( const std::string& name, bool 
     std::shared_ptr<Function> func( new Function() );
     func->Kind = DeclKind::Func;
     func->Name = name;
-    func->Address = INT32_MAX;
+    func->Address = UndefinedAddr;
     func->ModIndex = mModIndex;
     mGlobalTable.insert( SymTable::value_type( name, func ) );
 

@@ -692,7 +692,7 @@ void Compiler::EmitFuncAddress( Function* func, uint8_t*& dstPtr )
     U32     addr = 0;
     ModSize modIndex = 0;
 
-    if ( func->Address != INT32_MAX )
+    if ( func->Address != UndefinedAddr )
     {
         addr = func->Address;
         modIndex = func->ModIndex;
@@ -892,7 +892,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         mCodeBinPtr[1] = callFlags;
         mCodeBinPtr += 2;
 
-        if ( func->Address != INT32_MAX )
+        if ( func->Address != UndefinedAddr )
         {
             addr = func->Address;
         }

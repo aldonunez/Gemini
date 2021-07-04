@@ -48,6 +48,8 @@ constexpr ParamSize     ParamSizeMax = 126;
 constexpr DataSize      DataSizeMax = GlobalSizeMax;
 constexpr ModSize       ModSizeMax = 126;
 
+constexpr CodeSize      UndefinedAddr = 16777215;
+
 
 class IVisitor;
 
@@ -601,7 +603,6 @@ struct Function : public Declaration
     std::string Name;
     CodeSize    Address;
     ModSize     ModIndex;
-    bool        IsLambda;
 
     LocalSize   LocalCount;
     ParamSize   ParamCount;
