@@ -648,7 +648,7 @@ struct ParamStorage : public Declaration
 {
     ParamSize   Offset = 0;
     ParamMode   Mode = ParamMode::Value;
-    int32_t     Size = 0;
+    ParamSize   Size = 0;
 
     ParamStorage();
 };
