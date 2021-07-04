@@ -764,7 +764,7 @@ bool RecordType::IsAssignableFrom( Type* other ) const
     return other == this;
 }
 
-ArraySize RecordType::GetSize() const
+DataSize RecordType::GetSize() const
 {
     if ( mSize == 0 )
     {
