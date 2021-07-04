@@ -8,6 +8,9 @@
 #include "Syntax.h"
 
 
+namespace Gemini
+{
+
 Declaration* Syntax::GetDecl()
 {
     return nullptr;
@@ -694,4 +697,6 @@ bool PointerType::IsEqual( Type* other ) const
 DataSize PointerType::GetSize() const
 {
     return 1;
+}
+
 }

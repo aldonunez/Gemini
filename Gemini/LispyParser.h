@@ -10,6 +10,9 @@
 #include <string>
 
 
+namespace Gemini
+{
+
 class LispyParser
 {
     enum class TokenCode
@@ -123,3 +126,5 @@ private:
 
     [[noreturn]] void ThrowSyntaxError( const char* format, ... );
 };
+
+}

@@ -11,6 +11,9 @@
 #include "FolderVisitor.h"
 
 
+namespace Gemini
+{
+
 class LocalScope
 {
     SymTable            mLocalTable;
@@ -1449,4 +1452,6 @@ void BinderVisitor::Visit( Unique<Syntax>& child )
     {
         child = std::move( mReplacementNode );
     }
+}
+
 }

@@ -9,6 +9,8 @@
 
 #define ENABLE_DISASSEMBLY 0
 
+using namespace Gemini;
+
 
 int NatAdd( Machine* machine, U8 argc, CELL* args, UserContext context )
 {

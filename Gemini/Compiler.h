@@ -16,6 +16,9 @@
 #include "Syntax.h"
 
 
+namespace Gemini
+{
+
 enum CompilerErr
 {
     CERR_OK,
@@ -340,7 +343,7 @@ private:
     // Level 2 - S-expressions
     void GenerateNumber( NumberExpr* number, const GenConfig& config, GenStatus& status );
     void GenerateSymbol( NameExpr* symbol, const GenConfig& config, GenStatus& status );
-    void GenerateValue( Syntax* node, Declaration *decl, const GenConfig& config, GenStatus& status );
+    void GenerateValue( Syntax* node, Declaration* decl, const GenConfig& config, GenStatus& status );
     void GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status );
     void GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
@@ -451,3 +454,5 @@ private:
     virtual void VisitVarDecl( VarDecl* varDecl ) override;
     virtual void VisitWhileStatement( WhileStatement* whileStmt ) override;
 };
+
+}

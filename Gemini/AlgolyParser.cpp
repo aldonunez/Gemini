@@ -76,6 +76,9 @@ static const char* gTokenNames[] =
 };
 
 
+namespace Gemini
+{
+
 AlgolyParser::AlgolyParser( const char* codeText, int codeTextLen, const char* fileName, ICompilerLog* log ) :
     mFileName( fileName != nullptr ? fileName : "" ),
     mUnitFileName(),
@@ -1756,4 +1759,6 @@ void AlgolyParser::ThrowSyntaxError( const char* format, ... )
     va_start( args, format );
     mRep.ThrowError( CERR_SYNTAX, mUnitFileName, mTokLine, mTokCol, format, args );
     va_end( args );
+}
+
 }

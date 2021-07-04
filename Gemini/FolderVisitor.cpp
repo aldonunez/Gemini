@@ -8,6 +8,9 @@
 #include "FolderVisitor.h"
 
 
+namespace Gemini
+{
+
 FolderVisitor::FolderVisitor( ICompilerLog* log ) :
     mFoldNodes( false ),
     mRep( log )
@@ -394,4 +397,6 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
         child = std::move( number );
         child->Type = mIntType;
     }
+}
+
 }

@@ -11,6 +11,9 @@
 #include <optional>
 
 
+namespace Gemini
+{
+
 class FolderVisitor final : public IVisitor
 {
     std::optional<int32_t>  mLastValue;
@@ -63,3 +66,5 @@ private:
 
     void Fold( Unique<Syntax>& child );
 };
+
+}

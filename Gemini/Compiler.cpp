@@ -13,6 +13,9 @@
 #include "FolderVisitor.h"
 
 
+namespace Gemini
+{
+
 Compiler::Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
     mCodeBin( codeBin ),
     mCodeBinPtr( codeBin ),
@@ -2182,7 +2185,7 @@ void Reporter::ThrowInternalError( const char* format, ... )
 
 void Reporter::Log( LogCategory category, const char* fileName, int line, int col, const char* format, va_list args )
 {
-    ::Log( mLog, category, fileName, line, col, format, args );
+    Gemini::Log( mLog, category, fileName, line, col, format, args );
 }
 
 void Reporter::LogWarning( const char* fileName, int line, int col, const char* format, ... )
@@ -2202,4 +2205,6 @@ void Log( ICompilerLog* log, LogCategory category, const char* fileName, int lin
         vsprintf_s( msg, format, args );
         log->Add( category, fileName, line, col, msg );
     }
+}
+
 }

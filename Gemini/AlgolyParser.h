@@ -11,6 +11,9 @@
 #include <string>
 
 
+namespace Gemini
+{
+
 class AlgolyParser
 {
     enum class TokenCode
@@ -208,3 +211,5 @@ private:
 
     [[noreturn]] void ThrowSyntaxError( const char* format, ... );
 };
+
+}

@@ -32,6 +32,9 @@ static const char* gTokenNames[] =
 };
 
 
+namespace Gemini
+{
+
 LispyParser::LispyParser( const char* codeText, int codeTextLen, const char* fileName, ICompilerLog* log ) :
     mFileName( fileName != nullptr ? fileName : "" ),
     mUnitFileName(),
@@ -1069,6 +1072,7 @@ void LispyParser::ThrowSyntaxError( const char* format, ... )
     va_end( args );
 }
 
+}
 
 #if 0
 void GenerateIdCharTable()

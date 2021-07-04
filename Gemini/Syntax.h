@@ -12,6 +12,9 @@
 #include <vector>
 
 
+namespace Gemini
+{
+
 enum class ScopeKind
 {
     Global,
@@ -118,7 +121,7 @@ public:
 class TypeRef : public Syntax
 {
 public:
-    std::shared_ptr<::Type> ReferentType;
+    std::shared_ptr<Gemini::Type> ReferentType;
 };
 
 class NameTypeRef : public TypeRef
@@ -644,7 +647,7 @@ struct NativeFunction : public Declaration
 
 struct TypeDeclaration : public Declaration
 {
-    std::shared_ptr<::Type> ReferentType;
+    std::shared_ptr<Gemini::Type> ReferentType;
 
     TypeDeclaration();
 };
@@ -758,3 +761,5 @@ public:
     virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;
 };
+
+}

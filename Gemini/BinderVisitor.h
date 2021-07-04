@@ -10,6 +10,9 @@
 #include "Compiler.h"
 
 
+namespace Gemini
+{
+
 class BinderVisitor final : public IVisitor
 {
     using SymStack = std::vector<SymTable*>;
@@ -155,3 +158,5 @@ private:
 
 bool IsScalarType( TypeKind kind );
 bool IsIntegralType( TypeKind kind );
+
+}
