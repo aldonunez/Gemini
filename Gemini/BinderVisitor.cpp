@@ -39,14 +39,12 @@ public:
 static bool IsFunctionDeclaration( DeclKind kind )
 {
     return kind == DeclKind::Func
-        || kind == DeclKind::Forward
         ;
 }
 
 static bool IsCallableDeclaration( DeclKind kind )
 {
     return kind == DeclKind::Func
-        || kind == DeclKind::Forward
         || kind == DeclKind::NativeFunc
         ;
 }
@@ -61,7 +59,6 @@ static bool IsVarDeclaration( DeclKind kind )
 static bool IsAddressableDeclaration( DeclKind kind )
 {
     return kind == DeclKind::Func
-        || kind == DeclKind::Forward
         ;
 }
 
@@ -635,7 +632,7 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
 
     auto pointerType = Make<PointerType>( funcType );
 
-    std::shared_ptr<Function> func = AddFunc( name, INT32_MAX );
+    std::shared_ptr<Function> func = AddFunc( name, false );
 
     func->Type = funcType;
 
@@ -930,7 +927,7 @@ void BinderVisitor::VisitProcDecl( ProcDecl* procDecl )
 
     mGlobalTable.erase( procDecl->Name );
 
-    auto forward = AddForward( procDecl->Name );
+    auto forward = AddFunc( procDecl->Name, true );
 
     forward->Type = MakeFuncType( procDecl );
 
@@ -944,20 +941,9 @@ void BinderVisitor::BindNamedProc( ProcDecl* procDecl )
 
     if ( it != mGlobalTable.end() )
     {
-        if ( it->second->Kind == DeclKind::Forward )
+        if ( it->second->Kind != DeclKind::Func )
         {
-            func = std::static_pointer_cast<Function>( it->second );
-            func->Kind = DeclKind::Func;
-            func->Address = INT32_MAX;
-            // TODO: look for forwards another way
-        }
-        else if ( it->second->Kind == DeclKind::Func )
-        {
-            mRep.ThrowError( CERR_SEMANTICS, procDecl, "the function '%s' is already defined", procDecl->Name.c_str() );
-        }
-        else
-        {
-            mRep.ThrowError( CERR_SEMANTICS, procDecl, "the symbol '%s' is already defined", procDecl->Name.c_str() );
+            mRep.ThrowError( CERR_SEMANTICS, procDecl, "The symbol '%s' is not a function", procDecl->Name.c_str() );
         }
     }
     else
@@ -1343,31 +1329,19 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std:
     return constant;
 }
 
-std::shared_ptr<Function> BinderVisitor::AddFunc( const std::string& name, CodeSize address )
+std::shared_ptr<Function> BinderVisitor::AddFunc( const std::string& name, bool isPublic )
 {
     CheckDuplicateGlobalSymbol( name );
 
     std::shared_ptr<Function> func( new Function() );
     func->Kind = DeclKind::Func;
     func->Name = name;
-    func->Address = address;
-    func->ModIndex = mModIndex;
-    mGlobalTable.insert( SymTable::value_type( name, func ) );
-    return func;
-}
-
-std::shared_ptr<Function> BinderVisitor::AddForward( const std::string& name )
-{
-    CheckDuplicateGlobalSymbol( name );
-
-    std::shared_ptr<Function> func( new Function() );
-    func->Kind = DeclKind::Forward;
-    func->Name = name;
     func->Address = INT32_MAX;
     func->ModIndex = mModIndex;
     mGlobalTable.insert( SymTable::value_type( name, func ) );
 
-    mPublicTable.insert( SymTable::value_type( name, func ) );
+    if ( isPublic )
+        mPublicTable.insert( SymTable::value_type( name, func ) );
 
     return func;
 }

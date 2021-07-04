@@ -548,7 +548,6 @@ enum class DeclKind
     Local,
     Param,
     Func,
-    Forward,
     NativeFunc,
     Type,
     Module,

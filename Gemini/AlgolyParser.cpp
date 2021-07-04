@@ -422,6 +422,8 @@ void AlgolyParser::ReadNumber()
 
     unsigned long value = strtoul( mCurString.c_str(), NULL, 10 );
 
+    // Leave INT32_MAX+1 in range for now, so it can be negated
+
     if ( value == ULONG_MAX && errno == ERANGE
         || value > (uint32_t) INT32_MAX + 1 )
         ThrowSyntaxError( "Number out of range" );

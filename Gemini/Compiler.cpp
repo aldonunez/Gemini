@@ -293,7 +293,6 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Func:
-    case DeclKind::Forward:
         mRep.ThrowError( CERR_SEMANTICS, node, "functions don't have values" );
         break;
 
@@ -337,7 +336,6 @@ void Compiler::GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig
     auto decl = symbol->GetDecl();
 
     if ( decl->Kind == DeclKind::Func
-        || decl->Kind == DeclKind::Forward
         || decl->Kind == DeclKind::NativeFunc )
     {
         std::vector<Unique<Syntax>> args;
@@ -618,7 +616,6 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     case DeclKind::Func:
-    case DeclKind::Forward:
     case DeclKind::NativeFunc:
         mRep.ThrowError( CERR_SEMANTICS, node, "functions can't be assigned a value" );
         break;

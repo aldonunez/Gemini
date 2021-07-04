@@ -137,8 +137,7 @@ private:
     std::shared_ptr<Declaration> AddStorage( const std::string& name, std::shared_ptr<Type> type, size_t size, DeclKind declKind );
     std::shared_ptr<Constant> AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, SymTable& table );
     std::shared_ptr<Constant> AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, bool isPublic );
-    std::shared_ptr<Function> AddFunc( const std::string& name, CodeSize address );
-    std::shared_ptr<Function> AddForward( const std::string& name );
+    std::shared_ptr<Function> AddFunc( const std::string& name, bool isPublic );
     std::shared_ptr<TypeDeclaration> AddType( const std::string& name, std::shared_ptr<Type> type, bool isPublic );
     void AddModule( const std::string& name, std::shared_ptr<ModuleDeclaration> moduleDecl );
     void CheckDuplicateGlobalSymbol( const std::string& name );
