@@ -618,6 +618,8 @@ struct CommonDeclaration : public Declaration
 {
     std::shared_ptr<Type>   Type;
 
+    CommonDeclaration( DeclKind kind );
+
     virtual std::shared_ptr<::Type> GetType() const override
     {
         return Type;

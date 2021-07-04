@@ -650,7 +650,6 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 
         auto member = Make<EnumMember>( value, enumType );
 
-        member->Kind = DeclKind::Const;
         member->Value = value;
 
         enumType->ByNameTable.insert( SymTable::value_type( memberDef->Name, member ) );

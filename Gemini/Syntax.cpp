@@ -519,8 +519,13 @@ Declaration::Declaration( DeclKind kind ) :
 {
 }
 
+CommonDeclaration::CommonDeclaration( DeclKind kind ) :
+    Declaration( kind )
+{
+}
+
 UndefinedDeclaration::UndefinedDeclaration() :
-    Declaration( DeclKind::Undefined )
+    CommonDeclaration( DeclKind::Undefined )
 {
 }
 
@@ -530,37 +535,37 @@ Constant::Constant() :
 }
 
 GlobalStorage::GlobalStorage() :
-    Declaration( DeclKind::Global )
+    CommonDeclaration( DeclKind::Global )
 {
 }
 
 LocalStorage::LocalStorage() :
-    Declaration( DeclKind::Local )
+    CommonDeclaration( DeclKind::Local )
 {
 }
 
 ParamStorage::ParamStorage() :
-    Declaration( DeclKind::Param )
+    CommonDeclaration( DeclKind::Param )
 {
 }
 
 Function::Function() :
-    Declaration( DeclKind::Func )
+    CommonDeclaration( DeclKind::Func )
 {
 }
 
 NativeFunction::NativeFunction() :
-    Declaration( DeclKind::NativeFunc )
+    CommonDeclaration( DeclKind::NativeFunc )
 {
 }
 
 TypeDeclaration::TypeDeclaration() :
-    Declaration( DeclKind::Type )
+    CommonDeclaration( DeclKind::Type )
 {
 }
 
 ModuleDeclaration::ModuleDeclaration() :
-    Declaration( DeclKind::Module )
+    CommonDeclaration( DeclKind::Module )
 {
 }
 
