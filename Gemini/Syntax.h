@@ -620,7 +620,7 @@ struct CommonDeclaration : public Declaration
 
     CommonDeclaration( DeclKind kind );
 
-    virtual std::shared_ptr<::Type> GetType() const override
+    virtual std::shared_ptr<Gemini::Type> GetType() const override
     {
         return Type;
     }
@@ -649,7 +649,7 @@ struct SimpleConstant : public Constant
 {
     std::shared_ptr<Type>   Type;
 
-    virtual std::shared_ptr<::Type> GetType() const override
+    virtual std::shared_ptr<Gemini::Type> GetType() const override
     {
         return Type;
     }
