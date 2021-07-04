@@ -573,7 +573,7 @@ struct UndefinedDeclaration : public Declaration
 
 struct Constant : public Declaration
 {
-    int Value;
+    int32_t Value;
 };
 
 struct GlobalStorage : public Declaration
