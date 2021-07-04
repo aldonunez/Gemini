@@ -468,6 +468,66 @@ void IVisitor::VisitWhileStatement( WhileStatement* whileStmt )
 
 
 //----------------------------------------------------------------------------
+//  Declarations
+//----------------------------------------------------------------------------
+
+Declaration::Declaration( DeclKind kind ) :
+    Kind( kind )
+{
+}
+
+UndefinedDeclaration::UndefinedDeclaration() :
+    Declaration( DeclKind::Undefined )
+{
+}
+
+Constant::Constant() :
+    Declaration( DeclKind::Const )
+{
+}
+
+GlobalStorage::GlobalStorage() :
+    Declaration( DeclKind::Global )
+{
+}
+
+LocalStorage::LocalStorage() :
+    Declaration( DeclKind::Local )
+{
+}
+
+ParamStorage::ParamStorage() :
+    Declaration( DeclKind::Param )
+{
+}
+
+Function::Function() :
+    Declaration( DeclKind::Func )
+{
+}
+
+NativeFunction::NativeFunction() :
+    Declaration( DeclKind::NativeFunc )
+{
+}
+
+TypeDeclaration::TypeDeclaration() :
+    Declaration( DeclKind::Type )
+{
+}
+
+ModuleDeclaration::ModuleDeclaration() :
+    Declaration( DeclKind::Module )
+{
+}
+
+LoadedAddressDeclaration::LoadedAddressDeclaration() :
+    Declaration( DeclKind::LoadedAddress )
+{
+}
+
+
+//----------------------------------------------------------------------------
 //  Types
 //----------------------------------------------------------------------------
 

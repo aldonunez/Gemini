@@ -22,7 +22,6 @@ Compiler::Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog
     mModIndex( modIndex )
 {
     mLoadedAddrDecl.reset( new LoadedAddressDeclaration() );
-    mLoadedAddrDecl->Kind = DeclKind::LoadedAddress;
 }
 
 void Compiler::AddUnit( Unique<Unit>&& unit )
@@ -84,7 +83,6 @@ std::shared_ptr<ModuleDeclaration> Compiler::GetMetadata( const char* modName )
     std::shared_ptr<ModuleDeclaration> modDecl( new ModuleDeclaration() );
 
     modDecl->Name = modName;
-    modDecl->Kind = DeclKind::Module;
     modDecl->Table = std::move( mPublicTable );
     modDecl->Type = std::shared_ptr<ModuleType>( new ModuleType() );
 

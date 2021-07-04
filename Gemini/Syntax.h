@@ -558,38 +558,51 @@ enum class DeclKind
 
 struct Declaration
 {
-    DeclKind  Kind;
+    const DeclKind          Kind;
     std::shared_ptr<Type>   Type;
 
     virtual ~Declaration() { }
+
+protected:
+    Declaration( DeclKind kind );
 };
 
 using SymTable = std::map<std::string, std::shared_ptr<Declaration>>;
 
 struct UndefinedDeclaration : public Declaration
 {
-    Syntax* Node;
+    Syntax*     Node = nullptr;
+
+    UndefinedDeclaration();
 };
 
 struct Constant : public Declaration
 {
-    int32_t Value;
+    int32_t     Value = 0;
+
+    Constant();
 };
 
 struct GlobalStorage : public Declaration
 {
-    GlobalSize  Offset;
-    ModSize     ModIndex;
+    GlobalSize  Offset = 0;
+    ModSize     ModIndex = 0;
+
+    GlobalStorage();
 };
 
 struct LocalStorage : public Declaration
 {
-    LocalSize   Offset;
+    LocalSize   Offset = 0;
+
+    LocalStorage();
 };
 
 struct ParamStorage : public Declaration
 {
-    ParamSize   Offset;
+    ParamSize   Offset = 0;
+
+    ParamStorage();
 };
 
 struct CallSite
@@ -601,43 +614,52 @@ struct CallSite
 struct Function : public Declaration
 {
     std::string Name;
-    CodeSize    Address;
-    ModSize     ModIndex;
+    CodeSize    Address = UndefinedAddr;
+    ModSize     ModIndex = 0;
 
-    LocalSize   LocalCount;
-    ParamSize   ParamCount;
-    LocalSize   ExprDepth;
+    LocalSize   LocalCount = 0;
+    ParamSize   ParamCount = 0;
+    LocalSize   ExprDepth = 0;
 
-    uint32_t    CallDepth;
-    uint32_t    IndividualStackUsage;
-    uint32_t    TreeStackUsage;
+    uint32_t    CallDepth = 0;
+    uint32_t    IndividualStackUsage = 0;
+    uint32_t    TreeStackUsage = 0;
 
-    bool        IsCalculating;
-    bool        IsRecursive;
-    bool        IsDepthKnown;
-    bool        CallsIndirectly;
+    bool        IsCalculating = false;
+    bool        IsRecursive = false;
+    bool        IsDepthKnown = false;
+    bool        CallsIndirectly = false;
 
     std::list<CallSite> CalledFunctions;
+
+    Function();
 };
 
 struct NativeFunction : public Declaration
 {
-    int32_t Id;
+    int32_t     Id = 0;
+
+    NativeFunction();
 };
 
 struct TypeDeclaration : public Declaration
 {
     std::shared_ptr<::Type> ReferentType;
+
+    TypeDeclaration();
 };
 
 struct ModuleDeclaration : public Declaration
 {
     std::string Name;
     SymTable    Table;
+
+    ModuleDeclaration();
 };
 
 struct LoadedAddressDeclaration : public Declaration
 {
+    LoadedAddressDeclaration();
 };
 
 

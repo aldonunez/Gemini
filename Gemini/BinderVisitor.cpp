@@ -858,7 +858,6 @@ void BinderVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
     mGlobalTable.erase( nativeDecl->Name );
 
     std::shared_ptr<NativeFunction> native( new NativeFunction() );
-    native->Kind = DeclKind::NativeFunc;
     native->Id = mNextNativeId;
     mGlobalTable.insert( SymTable::value_type( nativeDecl->Name, native ) );
 
@@ -1246,7 +1245,6 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( const std::string& name, 
     auto& table = *mSymStack.back();
 
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
-    param->Kind = DeclKind::Param;
     param->Offset = static_cast<ParamSize>( table.size() );
     param->Type = type;
     table.insert( SymTable::value_type( name, param ) );
@@ -1261,7 +1259,6 @@ std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( const std::string& name, 
         mRep.ThrowError( CERR_SEMANTICS, 0, 0, "Local exceeds capacity: %s", name.c_str() );
 
     std::shared_ptr<LocalStorage> local( new LocalStorage() );
-    local->Kind = DeclKind::Local;
     local->Offset = static_cast<LocalSize>( mCurLocalCount + size - 1 );
     local->Type = type;
     mSymStack.back()->insert( SymTable::value_type( name, local ) );
@@ -1283,7 +1280,6 @@ std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name
         mRep.ThrowError( CERR_SEMANTICS, 0, 0, "Global exceeds capacity: %s", name.c_str() );
 
     std::shared_ptr<GlobalStorage> global( new GlobalStorage() );
-    global->Kind = DeclKind::Global;
     global->Offset = mGlobalSize;
     global->ModIndex = mModIndex;
     global->Type = type;
@@ -1310,7 +1306,6 @@ std::shared_ptr<Declaration> BinderVisitor::AddStorage( const std::string& name,
 std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, SymTable& table )
 {
     std::shared_ptr<Constant> constant( new Constant() );
-    constant->Kind = DeclKind::Const;
     constant->Type = type;
     constant->Value = value;
     table.insert( SymTable::value_type( name, constant ) );
@@ -1334,7 +1329,6 @@ std::shared_ptr<Function> BinderVisitor::AddFunc( const std::string& name, bool 
     CheckDuplicateGlobalSymbol( name );
 
     std::shared_ptr<Function> func( new Function() );
-    func->Kind = DeclKind::Func;
     func->Name = name;
     func->Address = UndefinedAddr;
     func->ModIndex = mModIndex;
@@ -1351,7 +1345,6 @@ std::shared_ptr<TypeDeclaration> BinderVisitor::AddType( const std::string& name
     CheckDuplicateGlobalSymbol( name );
 
     std::shared_ptr<TypeDeclaration> typeDecl( new TypeDeclaration() );
-    typeDecl->Kind = DeclKind::Type;
     typeDecl->Type = mTypeType;
     typeDecl->ReferentType = type;
     mGlobalTable.insert( SymTable::value_type( name, typeDecl ) );
@@ -1400,7 +1393,6 @@ void BinderVisitor::DeclareNode( DeclSyntax* node )
     CheckDuplicateGlobalSymbol( node->Name );
 
     std::shared_ptr<UndefinedDeclaration> undef( new UndefinedDeclaration() );
-    undef->Kind = DeclKind::Undefined;
     undef->Node = node;
     mGlobalTable.insert( SymTable::value_type( node->Name, undef ) );
 }
