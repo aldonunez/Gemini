@@ -702,14 +702,7 @@ void Compiler::EmitFuncAddress( Function* func, CodeRef funcRef )
     }
     else
     {
-        FuncPatchChain* chain = PushFuncPatch( func->Name, funcRef );
-
-        if ( mInFunc )
-        {
-            AddrRef ref = { AddrRefKind::Inst };
-            ref.InstIndexPtr = &chain->First->Ref.Location;
-            mLocalAddrRefs.push_back( ref );
-        }
+        PushFuncPatch( func->Name, funcRef );
 
         modIndex = mModIndex;
     }
@@ -908,11 +901,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         }
         else
         {
-            FuncPatchChain* chain = PushFuncPatch( func->Name, { CodeRefKind::Code, mCodeBinPtr - mCodeBin } );
-
-            AddrRef ref = { AddrRefKind::Inst };
-            ref.InstIndexPtr = &chain->First->Ref.Location;
-            mLocalAddrRefs.push_back( ref );
+            PushFuncPatch( func->Name, { CodeRefKind::Code, mCodeBinPtr - mCodeBin } );
         }
 
         WriteU24( mCodeBinPtr, addr );
@@ -1463,9 +1452,10 @@ void Compiler::PushPatch( PatchChain* chain )
     PushPatch( chain, mCodeBinPtr - mCodeBin );
 }
 
-void Compiler::PushPatch( PatchChain* chain, int32_t patchLoc )
+template <typename TRef>
+void Compiler::PushPatch( BasicPatchChain<TRef>* chain, TRef patchLoc )
 {
-    InstPatch* link = new InstPatch;
+    BasicInstPatch<TRef>* link = new BasicInstPatch<TRef>;
     link->Ref = patchLoc;
     link->Next = chain->First;
     chain->First = link;
@@ -1480,7 +1470,7 @@ void Compiler::PopPatch( PatchChain* chain )
     delete link;
 }
 
-Compiler::FuncPatchChain* Compiler::PushFuncPatch( const std::string& name, CodeRef ref )
+void Compiler::PushFuncPatch( const std::string& name, CodeRef codeRef )
 {
     auto patchIt = mFuncPatchMap.find( name );
     if ( patchIt == mFuncPatchMap.end() )
@@ -1489,12 +1479,14 @@ Compiler::FuncPatchChain* Compiler::PushFuncPatch( const std::string& name, Code
         patchIt = std::move( result.first );
     }
 
-    auto* link = new FuncInstPatch;
-    link->Ref = ref;
-    link->Next = patchIt->second.First;
-    patchIt->second.First = link;
+    PushPatch( &patchIt->second, codeRef );
 
-    return &patchIt->second;
+    if ( mInFunc )
+    {
+        AddrRef ref = { AddrRefKind::Inst };
+        ref.InstIndexPtr = &patchIt->second.First->Ref.Location;
+        mLocalAddrRefs.push_back( ref );
+    }
 }
 
 void Compiler::ElideTrue( PatchChain* trueChain, PatchChain* falseChain )

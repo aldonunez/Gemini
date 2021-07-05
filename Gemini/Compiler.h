@@ -431,11 +431,12 @@ private:
 
     // Backpatching
     void Patch( PatchChain* chain, int32_t targetIndex = -1 );
-    void PushPatch( PatchChain* chain, int32_t patchLoc );
+    template <typename TRef>
+    void PushPatch( BasicPatchChain<TRef>* chain, TRef patchLoc );
     void PushPatch( PatchChain* chain );
     void PopPatch( PatchChain* chain );
     void PatchCalls( FuncPatchChain* chain, U32 addr );
-    FuncPatchChain* PushFuncPatch( const std::string& name, CodeRef ref );
+    void PushFuncPatch( const std::string& name, CodeRef ref );
 
     I32 GetSyntaxValue( Syntax* node, const char* message = nullptr );
 
