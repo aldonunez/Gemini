@@ -1634,7 +1634,7 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 {
     assert( config.calcAddr );
 
-    auto arrayType = (ArrayType&) *indexExpr->Head->Type;
+    auto& arrayType = (ArrayType&) *indexExpr->Head->Type;
 
     Generate( indexExpr->Head.get(), config, status );
 
@@ -1743,7 +1743,7 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
     {
         Generate( sliceExpr->Head.get(), config, status );
 
-        auto arrayType = (ArrayType&) *sliceExpr->Head->Type;
+        auto& arrayType = (ArrayType&) *sliceExpr->Head->Type;
 
         int32_t indexVal = GetSyntaxValue( sliceExpr->FirstIndex.get(), "" );
 
@@ -1913,7 +1913,7 @@ void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
 
         // If local lambda references were generated, then shift them
         // This also includes references to any function
-        for ( auto ref : mLocalAddrRefs )
+        for ( const auto& ref : mLocalAddrRefs )
         {
             U8** ppInst = nullptr;
 

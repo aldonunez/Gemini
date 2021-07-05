@@ -180,7 +180,7 @@ void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 {
     Visit( addrOf->Inner );
 
-    auto innerType = addrOf->Inner->Type;
+    const auto& innerType = addrOf->Inner->Type;
     auto decl = addrOf->Inner->GetDecl();
 
     if ( !innerType || !IsAddressableType( innerType->GetKind() )
