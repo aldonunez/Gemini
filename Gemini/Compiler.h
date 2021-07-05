@@ -122,24 +122,38 @@ public:
 class Compiler final : public IVisitor
 {
 public:
-    struct InstPatch
+    enum class CodeRefKind
     {
-        InstPatch*  Next;
-        U8*         Inst;
+        Code,
+        Data,
     };
 
-    struct PatchChain
+    struct CodeRef
     {
-        InstPatch*  First;
-        U8*         PatchedPtr;
+        CodeRefKind     Kind;
+        int32_t         Location;
+    };
 
-        PatchChain() :
+    template <typename TRef>
+    struct BasicInstPatch
+    {
+        BasicInstPatch* Next;
+        TRef            Ref;
+    };
+
+    template <typename TRef>
+    struct BasicPatchChain
+    {
+        BasicInstPatch<TRef>*   First;
+        int32_t                 PatchedInstIndex;
+
+        BasicPatchChain() :
             First( nullptr ),
-            PatchedPtr( nullptr )
+            PatchedInstIndex( -1 )
         {
         }
 
-        ~PatchChain()
+        ~BasicPatchChain()
         {
             while ( First != nullptr )
             {
@@ -149,24 +163,30 @@ public:
             }
         }
 
-        PatchChain( PatchChain&& other ) noexcept
+        BasicPatchChain( BasicPatchChain&& other ) noexcept
         {
             First = other.First;
-            PatchedPtr = other.PatchedPtr;
+            PatchedInstIndex = other.PatchedInstIndex;
 
             other.First = nullptr;
-            other.PatchedPtr = nullptr;
+            other.PatchedInstIndex = 0;
         }
 
-        PatchChain& operator=( PatchChain&& other ) noexcept
+        BasicPatchChain& operator=( BasicPatchChain&& other ) noexcept
         {
             std::swap( First, other.First );
-            PatchedPtr = other.PatchedPtr;
+            PatchedInstIndex = other.PatchedInstIndex;
             return *this;
         }
     };
 
-    using PatchMap = std::map<std::string, PatchChain>;
+    using InstPatch = BasicInstPatch<int32_t>;
+    using FuncInstPatch = BasicInstPatch<CodeRef>;
+
+    using PatchChain = BasicPatchChain<int32_t>;
+    using FuncPatchChain = BasicPatchChain<CodeRef>;
+
+    using FuncPatchMap = std::map<std::string, FuncPatchChain>;
 
 private:
     enum class AddrRefKind
@@ -179,7 +199,7 @@ private:
         AddrRefKind Kind;
         union
         {
-            U8**    InstPtr;
+            int32_t*    InstIndexPtr;
         };
     };
 
@@ -291,7 +311,7 @@ private:
     SymTable        mGlobalTable;
     SymTable        mModuleTable;
     SymTable        mPublicTable;
-    PatchMap        mPatchMap;
+    FuncPatchMap    mFuncPatchMap;
     AddrRefVec      mLocalAddrRefs;
     bool            mInFunc = false;
     Function*       mCurFunc = nullptr;
@@ -357,7 +377,7 @@ private:
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
-    void EmitFuncAddress( Function* func, uint8_t*& dstPtr );
+    void EmitFuncAddress( Function* func, CodeRef funcRef );
     void EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitSpilledAddrOffset( int32_t offset );
@@ -410,12 +430,12 @@ private:
     U8 InvertJump( U8 opCode );
 
     // Backpatching
-    void Patch( PatchChain* chain, U8* targetPtr = nullptr );
-    void PatchCalls( PatchChain* chain, U32 addr );
-    void PushPatch( PatchChain* chain, U8* patchPtr );
+    void Patch( PatchChain* chain, int32_t targetIndex = -1 );
+    void PushPatch( PatchChain* chain, int32_t patchLoc );
     void PushPatch( PatchChain* chain );
     void PopPatch( PatchChain* chain );
-    PatchChain* PushFuncPatch( const std::string& name, U8* patchPtr );
+    void PatchCalls( FuncPatchChain* chain, U32 addr );
+    FuncPatchChain* PushFuncPatch( const std::string& name, CodeRef ref );
 
     I32 GetSyntaxValue( Syntax* node, const char* message = nullptr );
 

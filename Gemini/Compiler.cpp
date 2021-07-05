@@ -549,8 +549,8 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
     if ( (mCodeBinPtr - startPtr) >= BranchInst::Size
         && mCodeBinPtr[-BranchInst::Size] == OP_B
         && leaveChain.First != nullptr
-        && leaveChain.First->Inst == &mCodeBinPtr[-BranchInst::Size]
-        && falseChain.PatchedPtr == mCodeBinPtr )
+        && leaveChain.First->Ref == (mCodeBinPtr - mCodeBin - BranchInst::Size)
+        && falseChain.PatchedInstIndex == (mCodeBinPtr - mCodeBin) )
     {
         mCodeBinPtr -= BranchInst::Size;
         Patch( &falseChain );
@@ -657,8 +657,8 @@ void Compiler::VisitProcDecl( ProcDecl* procDecl )
 
     func->Address = addr;
 
-    auto patchIt = mPatchMap.find( func->Name );
-    if ( patchIt != mPatchMap.end() )
+    auto patchIt = mFuncPatchMap.find( func->Name );
+    if ( patchIt != mFuncPatchMap.end() )
         PatchCalls( &patchIt->second, addr );
 
     mEnv->AddExternal( procDecl->Name, External_Bytecode, func->Address );
@@ -683,12 +683,14 @@ void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, Ge
     mCodeBinPtr[0] = OP_LDC;
     mCodeBinPtr++;
 
-    EmitFuncAddress( (Function*) addrOf->Inner->GetDecl(), mCodeBinPtr );
+    EmitFuncAddress( (Function*) addrOf->Inner->GetDecl(), { CodeRefKind::Code, mCodeBinPtr - mCodeBin } );
+
+    mCodeBinPtr += 4;
 
     IncreaseExprDepth();
 }
 
-void Compiler::EmitFuncAddress( Function* func, uint8_t*& dstPtr )
+void Compiler::EmitFuncAddress( Function* func, CodeRef funcRef )
 {
     U32     addr = 0;
     ModSize modIndex = 0;
@@ -700,21 +702,28 @@ void Compiler::EmitFuncAddress( Function* func, uint8_t*& dstPtr )
     }
     else
     {
-        PatchChain* chain = PushFuncPatch( func->Name, dstPtr );
+        FuncPatchChain* chain = PushFuncPatch( func->Name, funcRef );
 
         if ( mInFunc )
         {
             AddrRef ref = { AddrRefKind::Inst };
-            ref.InstPtr = &chain->First->Inst;
+            ref.InstIndexPtr = &chain->First->Ref.Location;
             mLocalAddrRefs.push_back( ref );
         }
 
         modIndex = mModIndex;
     }
 
-    WriteU24( dstPtr, addr );
-    dstPtr[0] = modIndex;
-    dstPtr++;
+    U32 addrWord = CodeAddr::Build( addr, modIndex );
+
+    if ( funcRef.Kind == CodeRefKind::Code )
+    {
+        StoreU32( &mCodeBin[funcRef.Location], addrWord );
+    }
+    else if ( funcRef.Kind == CodeRefKind::Data )
+    {
+        mGlobals[funcRef.Location] = addrWord;
+    }
 }
 
 void Compiler::VisitAddrOfExpr( AddrOfExpr* addrOf )
@@ -899,10 +908,10 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         }
         else
         {
-            PatchChain* chain = PushFuncPatch( func->Name, mCodeBinPtr );
+            FuncPatchChain* chain = PushFuncPatch( func->Name, { CodeRefKind::Code, mCodeBinPtr - mCodeBin } );
 
             AddrRef ref = { AddrRefKind::Inst };
-            ref.InstPtr = &chain->First->Inst;
+            ref.InstIndexPtr = &chain->First->Ref.Location;
             mLocalAddrRefs.push_back( ref );
         }
 
@@ -1031,7 +1040,7 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
     mCodeBinPtr[0] = OP_B;
     mCodeBinPtr += BranchInst::Size;
 
-    U8* bodyPtr = mCodeBinPtr;
+    int32_t bodyLoc = mCodeBinPtr - mCodeBin;
 
     // Body
     GenerateStatements( &forStmt->Body, config.WithLoop( &breakChain, &nextChain ), status );
@@ -1071,7 +1080,7 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
     mCodeBinPtr += BranchInst::Size;
     DecreaseExprDepth();
 
-    Patch( &bodyChain, bodyPtr );
+    Patch( &bodyChain, bodyLoc );
     Patch( &breakChain );
 
     GenerateNilIfNeeded( config, status );
@@ -1087,7 +1096,7 @@ void Compiler::GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& con
     PatchChain  breakChain;
     PatchChain  nextChain;
 
-    U8* bodyPtr = mCodeBinPtr;
+    int32_t bodyPtr = mCodeBinPtr - mCodeBin;
 
     // Body
     GenerateStatements( &loopStmt->Body, config.WithLoop( &breakChain, &nextChain ), status );
@@ -1129,7 +1138,7 @@ void Compiler::GenerateDo( WhileStatement* whileStmt, const GenConfig& config, G
     PatchChain  nextChain;
     PatchChain  trueChain;
 
-    U8* testPtr = mCodeBinPtr;
+    int32_t testLoc = mCodeBinPtr - mCodeBin;
 
     // Test expression
     Generate( whileStmt->Condition.get(), GenConfig::Expr( &trueChain, &breakChain, false ) );
@@ -1145,7 +1154,7 @@ void Compiler::GenerateDo( WhileStatement* whileStmt, const GenConfig& config, G
     mCodeBinPtr += BranchInst::Size;
 
     Patch( &breakChain );
-    Patch( &nextChain, testPtr );
+    Patch( &nextChain, testLoc );
 
     GenerateNilIfNeeded( config, status );
 }
@@ -1451,13 +1460,13 @@ U8 Compiler::InvertJump( U8 opCode )
 
 void Compiler::PushPatch( PatchChain* chain )
 {
-    PushPatch( chain, mCodeBinPtr );
+    PushPatch( chain, mCodeBinPtr - mCodeBin );
 }
 
-void Compiler::PushPatch( PatchChain* chain, U8* patchPtr )
+void Compiler::PushPatch( PatchChain* chain, int32_t patchLoc )
 {
     InstPatch* link = new InstPatch;
-    link->Inst = patchPtr;
+    link->Ref = patchLoc;
     link->Next = chain->First;
     chain->First = link;
 }
@@ -1471,16 +1480,19 @@ void Compiler::PopPatch( PatchChain* chain )
     delete link;
 }
 
-Compiler::PatchChain* Compiler::PushFuncPatch( const std::string& name, U8* patchPtr )
+Compiler::FuncPatchChain* Compiler::PushFuncPatch( const std::string& name, CodeRef ref )
 {
-    auto patchIt = mPatchMap.find( name );
-    if ( patchIt == mPatchMap.end() )
+    auto patchIt = mFuncPatchMap.find( name );
+    if ( patchIt == mFuncPatchMap.end() )
     {
-        auto result = mPatchMap.insert( PatchMap::value_type( { name, PatchChain() } ) );
+        auto result = mFuncPatchMap.insert( FuncPatchMap::value_type( { name, FuncPatchChain() } ) );
         patchIt = std::move( result.first );
     }
 
-    PushPatch( &patchIt->second, patchPtr );
+    auto* link = new FuncInstPatch;
+    link->Ref = ref;
+    link->Next = patchIt->second.First;
+    patchIt->second.First = link;
 
     return &patchIt->second;
 }
@@ -1491,16 +1503,18 @@ void Compiler::ElideTrue( PatchChain* trueChain, PatchChain* falseChain )
         || falseChain->First == nullptr )
         return;
 
-    U8* target = mCodeBinPtr;
-    size_t diff = target - (trueChain->First->Inst + BranchInst::Size);
+    int32_t target = mCodeBinPtr - mCodeBin;
+    size_t diff = target - (trueChain->First->Ref + BranchInst::Size);
 
     if ( diff == BranchInst::Size
         && mCodeBinPtr[-BranchInst::Size] == OP_B
-        && &mCodeBinPtr[-BranchInst::Size] == falseChain->First->Inst
+        && (mCodeBinPtr - mCodeBin - BranchInst::Size) == falseChain->First->Ref
         )
     {
-        falseChain->First->Inst = trueChain->First->Inst;
-        trueChain->First->Inst[0] = InvertJump( trueChain->First->Inst[0] );
+        falseChain->First->Ref = trueChain->First->Ref;
+
+        uint8_t* codePtr = &mCodeBin[trueChain->First->Ref];
+        codePtr[0] = InvertJump( codePtr[0] );
 
         // Remove the branch instruction.
         PopPatch( trueChain );
@@ -1513,8 +1527,8 @@ void Compiler::ElideFalse( PatchChain* trueChain, PatchChain* falseChain )
     if ( falseChain->First == nullptr )
         return;
 
-    U8* target = mCodeBinPtr;
-    size_t diff = target - (falseChain->First->Inst + BranchInst::Size);
+    int32_t target = mCodeBinPtr - mCodeBin;
+    size_t diff = target - (falseChain->First->Ref + BranchInst::Size);
 
     if ( diff == 0 )
     {
@@ -1524,28 +1538,38 @@ void Compiler::ElideFalse( PatchChain* trueChain, PatchChain* falseChain )
     }
 }
 
-void Compiler::Patch( PatchChain* chain, U8* targetPtr )
+void Compiler::Patch( PatchChain* chain, int32_t targetIndex )
 {
-    U8* target = (targetPtr != nullptr) ? targetPtr : mCodeBinPtr;
+    int32_t target = (targetIndex >= 0) ? targetIndex : (mCodeBinPtr - mCodeBin);
 
     for ( InstPatch* link = chain->First; link != nullptr; link = link->Next )
     {
-        ptrdiff_t diff = target - (link->Inst + BranchInst::Size);
+        ptrdiff_t diff = target - (link->Ref + BranchInst::Size);
 
         if ( diff < BranchInst::OffsetMin || diff > BranchInst::OffsetMax )
             mRep.ThrowError( CERR_UNSUPPORTED, nullptr, "Branch target is too far." );
 
-        BranchInst::StoreOffset( &link->Inst[1], static_cast<BranchInst::TOffset>( diff ) );
+        BranchInst::StoreOffset( &mCodeBin[link->Ref + 1], static_cast<BranchInst::TOffset>(diff) );
     }
 
-    chain->PatchedPtr = target;
+    chain->PatchedInstIndex = target;
 }
 
-void Compiler::PatchCalls( PatchChain* chain, U32 addr )
+void Compiler::PatchCalls( FuncPatchChain* chain, U32 addr )
 {
-    for ( InstPatch* link = chain->First; link != nullptr; link = link->Next )
+    for ( FuncInstPatch* link = chain->First; link != nullptr; link = link->Next )
     {
-        StoreU24( link->Inst, addr );
+        void* refPtr = nullptr;
+
+        switch ( link->Ref.Kind )
+        {
+        case CodeRefKind::Code: refPtr = &mCodeBin[link->Ref.Location]; break;
+        case CodeRefKind::Data: refPtr = &mGlobals[link->Ref.Location]; break;
+        default:
+            mRep.ThrowInternalError();
+        }
+
+        StoreU24( (uint8_t*) refPtr, addr );
     }
 }
 
@@ -1802,9 +1826,7 @@ void Compiler::AddGlobalData( GlobalSize offset, Syntax* valueElem )
         {
             auto addrOf = (AddrOfExpr*) valueElem;
 
-            uint8_t* dstPtr = (uint8_t*) &mGlobals[offset];
-
-            EmitFuncAddress( (Function*) addrOf->Inner->GetDecl(), dstPtr );
+            EmitFuncAddress( (Function*) addrOf->Inner->GetDecl(), { CodeRefKind::Data, offset } );
         }
         else
         {
@@ -1915,19 +1937,19 @@ void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
         // This also includes references to any function
         for ( const auto& ref : mLocalAddrRefs )
         {
-            U8** ppInst = nullptr;
+            int32_t* instIndexPtr = nullptr;
 
             switch ( ref.Kind )
             {
             case AddrRefKind::Inst:
-                ppInst = ref.InstPtr;
+                instIndexPtr = ref.InstIndexPtr;
                 break;
 
             default:
                 mRep.ThrowInternalError();
             }
 
-            *ppInst -= PushInstSize;
+            *instIndexPtr -= PushInstSize;
         }
     }
 
