@@ -16,6 +16,9 @@
 #include "Syntax.h"
 
 
+enum OpCode : uint8_t;
+
+
 namespace Gemini
 {
 
@@ -295,6 +298,7 @@ private:
     typedef std::vector<Unique<Unit>> UnitVec;
     typedef std::vector<std::shared_ptr<ModuleDeclaration>> ModVec;
 
+    using CodeVec = std::vector<U8>;
     using GlobalVec = std::vector<I32>;
 
     struct GenParams
@@ -303,9 +307,7 @@ private:
         GenStatus& status;
     };
 
-    U8*             mCodeBin;
-    U8*             mCodeBinPtr;
-    U8*             mCodeBinEnd;
+    CodeVec         mCodeBin;
     GlobalVec       mGlobals;
 
     SymTable        mGlobalTable;
@@ -332,13 +334,15 @@ private:
     std::shared_ptr<Declaration> mLoadedAddrDecl;
 
 public:
-    Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog* log, ModSize modIndex = 0 );
+    Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex = 0 );
 
     void AddUnit( Unique<Unit>&& unit );
     void AddModule( std::shared_ptr<ModuleDeclaration> moduleDecl );
     CompilerErr Compile();
 
     void GetStats( CompilerStats& stats );
+    U8* GetCode();
+    size_t GetCodeSize();
     I32* GetData();
     size_t GetDataSize();
     std::shared_ptr<ModuleDeclaration> GetMetadata( const char* modName );
@@ -447,6 +451,17 @@ private:
     void DecreaseExprDepth( LocalSize amount = 1 );
     void CalculateStackDepth();
     void CalculateStackDepth( Function* func );
+
+    // Emitting instructions
+    size_t ReserveCode( size_t size );
+    void DeleteCode( size_t size );
+    void DeleteCode( size_t start, size_t size );
+    void EmitBranch( OpCode opcode );
+    void Emit( OpCode opcode );
+    void EmitU8( OpCode opcode, U8 operand );
+    void EmitU16( OpCode opcode, U16 operand );
+    void EmitU32( OpCode opcode, U32 operand );
+    void EmitModAccess( OpCode opcode, U8 mod, U16 addr );
 
 
     // IVisitor

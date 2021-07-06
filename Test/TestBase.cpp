@@ -302,7 +302,7 @@ void TestCompileAndRun(
     NativePair* natives
 )
 {
-    U8          bin1[1024];
+    std::vector<U8> bin1;
     size_t      binSize = 0;
     std::vector<CELL> data1;
     size_t      dataSize = 0;
@@ -317,7 +317,7 @@ void TestCompileAndRun(
         moduleSource->UnitTexts != nullptr;
         moduleSource++ )
     {
-        Compiler compiler1( bin1 + binSize, sizeof bin1 - binSize, &env, &log, env.GetModuleCount() );
+        Compiler compiler1( &env, &log, env.GetModuleCount() );
 
         for ( const char** unitSource = moduleSource->UnitTexts;
             *unitSource != nullptr;
@@ -364,11 +364,6 @@ void TestCompileAndRun(
 
         REQUIRE( compilerErr == CERR_OK );
 
-        curMod->CodeBase = bin1 + binSize;
-        curMod->CodeSize = stats.CodeBytesWritten;
-
-        binSize += stats.CodeBytesWritten;
-
         if ( compiler1.GetDataSize() > 0 )
         {
             // Don't assign DataBase yet, because growing the buffer can reallocate it
@@ -379,6 +374,18 @@ void TestCompileAndRun(
             std::copy_n( compiler1.GetData(), compiler1.GetDataSize(), data1.data() + dataSize );
 
             dataSize += compiler1.GetDataSize();
+        }
+
+        if ( compiler1.GetCodeSize() > 0 )
+        {
+            // Don't assign CodeBase yet, because growing the buffer can reallocate it
+            curMod->CodeSize = (U32) compiler1.GetCodeSize();
+
+            bin1.resize( bin1.size() + compiler1.GetCodeSize() );
+
+            std::copy_n( compiler1.GetCode(), compiler1.GetCodeSize(), bin1.data() + binSize );
+
+            binSize += compiler1.GetCodeSize();
         }
 
         modDecls.push_back( compiler1.GetMetadata( moduleSource->Name ) );
@@ -398,6 +405,7 @@ void TestCompileAndRun(
 
     machine.Init( stack, _countof( stack ), &env );
 
+    binSize = 0;
     dataSize = 0;
 
     for ( ModSize i = 0; i < env.GetModuleCount(); i++ )
@@ -409,6 +417,13 @@ void TestCompileAndRun(
             mod->DataBase = data1.data() + dataSize;
 
             dataSize += mod->DataSize;
+        }
+
+        if ( mod->CodeSize > 0 )
+        {
+            mod->CodeBase = bin1.data() + binSize;
+
+            binSize += mod->CodeSize;
         }
     }
 

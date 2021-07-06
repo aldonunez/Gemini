@@ -69,6 +69,7 @@ void WritePacked( uint8_t*& p, S value )
 
 
 #define StoreI16    StorePacked<int16_t>
+#define StoreU16    StorePacked<uint16_t>
 #define StoreU24    StorePacked<uint32_t, 3>
 #define StoreU32    StorePacked<uint32_t>
 

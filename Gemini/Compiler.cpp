@@ -16,10 +16,7 @@
 namespace Gemini
 {
 
-Compiler::Compiler( U8* codeBin, int codeBinLen, ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
-    mCodeBin( codeBin ),
-    mCodeBinPtr( codeBin ),
-    mCodeBinEnd( codeBin + codeBinLen ),
+Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
     mEnv( env ),
     mRep( log ),
     mModIndex( modIndex )
@@ -61,7 +58,7 @@ void Compiler::GetStats( CompilerStats& stats )
 {
     if ( mCompiled && !mCalculatedStats )
     {
-        mStats.CodeBytesWritten = static_cast<CodeSize>( mCodeBinPtr - mCodeBin );
+        mStats.CodeBytesWritten = static_cast<CodeSize>( mCodeBin.size() );
 
         CalculateStackDepth();
 
@@ -69,6 +66,16 @@ void Compiler::GetStats( CompilerStats& stats )
     }
 
     stats = mStats;
+}
+
+U8* Compiler::GetCode()
+{
+    return mCodeBin.data();
+}
+
+size_t Compiler::GetCodeSize()
+{
+    return mCodeBin.size();
 }
 
 I32* Compiler::GetData()
@@ -153,22 +160,17 @@ void Compiler::Generate( Syntax* node, const GenConfig& config, GenStatus& statu
         if ( config.trueChain != nullptr )
         {
             PushPatch( config.trueChain );
-
-            mCodeBinPtr[0] = (config.invert && status.kind != ExprKind::Comparison) ? OP_BFALSE : OP_BTRUE;
-            mCodeBinPtr += BranchInst::Size;
+            EmitBranch( (config.invert && status.kind != ExprKind::Comparison) ? OP_BFALSE : OP_BTRUE );
             DecreaseExprDepth();
 
             PushPatch( config.falseChain );
-
-            mCodeBinPtr[0] = OP_B;
-            mCodeBinPtr += BranchInst::Size;
+            EmitBranch( OP_B );
         }
         else if ( config.invert && status.kind != ExprKind::Comparison )
         {
             if ( !config.discard )
             {
-                mCodeBinPtr[0] = OP_NOT;
-                mCodeBinPtr += 1;
+                Emit( OP_NOT );
             }
         }
     }
@@ -197,8 +199,7 @@ void Compiler::GenerateDiscard( Syntax* elem, const GenConfig& config )
         assert( status.discarded );
         mRep.LogWarning( elem->FileName, elem->Line, elem->Column, "Deprecated: POP was emitted." );
 
-        *mCodeBinPtr = OP_POP;
-        mCodeBinPtr++;
+        Emit( OP_POP );
 
         DecreaseExprDepth();
     }
@@ -224,15 +225,11 @@ void Compiler::EmitLoadConstant( int32_t value )
 {
     if ( (value >= INT8_MIN) && (value <= INT8_MAX) )
     {
-        mCodeBinPtr[0] = OP_LDC_S;
-        mCodeBinPtr[1] = (U8) value;
-        mCodeBinPtr += 2;
+        EmitU8( OP_LDC_S, (U8) value );
     }
     else
     {
-        *mCodeBinPtr = OP_LDC;
-        mCodeBinPtr++;
-        WriteI32( mCodeBinPtr, value );
+        EmitU32( OP_LDC, value );
     }
 
     IncreaseExprDepth();
@@ -270,26 +267,22 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
     {
     case DeclKind::Global:
         assert( offset >= 0 && offset <= GlobalSizeMax );
-        mCodeBinPtr[0] = OP_LDMOD;
-        mCodeBinPtr[1] = ((GlobalStorage*) decl)->ModIndex;
-        mCodeBinPtr += 2;
-        WriteU16( mCodeBinPtr, ((GlobalStorage*) decl)->Offset + offset );
+        EmitModAccess(
+            OP_LDMOD,
+            ((GlobalStorage*) decl)->ModIndex,
+            ((GlobalStorage*) decl)->Offset + offset );
         IncreaseExprDepth();
         break;
 
     case DeclKind::Local:
         assert( offset >= 0 && offset <= LocalSizeMax );
-        mCodeBinPtr[0] = OP_LDLOC;
-        mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset - offset;
-        mCodeBinPtr += 2;
+        EmitU8( OP_LDLOC, ((LocalStorage*) decl)->Offset - offset );
         IncreaseExprDepth();
         break;
 
     case DeclKind::Param:
         assert( offset >= 0 && offset <= ParamSizeMax );
-        mCodeBinPtr[0] = OP_LDARG;
-        mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset + offset;
-        mCodeBinPtr += 2;
+        EmitU8( OP_LDARG, ((ParamStorage*) decl)->Offset + offset );
         IncreaseExprDepth();
         break;
 
@@ -308,8 +301,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         if ( offset > 0 )
             EmitSpilledAddrOffset( offset );
 
-        mCodeBinPtr[0] = OP_LOADI;
-        mCodeBinPtr++;
+        Emit( OP_LOADI );
         DecreaseExprDepth();
         IncreaseExprDepth();
         break;
@@ -325,9 +317,7 @@ void Compiler::EmitSpilledAddrOffset( int32_t offset )
     EmitLoadConstant( offset );
 
     // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
-    mCodeBinPtr[0] = OP_PRIM;
-    mCodeBinPtr[1] = PRIM_ADD;
-    mCodeBinPtr += 2;
+    EmitU8( OP_PRIM, PRIM_ADD );
 
     DecreaseExprDepth();
 }
@@ -410,14 +400,11 @@ void Compiler::GenerateReturn( ReturnStatement* retStmt, const GenConfig& config
     else
     {
         // Currently not allowed in the language
-        mCodeBinPtr[0] = OP_LDC_S;
-        mCodeBinPtr[1] = 0;
-        mCodeBinPtr += 2;
+        EmitU8( OP_LDC_S, 0 );
         IncreaseExprDepth();
     }
 
-    mCodeBinPtr[0] = OP_RET;
-    mCodeBinPtr += 1;
+    Emit( OP_RET );
     DecreaseExprDepth();
 
     status.discarded = true;
@@ -457,7 +444,7 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
     PatchChain  leaveChain;
     bool        foundCatchAll = false;
     LocalSize   exprDepth = mCurExprDepth;
-    U8*         startPtr = mCodeBinPtr;
+    int32_t     startLoc = mCodeBin.size();
 
     GenConfig statementConfig = GenConfig::Statement( config.discard )
         .WithLoop( config.breakChain, config.nextChain );
@@ -497,15 +484,12 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
 
             if ( !config.discard )
             {
-                mCodeBinPtr[0] = OP_DUP;
-                mCodeBinPtr++;
+                Emit( OP_DUP );
                 IncreaseExprDepth();
             }
 
             PushPatch( &leaveChain );
-
-            mCodeBinPtr[0] = OP_BTRUE;
-            mCodeBinPtr += BranchInst::Size;
+            EmitBranch( OP_BTRUE );
             DecreaseExprDepth();
         }
         else
@@ -528,8 +512,7 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
                 // So, we'll emit LDC.S 0 below. And here we emit a jump over it.
 
                 PushPatch( &leaveChain );
-                mCodeBinPtr[0] = OP_B;
-                mCodeBinPtr += BranchInst::Size;
+                EmitBranch( OP_B );
             }
 
             ElideFalse( &trueChain, &falseChain );
@@ -544,9 +527,7 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
 
         if ( !config.discard )
         {
-            mCodeBinPtr[0] = OP_LDC_S;
-            mCodeBinPtr[1] = 0;
-            mCodeBinPtr += 2;
+            EmitU8( OP_LDC_S, 0 );
             IncreaseExprDepth();
         }
     }
@@ -555,14 +536,14 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
     //   if n then B() else 3 end
     // ... in a discarding context
 
-    if ( (mCodeBinPtr - startPtr) >= BranchInst::Size
-        && mCodeBinPtr[-BranchInst::Size] == OP_B
+    if ( (mCodeBin.size() - startLoc) >= BranchInst::Size
+        && mCodeBin[mCodeBin.size() - BranchInst::Size] == OP_B
         && leaveChain.First != nullptr
-        && leaveChain.First->Ref == (mCodeBinPtr - mCodeBin - BranchInst::Size)
-        && falseChain.PatchedInstIndex == (mCodeBinPtr - mCodeBin) )
+        && leaveChain.First->Ref == (mCodeBin.size() - BranchInst::Size)
+        && falseChain.PatchedInstIndex == mCodeBin.size() )
     {
         PopPatch( &leaveChain );
-        mCodeBinPtr -= BranchInst::Size;
+        DeleteCode( BranchInst::Size );
         Patch( &falseChain );
     }
 
@@ -588,7 +569,7 @@ void Compiler::GenerateSet( AssignmentExpr* assignment, const GenConfig& config,
     }
     else
     {
-        *mCodeBinPtr++ = OP_DUP;
+        Emit( OP_DUP );
         IncreaseExprDepth();
     }
 
@@ -606,24 +587,20 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
     {
     case DeclKind::Global:
         assert( offset >= 0 && offset <= GlobalSizeMax );
-        mCodeBinPtr[0] = OP_STMOD;
-        mCodeBinPtr[1] = ((GlobalStorage*) decl)->ModIndex;
-        mCodeBinPtr += 2;
-        WriteU16( mCodeBinPtr, ((GlobalStorage*) decl)->Offset + offset );
+        EmitModAccess(
+            OP_STMOD,
+            ((GlobalStorage*) decl)->ModIndex,
+            ((GlobalStorage*) decl)->Offset + offset );
         break;
 
     case DeclKind::Local:
         assert( offset >= 0 && offset <= LocalSizeMax );
-        mCodeBinPtr[0] = OP_STLOC;
-        mCodeBinPtr[1] = ((LocalStorage*) decl)->Offset - offset;
-        mCodeBinPtr += 2;
+        EmitU8( OP_STLOC, ((LocalStorage*) decl)->Offset - offset );
         break;
 
     case DeclKind::Param:
         assert( offset >= 0 && offset <= ParamSizeMax );
-        mCodeBinPtr[0] = OP_STARG;
-        mCodeBinPtr[1] = ((ParamStorage*) decl)->Offset + offset;
-        mCodeBinPtr += 2;
+        EmitU8( OP_STARG, ((ParamStorage*) decl)->Offset + offset );
         break;
 
     case DeclKind::Func:
@@ -641,8 +618,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         if ( offset > 0 )
             EmitSpilledAddrOffset( offset );
 
-        mCodeBinPtr[0] = OP_STOREI;
-        mCodeBinPtr++;
+        Emit( OP_STOREI );
         DecreaseExprDepth();
         break;
 
@@ -661,7 +637,7 @@ void Compiler::VisitAssignmentExpr( AssignmentExpr* assignment )
 
 void Compiler::VisitProcDecl( ProcDecl* procDecl )
 {
-    U32 addr = static_cast<CodeSize>( mCodeBinPtr - mCodeBin );
+    U32 addr = static_cast<CodeSize>( mCodeBin.size() );
 
     auto func = (Function*) procDecl->Decl.get();
 
@@ -697,12 +673,10 @@ void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, Ge
 
 void Compiler::EmitLoadFuncAddress( Function* func )
 {
-    mCodeBinPtr[0] = OP_LDC;
-    mCodeBinPtr++;
+    size_t curIndex = ReserveCode( 5 );
+    mCodeBin[curIndex] = OP_LDC;
 
-    EmitFuncAddress( func, { CodeRefKind::Code, mCodeBinPtr - mCodeBin } );
-
-    mCodeBinPtr += 4;
+    EmitFuncAddress( func, { CodeRefKind::Code, static_cast<int32_t>( curIndex + 1 ) } );
 
     IncreaseExprDepth();
 }
@@ -739,9 +713,7 @@ void Compiler::GenerateFuncall( CallExpr* call, const GenConfig& config, GenStat
 
     ParamSize argCount = static_cast<ParamSize>( call->Arguments.size() );
 
-    mCodeBinPtr[0] = OP_CALLI;
-    mCodeBinPtr[1] = CallFlags::Build( argCount, config.discard );
-    mCodeBinPtr += 2;
+    EmitU8( OP_CALLI, CallFlags::Build( argCount, config.discard ) );
 
     DecreaseExprDepth();
 
@@ -784,9 +756,7 @@ void Compiler::GenerateLocalInit( LocalSize offset, Syntax* initializer )
     if ( IsScalarType( type->GetKind() ) )
     {
         Generate( initializer );
-        mCodeBinPtr[0] = OP_STLOC;
-        mCodeBinPtr[1] = offset;
-        mCodeBinPtr += 2;
+        EmitU8( OP_STLOC, offset );
         DecreaseExprDepth();
     }
     else if ( type->GetKind() == TypeKind::Array )
@@ -813,9 +783,9 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
         mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
 
-    auto    initList = (InitList*) valueElem;
-    LocalSize locIndex = offset;
-    LocalSize i = 0;
+    auto        initList = (InitList*) valueElem;
+    LocalSize   locIndex = offset;
+    LocalSize   i = 0;
 
     for ( auto& entry : initList->Values )
     {
@@ -847,9 +817,7 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
             I32 newValue = prevValue + step;
 
             EmitLoadConstant( newValue );
-            mCodeBinPtr[0] = OP_STLOC;
-            mCodeBinPtr[1] = (U8) locIndex;
-            mCodeBinPtr += 2;
+            EmitU8( OP_STLOC, (U8) locIndex );
             locIndex--;
             DecreaseExprDepth();
 
@@ -897,16 +865,16 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
     {
         Function* func = (Function*) decl;
 
-        mCodeBinPtr[0] = OP_CALL;
-        mCodeBinPtr[1] = callFlags;
-        mCodeBinPtr += 2;
+        size_t curIndex = ReserveCode( 5 );
+        mCodeBin[curIndex+0] = OP_CALL;
+        mCodeBin[curIndex+1] = callFlags;
 
         if ( func->Address == UndefinedAddr )
         {
-            PushFuncPatch( func->Name, { CodeRefKind::Code, mCodeBinPtr - mCodeBin } );
+            PushFuncPatch( func->Name, { CodeRefKind::Code, static_cast<int32_t>( curIndex + 2 ) } );
         }
 
-        WriteU24( mCodeBinPtr, func->Address );
+        StoreU24( &mCodeBin[curIndex+2], func->Address );
 
         if ( mInFunc )
             mCurFunc->CalledFunctions.push_back( { mCurExprDepth, func->Name } );
@@ -940,19 +908,22 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
             mRep.ThrowInternalError();
         }
 
-        mCodeBinPtr[0] = opCode;
-        mCodeBinPtr[1] = callFlags;
-        mCodeBinPtr += 2;
-
         if ( opCode == OP_CALLNATIVE_S )
         {
-            *(U8*) mCodeBinPtr = (U8) id;
-            mCodeBinPtr += 1;
+            size_t curIndex = ReserveCode( 3 );
+            mCodeBin[curIndex + 0] = opCode;
+            mCodeBin[curIndex + 1] = callFlags;
+            mCodeBin[curIndex + 2] = (U8) id;
         }
         else
         {
             // TODO: test case for big native ID
-            WriteU32( mCodeBinPtr, id );
+
+            size_t curIndex = ReserveCode( 6 );
+            mCodeBin[curIndex + 0] = opCode;
+            mCodeBin[curIndex + 1] = callFlags;
+
+            StoreU32( &mCodeBin[curIndex + 2], id );
         }
     }
 
@@ -1016,10 +987,8 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
 
     // Beginning expression
     Generate( forStmt->First.get() );
-    mCodeBinPtr[0] = OP_DUP;
-    mCodeBinPtr[1] = OP_STLOC;
-    mCodeBinPtr[2] = local->Offset;
-    mCodeBinPtr += 3;
+    Emit( OP_DUP );
+    EmitU8( OP_STLOC, local->Offset );
     IncreaseExprDepth();
     DecreaseExprDepth();
 
@@ -1029,10 +998,9 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
     DecreaseExprDepth();
 
     PushPatch( &testChain );
-    mCodeBinPtr[0] = OP_B;
-    mCodeBinPtr += BranchInst::Size;
+    EmitBranch( OP_B );
 
-    int32_t bodyLoc = mCodeBinPtr - mCodeBin;
+    int32_t bodyLoc = mCodeBin.size();
 
     // Body
     GenerateStatements( &forStmt->Body, config.WithLoop( &breakChain, &nextChain ), status );
@@ -1044,14 +1012,10 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
     else
         EmitLoadConstant( step );
 
-    mCodeBinPtr[0] = OP_LDLOC;
-    mCodeBinPtr[1] = local->Offset;
-    mCodeBinPtr[2] = OP_PRIM;
-    mCodeBinPtr[3] = PRIM_ADD;
-    mCodeBinPtr[4] = OP_DUP;
-    mCodeBinPtr[5] = OP_STLOC;
-    mCodeBinPtr[6] = local->Offset;
-    mCodeBinPtr += 7;
+    EmitU8( OP_LDLOC, local->Offset );
+    EmitU8( OP_PRIM, PRIM_ADD );
+    Emit( OP_DUP );
+    EmitU8( OP_STLOC, local->Offset );
     IncreaseExprDepth();
     DecreaseExprDepth();
     IncreaseExprDepth();
@@ -1062,14 +1026,11 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
     // Ending expression
     Generate( forStmt->Last.get() );
 
-    mCodeBinPtr[0] = OP_PRIM;
-    mCodeBinPtr[1] = primitive;
-    mCodeBinPtr += 2;
+    EmitU8( OP_PRIM, primitive );
     DecreaseExprDepth();
 
     PushPatch( &bodyChain );
-    mCodeBinPtr[0] = OP_BTRUE;
-    mCodeBinPtr += BranchInst::Size;
+    EmitBranch( OP_BTRUE );
     DecreaseExprDepth();
 
     Patch( &bodyChain, bodyLoc );
@@ -1088,7 +1049,7 @@ void Compiler::GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& con
     PatchChain  breakChain;
     PatchChain  nextChain;
 
-    int32_t     bodyLoc = mCodeBinPtr - mCodeBin;
+    int32_t     bodyLoc = mCodeBin.size();
 
     // Body
     GenerateStatements( &loopStmt->Body, config.WithLoop( &breakChain, &nextChain ), status );
@@ -1096,8 +1057,7 @@ void Compiler::GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& con
     if ( loopStmt->Condition == nullptr )
     {
         PushPatch( &nextChain );
-        mCodeBinPtr[0] = OP_B;
-        mCodeBinPtr += BranchInst::Size;
+        EmitBranch( OP_B );
 
         Patch( &nextChain, bodyLoc );
     }
@@ -1130,7 +1090,7 @@ void Compiler::GenerateDo( WhileStatement* whileStmt, const GenConfig& config, G
     PatchChain  nextChain;
     PatchChain  trueChain;
 
-    int32_t testLoc = mCodeBinPtr - mCodeBin;
+    int32_t testLoc = mCodeBin.size();
 
     // Test expression
     Generate( whileStmt->Condition.get(), GenConfig::Expr( &trueChain, &breakChain, false ) );
@@ -1142,8 +1102,7 @@ void Compiler::GenerateDo( WhileStatement* whileStmt, const GenConfig& config, G
     GenerateStatements( &whileStmt->Body, config.WithLoop( &breakChain, &nextChain ), status );
 
     PushPatch( &nextChain );
-    mCodeBinPtr[0] = OP_B;
-    mCodeBinPtr += BranchInst::Size;
+    EmitBranch( OP_B );
 
     Patch( &breakChain );
     Patch( &nextChain, testLoc );
@@ -1162,8 +1121,7 @@ void Compiler::GenerateBreak( BreakStatement* breakStmt, const GenConfig& config
         mRep.ThrowError( CERR_SEMANTICS, breakStmt, "Cannot use break outside of a loop" );
 
     PushPatch( config.breakChain );
-    mCodeBinPtr[0] = OP_B;
-    mCodeBinPtr += BranchInst::Size;
+    EmitBranch( OP_B );
 
     status.discarded = true;
 }
@@ -1179,8 +1137,7 @@ void Compiler::GenerateNext( NextStatement* nextStmt, const GenConfig& config, G
         mRep.ThrowError( CERR_SEMANTICS, nextStmt, "Cannot use next outside of a loop" );
 
     PushPatch( config.nextChain );
-    mCodeBinPtr[0] = OP_B;
-    mCodeBinPtr += BranchInst::Size;
+    EmitBranch( OP_B );
 
     status.discarded = true;
 }
@@ -1207,9 +1164,7 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
         auto local = (LocalStorage*) caseExpr->TestKeyDecl.get();
 
         Generate( caseExpr->TestKey.get() );
-        mCodeBinPtr[0] = OP_STLOC;
-        mCodeBinPtr[1] = local->Offset;
-        mCodeBinPtr += 2;
+        EmitU8( OP_STLOC, local->Offset );
         DecreaseExprDepth();
 
         // Replace the keyform expression with the temporary variable
@@ -1237,23 +1192,19 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
             Generate( caseExpr->TestKey.get() );
             Generate( key.get() );
 
-            mCodeBinPtr[0] = OP_PRIM;
-            mCodeBinPtr[1] = PRIM_EQ;
-            mCodeBinPtr += 2;
+            EmitU8( OP_PRIM, PRIM_EQ );
             DecreaseExprDepth();
 
             if ( i == clause->Keys.size() )
             {
                 PushPatch( &falseChain );
-                mCodeBinPtr[0] = OP_BFALSE;
-                mCodeBinPtr += BranchInst::Size;
+                EmitBranch( OP_BFALSE );
                 DecreaseExprDepth();
             }
             else
             {
                 PushPatch( &trueChain );
-                mCodeBinPtr[0] = OP_BTRUE;
-                mCodeBinPtr += BranchInst::Size;
+                EmitBranch( OP_BTRUE );
                 DecreaseExprDepth();
             }
         }
@@ -1263,8 +1214,7 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
         GenerateImplicitProgn( &clause->Body, statementConfig, status );
 
         PushPatch( &exitChain );
-        mCodeBinPtr[0] = OP_B;
-        mCodeBinPtr += BranchInst::Size;
+        EmitBranch( OP_B );
 
         Patch( &falseChain );
     }
@@ -1408,6 +1358,7 @@ void Compiler::Atomize( ConjSpec* spec, BinaryExpr* binary, bool invert, bool di
 {
     PatchChain  trueChain;
     PatchChain  falseChain;
+    PatchChain  endChain;
 
     GenerateConj( spec, binary, GenConfig::Expr( &trueChain, &falseChain, invert ) );
 
@@ -1417,22 +1368,19 @@ void Compiler::Atomize( ConjSpec* spec, BinaryExpr* binary, bool invert, bool di
 
     if ( !discard )
     {
-        mCodeBinPtr[0] = OP_LDC_S;
-        mCodeBinPtr[1] = 1;
-        mCodeBinPtr[2] = OP_B;
-        mCodeBinPtr += 3;
+        EmitU8( OP_LDC_S, 1 );
 
-        // Offset of 2 to jump over LDC.S below.
-        BranchInst::WriteOffset( mCodeBinPtr, 2 );
+        PushPatch( &endChain );
+        EmitBranch( OP_B );
     }
 
     Patch( &falseChain );
 
     if ( !discard )
     {
-        mCodeBinPtr[0] = OP_LDC_S;
-        mCodeBinPtr[1] = 0;
-        mCodeBinPtr += 2;
+        EmitU8( OP_LDC_S, 0 );
+
+        Patch( &endChain );
 
         IncreaseExprDepth();
     }
@@ -1452,7 +1400,7 @@ U8 Compiler::InvertJump( U8 opCode )
 
 void Compiler::PushPatch( PatchChain* chain )
 {
-    PushPatch( chain, mCodeBinPtr - mCodeBin );
+    PushPatch( chain, mCodeBin.size() );
 }
 
 void Compiler::PushPatch( PatchChain* chain, int32_t patchLoc )
@@ -1503,22 +1451,22 @@ void Compiler::ElideTrue( PatchChain* trueChain, PatchChain* falseChain )
         || falseChain->First == nullptr )
         return;
 
-    int32_t target = mCodeBinPtr - mCodeBin;
+    int32_t target = mCodeBin.size();
     size_t diff = target - (trueChain->First->Ref + BranchInst::Size);
 
     if ( diff == BranchInst::Size
-        && mCodeBinPtr[-BranchInst::Size] == OP_B
-        && (mCodeBinPtr - mCodeBin - BranchInst::Size) == falseChain->First->Ref
+        && mCodeBin[mCodeBin.size() - BranchInst::Size] == OP_B
+        && (mCodeBin.size() - BranchInst::Size) == falseChain->First->Ref
         )
     {
         falseChain->First->Ref = trueChain->First->Ref;
 
-        uint8_t* codePtr = &mCodeBin[trueChain->First->Ref];
-        codePtr[0] = InvertJump( codePtr[0] );
+        mCodeBin[trueChain->First->Ref] = InvertJump( mCodeBin[trueChain->First->Ref] );
 
         // Remove the branch instruction.
         PopPatch( trueChain );
-        mCodeBinPtr -= BranchInst::Size;
+
+        DeleteCode( BranchInst::Size );
     }
 }
 
@@ -1527,20 +1475,21 @@ void Compiler::ElideFalse( PatchChain* trueChain, PatchChain* falseChain )
     if ( falseChain->First == nullptr )
         return;
 
-    int32_t target = mCodeBinPtr - mCodeBin;
+    int32_t target = mCodeBin.size();
     size_t diff = target - (falseChain->First->Ref + BranchInst::Size);
 
     if ( diff == 0 )
     {
         // Remove the branch instruction.
         PopPatch( falseChain );
-        mCodeBinPtr -= BranchInst::Size;
+
+        DeleteCode( BranchInst::Size );
     }
 }
 
 void Compiler::Patch( PatchChain* chain, int32_t targetIndex )
 {
-    int32_t target = (targetIndex >= 0) ? targetIndex : (mCodeBinPtr - mCodeBin);
+    int32_t target = (targetIndex >= 0) ? targetIndex : mCodeBin.size();
 
     for ( InstPatch* link = chain->First; link != nullptr; link = link->Next )
     {
@@ -1581,15 +1530,11 @@ void Compiler::GenerateUnaryPrimitive( Syntax* elem, const GenConfig& config, Ge
     }
     else
     {
-        mCodeBinPtr[0] = OP_LDC_S;
-        mCodeBinPtr[1] = 0;
-        mCodeBinPtr += 2;
+        EmitU8( OP_LDC_S, 0 );
 
         Generate( elem );
 
-        mCodeBinPtr[0] = OP_PRIM;
-        mCodeBinPtr[1] = PRIM_SUB;
-        mCodeBinPtr += 2;
+        EmitU8( OP_PRIM, PRIM_SUB );
 
         IncreaseExprDepth();
         DecreaseExprDepth();
@@ -1609,9 +1554,7 @@ void Compiler::GenerateBinaryPrimitive( BinaryExpr* binary, U8 primitive, const 
         Generate( binary->Left.get() );
         Generate( binary->Right.get() );
 
-        mCodeBinPtr[0] = OP_PRIM;
-        mCodeBinPtr[1] = primitive;
-        mCodeBinPtr += 2;
+        EmitU8( OP_PRIM, primitive );
 
         DecreaseExprDepth();
     }
@@ -1634,16 +1577,12 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
             addrWord = CodeAddr::Build(
                 ((GlobalStorage*) baseDecl)->Offset + offset,
                 ((GlobalStorage*) baseDecl)->ModIndex );
-            mCodeBinPtr[0] = OP_LDC;
-            mCodeBinPtr++;
-            WriteU32( mCodeBinPtr, addrWord );
+            EmitU32( OP_LDC, addrWord );
             break;
 
         case DeclKind::Local:
             assert( offset >= 0 && offset <= LocalSizeMax );
-            mCodeBinPtr[0] = OP_LDLOCA;
-            mCodeBinPtr[1] = ((LocalStorage*) baseDecl)->Offset - offset;
-            mCodeBinPtr += 2;
+            EmitU8( OP_LDLOCA, ((LocalStorage*) baseDecl)->Offset - offset );
             break;
 
         default:
@@ -1693,22 +1632,16 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     if ( arrayType.ElemType->GetSize() > 255 )
     {
-        mCodeBinPtr[0] = OP_INDEX;
-        mCodeBinPtr += 1;
-        WriteU32( mCodeBinPtr, arrayType.ElemType->GetSize() );
+        EmitU32( OP_INDEX, arrayType.ElemType->GetSize() );
     }
     else if ( arrayType.ElemType->GetSize() > 1 )
     {
-        mCodeBinPtr[0] = OP_INDEX_S;
-        mCodeBinPtr[1] = static_cast<U8>(arrayType.ElemType->GetSize());
-        mCodeBinPtr += 2;
+        EmitU8( OP_INDEX_S, static_cast<U8>(arrayType.ElemType->GetSize()) );
     }
     else
     {
         // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
-        mCodeBinPtr[0] = OP_PRIM;
-        mCodeBinPtr[1] = PRIM_ADD;
-        mCodeBinPtr += 2;
+        EmitU8( OP_PRIM, PRIM_ADD );
     }
 
     DecreaseExprDepth();
@@ -1895,14 +1828,10 @@ void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
 
     constexpr uint8_t PushInstSize = 2;
 
-    U8* bodyPtr = mCodeBinPtr;
-    U8* pushCountPatch = nullptr;
+    int32_t bodyLoc = mCodeBin.size();
 
     // Assume that there are local variables
-    *mCodeBinPtr = OP_PUSH;
-    mCodeBinPtr++;
-    pushCountPatch = mCodeBinPtr;
-    mCodeBinPtr++;
+    EmitU8( OP_PUSH, 0 );
 
     mCurExprDepth = 0;
     mMaxExprDepth = 0;
@@ -1919,22 +1848,22 @@ void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
 
     if ( !status.tailRet )
     {
-        mCodeBinPtr[0] = OP_RET;
-        mCodeBinPtr += 1;
+        Emit( OP_RET );
     }
 
     if ( func->LocalCount > 0 )
     {
-        *pushCountPatch = (uint8_t) func->LocalCount;
+        size_t index = bodyLoc + 1;
+        mCodeBin[index] = (uint8_t) func->LocalCount;
     }
     else
     {
         // No locals. So, delete the PUSH instruction
-        memmove( bodyPtr, bodyPtr + PushInstSize, (mCodeBinPtr - bodyPtr) - PushInstSize );
-        mCodeBinPtr -= PushInstSize;
+        DeleteCode( bodyLoc, PushInstSize );
 
         // If local lambda references were generated, then shift them
         // This also includes references to any function
+
         for ( const auto& ref : mLocalAddrRefs )
         {
             int32_t* instIndexPtr = nullptr;
@@ -1997,9 +1926,7 @@ void Compiler::GenerateNilIfNeeded( const GenConfig& config, GenStatus& status )
     }
     else
     {
-        mCodeBinPtr[0] = OP_LDC_S;
-        mCodeBinPtr[1] = 0;
-        mCodeBinPtr += 2;
+        EmitU8( OP_LDC_S, 0 );
 
         IncreaseExprDepth();
     }
@@ -2021,10 +1948,8 @@ void Compiler::GenerateSentinel()
 {
     for ( int i = 0; i < SENTINEL_SIZE; i++ )
     {
-        mCodeBinPtr[i] = OP_SENTINEL;
+        Emit( OP_SENTINEL );
     }
-
-    mCodeBinPtr += SENTINEL_SIZE;
 }
 
 I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
@@ -2150,6 +2075,81 @@ void Compiler::CalculateStackDepth( Function* func )
     func->IsDepthKnown = true;
     func->CallDepth = 1 + maxChildDepth;
     func->TreeStackUsage = func->IndividualStackUsage + maxChildStackUsage;
+}
+
+size_t Compiler::ReserveCode( size_t size )
+{
+    if ( size > (CodeSizeMax - mCodeBin.size()) )
+        mRep.ThrowError( CERR_SEMANTICS, NULL, "Generated code is too big. Max=%u", CodeSizeMax );
+
+    size_t curIndex = mCodeBin.size();
+    mCodeBin.resize( mCodeBin.size() + size );
+
+    return curIndex;
+}
+
+void Compiler::DeleteCode( size_t size )
+{
+    assert( mCodeBin.size() >= size );
+
+    mCodeBin.resize( mCodeBin.size() - size );
+}
+
+void Compiler::DeleteCode( size_t start, size_t size )
+{
+    assert( start < mCodeBin.size() && size <= (mCodeBin.size() - start) );
+
+    mCodeBin.erase( mCodeBin.begin() + start, mCodeBin.begin() + start + size );
+}
+
+void Compiler::EmitBranch( OpCode opcode )
+{
+    size_t curIndex = ReserveCode( BranchInst::Size );
+
+    mCodeBin[curIndex] = opcode;
+}
+
+void Compiler::Emit( OpCode opcode )
+{
+    size_t curIndex = ReserveCode( 1 );
+
+    mCodeBin[curIndex] = opcode;
+}
+
+void Compiler::EmitU8( OpCode opcode, U8 operand )
+{
+    size_t curIndex = ReserveCode( 2 );
+
+    mCodeBin[curIndex] = opcode;
+    mCodeBin[curIndex + 1] = operand;
+}
+
+void Compiler::EmitU16( OpCode opcode, U16 operand )
+{
+    size_t curIndex = ReserveCode( 3 );
+
+    mCodeBin[curIndex] = opcode;
+
+    StoreU16( &mCodeBin.at( curIndex + 1 ), operand );
+}
+
+void Compiler::EmitU32( OpCode opcode, U32 operand )
+{
+    size_t curIndex = ReserveCode( 5 );
+
+    mCodeBin[curIndex] = opcode;
+
+    StoreU32( &mCodeBin.at( curIndex + 1 ), operand );
+}
+
+void Compiler::EmitModAccess( OpCode opcode, U8 mod, U16 addr )
+{
+    size_t curIndex = ReserveCode( 4 );
+
+    mCodeBin[curIndex+0] = opcode;
+    mCodeBin[curIndex+1] = mod;
+
+    StoreU16( &mCodeBin[curIndex + 2], addr );
 }
 
 

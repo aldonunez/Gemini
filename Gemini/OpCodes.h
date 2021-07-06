@@ -9,7 +9,7 @@
 #include <assert.h>
 
 
-enum : uint8_t
+enum OpCode : uint8_t
 {
     OP_DUP,
     OP_PUSH,
