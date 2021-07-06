@@ -680,10 +680,17 @@ void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, Ge
         return;
     }
 
+    auto func = (Function*) addrOf->Inner->GetDecl();
+
+    EmitLoadFuncAddress( func );
+}
+
+void Compiler::EmitLoadFuncAddress( Function* func )
+{
     mCodeBinPtr[0] = OP_LDC;
     mCodeBinPtr++;
 
-    EmitFuncAddress( (Function*) addrOf->Inner->GetDecl(), { CodeRefKind::Code, mCodeBinPtr - mCodeBin } );
+    EmitFuncAddress( func, { CodeRefKind::Code, mCodeBinPtr - mCodeBin } );
 
     mCodeBinPtr += 4;
 

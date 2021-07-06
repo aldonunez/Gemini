@@ -377,6 +377,7 @@ private:
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
+    void EmitLoadFuncAddress( Function* func );
     void EmitFuncAddress( Function* func, CodeRef funcRef );
     void EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset );
