@@ -699,22 +699,12 @@ void Compiler::EmitLoadFuncAddress( Function* func )
 
 void Compiler::EmitFuncAddress( Function* func, CodeRef funcRef )
 {
-    U32     addr = 0;
-    ModSize modIndex = 0;
-
-    if ( func->Address != UndefinedAddr )
-    {
-        addr = func->Address;
-        modIndex = func->ModIndex;
-    }
-    else
+    if ( func->Address == UndefinedAddr )
     {
         PushFuncPatch( func->Name, funcRef );
-
-        modIndex = mModIndex;
     }
 
-    U32 addrWord = CodeAddr::Build( addr, modIndex );
+    U32 addrWord = CodeAddr::Build( func->Address, func->ModIndex );
 
     if ( funcRef.Kind == CodeRefKind::Code )
     {
