@@ -144,12 +144,12 @@ public:
     template <typename TRef>
     struct BasicPatchChain
     {
-        BasicInstPatch<TRef>*   First;
-        int32_t                 PatchedInstIndex;
+        static constexpr int32_t UnpatchedIndex = -1;
 
-        BasicPatchChain() :
-            First( nullptr ),
-            PatchedInstIndex( -1 )
+        BasicInstPatch<TRef>*   First = nullptr;
+        int32_t                 PatchedInstIndex = UnpatchedIndex;
+
+        BasicPatchChain()
         {
         }
 
@@ -169,7 +169,7 @@ public:
             PatchedInstIndex = other.PatchedInstIndex;
 
             other.First = nullptr;
-            other.PatchedInstIndex = 0;
+            other.PatchedInstIndex = UnpatchedIndex;
         }
 
         BasicPatchChain& operator=( BasicPatchChain&& other ) noexcept
