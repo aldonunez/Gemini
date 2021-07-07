@@ -112,6 +112,32 @@ TEST_CASE( "? Algoly: StackUse: binary comparison", "[algoly][stack]" )
     TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 4 );
 }
 
+TEST_CASE( "Algoly: StackUse: atomized AND with comparisons", "[algoly][stack]" )
+{
+    const char code[] =
+        "var m := 2, n := 3, p := 0\n"
+        "def a\n"
+        "  p := m < n and m <> n\n"
+        "  p\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 4 );
+}
+
+TEST_CASE( "Algoly: StackUse: atomized OR with comparisons", "[algoly][stack]" )
+{
+    const char code[] =
+        "var m := 3, n := 2, p := 0\n"
+        "def a\n"
+        "  p := m < n or m <> n\n"
+        "  p\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 4 );
+}
+
 TEST_CASE( "Algoly: StackUse: return global const", "[algoly][stack]" )
 {
     const char code[] =
