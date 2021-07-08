@@ -561,6 +561,7 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
         && leaveChain.First->Ref == (mCodeBinPtr - mCodeBin - BranchInst::Size)
         && falseChain.PatchedInstIndex == (mCodeBinPtr - mCodeBin) )
     {
+        PopPatch( &leaveChain );
         mCodeBinPtr -= BranchInst::Size;
         Patch( &falseChain );
     }
