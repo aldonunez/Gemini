@@ -324,6 +324,7 @@ void Compiler::EmitSpilledAddrOffset( int32_t offset )
 {
     EmitLoadConstant( offset );
 
+    // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
     mCodeBinPtr[0] = OP_PRIM;
     mCodeBinPtr[1] = PRIM_ADD;
     mCodeBinPtr += 2;
@@ -408,6 +409,7 @@ void Compiler::GenerateReturn( ReturnStatement* retStmt, const GenConfig& config
     }
     else
     {
+        // Currently not allowed in the language
         mCodeBinPtr[0] = OP_LDC_S;
         mCodeBinPtr[1] = 0;
         mCodeBinPtr += 2;
@@ -522,6 +524,9 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
 
             if ( i < (int) condExpr->Clauses.size() - 1 || !config.discard )
             {
+                // Not the last clause; or last one is not catch-all and not discarding.
+                // So, we'll emit LDC.S 0 below. And here we emit a jump over it.
+
                 PushPatch( &leaveChain );
                 mCodeBinPtr[0] = OP_B;
                 mCodeBinPtr += BranchInst::Size;
@@ -545,6 +550,10 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
             IncreaseExprDepth();
         }
     }
+
+    // This is not very important, because it optimizes a case like:
+    //   if n then B() else 3 end
+    // ... in a discarding context
 
     if ( (mCodeBinPtr - startPtr) >= BranchInst::Size
         && mCodeBinPtr[-BranchInst::Size] == OP_B
@@ -946,6 +955,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         }
         else
         {
+            // TODO: test case for big native ID
             WriteU32( mCodeBinPtr, id );
         }
     }
@@ -1082,7 +1092,7 @@ void Compiler::GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& con
     PatchChain  breakChain;
     PatchChain  nextChain;
 
-    int32_t bodyPtr = mCodeBinPtr - mCodeBin;
+    int32_t     bodyLoc = mCodeBinPtr - mCodeBin;
 
     // Body
     GenerateStatements( &loopStmt->Body, config.WithLoop( &breakChain, &nextChain ), status );
@@ -1093,7 +1103,7 @@ void Compiler::GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& con
         mCodeBinPtr[0] = OP_B;
         mCodeBinPtr += BranchInst::Size;
 
-        Patch( &nextChain, bodyPtr );
+        Patch( &nextChain, bodyLoc );
     }
     else
     {
@@ -1105,7 +1115,7 @@ void Compiler::GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& con
         Generate( loopStmt->Condition.get(), GenConfig::Expr( &bodyChain, &breakChain, false ), exprStatus );
         ElideFalse( &bodyChain, &breakChain );
 
-        Patch( &bodyChain, bodyPtr );
+        Patch( &bodyChain, bodyLoc );
     }
 
     Patch( &breakChain );
@@ -1449,8 +1459,13 @@ void Compiler::PushPatch( PatchChain* chain )
     PushPatch( chain, mCodeBinPtr - mCodeBin );
 }
 
+void Compiler::PushPatch( PatchChain* chain, int32_t patchLoc )
+{
+    PushBasicPatch( chain, patchLoc );
+}
+
 template <typename TRef>
-void Compiler::PushPatch( BasicPatchChain<TRef>* chain, TRef patchLoc )
+void Compiler::PushBasicPatch( BasicPatchChain<TRef>* chain, TRef patchLoc )
 {
     BasicInstPatch<TRef>* link = new BasicInstPatch<TRef>;
     link->Ref = patchLoc;
@@ -1476,7 +1491,7 @@ void Compiler::PushFuncPatch( const std::string& name, CodeRef codeRef )
         patchIt = std::move( result.first );
     }
 
-    PushPatch( &patchIt->second, codeRef );
+    PushBasicPatch( &patchIt->second, codeRef );
 
     if ( mInFunc )
     {

@@ -18,6 +18,13 @@ struct ModuleSource
 };
 
 
+struct NativePair
+{
+    int32_t     Id;
+    NativeFunc  Func;
+};
+
+
 constexpr int32_t DefaultParam = INT32_MAX;
 
 
@@ -34,7 +41,7 @@ void TestCompileAndRun(
     int expectedResult,
     int param,
     int expectedStack = 0,
-    NativeFunc* natives = nullptr
+    NativePair* natives = nullptr
 );
 
 void TestCompileAndRun(
@@ -43,7 +50,7 @@ void TestCompileAndRun(
     int expectedResult,
     const std::initializer_list<int>& params,
     int expectedStack = 0,
-    NativeFunc* natives = nullptr
+    NativePair* natives = nullptr
 );
 
-NativeFunc gNatives[];
+NativePair gNatives[];

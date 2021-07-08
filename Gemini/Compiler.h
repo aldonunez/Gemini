@@ -433,7 +433,8 @@ private:
     // Backpatching
     void Patch( PatchChain* chain, int32_t targetIndex = -1 );
     template <typename TRef>
-    void PushPatch( BasicPatchChain<TRef>* chain, TRef patchLoc );
+    void PushBasicPatch( BasicPatchChain<TRef>* chain, TRef patchLoc );
+    void PushPatch( PatchChain* chain, int32_t patchLoc );
     void PushPatch( PatchChain* chain );
     void PopPatch( PatchChain* chain );
     void PatchCalls( FuncPatchChain* chain, U32 addr );

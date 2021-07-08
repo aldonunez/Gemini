@@ -30,11 +30,11 @@ int NatMul( Machine* machine, U8 argc, CELL* args, UserContext context )
     return ERR_NONE;
 }
 
-NativeFunc gNatives[] =
+NativePair gNatives[] =
 {
-    NatAdd,
-    NatMul,
-    nullptr
+    { 0, NatAdd },
+    { 0, NatMul },
+    { 0, nullptr }
 };
 
 
@@ -55,14 +55,14 @@ class CompilerEnv : public ICompilerEnv, public IEnvironment
     typedef std::map<std::string, int> GlobalMap;
 
     using ModVec = std::vector<Module>;
-    using NativeVec = std::vector<NativeCode>;
+    using NativeMap = std::map<int32_t, NativeCode>;
 
     GlobalMap   mGlobalMap;
     FuncMap     mFuncMap;
     IdMap       mIdMap;
     Module*     mCurMod;
     ModVec      mMods;
-    NativeVec   mNatives;
+    NativeMap   mNatives;
 
 public:
     CompilerEnv();
@@ -72,19 +72,16 @@ public:
 
     void SetCurrentModule( Module* mod );
 
-    void SetNativeFuncs( NativeFunc* natives )
+    void SetNativeFuncs( NativePair* natives )
     {
-        size_t count = 0;
+        int32_t prevId = -1;
 
-        for ( size_t i = 0; natives[i] != nullptr; i++, count++ )
+        for ( size_t i = 0; natives[i].Func != nullptr; i++ )
         {
-        }
+            int32_t id = natives[i].Id != 0 ? natives[i].Id : prevId + 1;
 
-        mNatives.resize( count );
-
-        for ( size_t i = 0; natives[i] != nullptr; i++ )
-        {
-            mNatives[i].Proc = natives[i];
+            mNatives.insert( NativeMap::value_type( id, { natives[i].Func } ) );
+            prevId = id;
         }
     }
 
@@ -108,7 +105,7 @@ public:
         return &mMods.back();
     }
 
-    virtual const Module* FindModule( U8 index ) override
+    virtual Module* FindModule( U8 index ) override
     {
         return &mMods[index];
     }
@@ -176,23 +173,12 @@ bool CompilerEnv::FindByteCode( U32 id, ByteCode* byteCode )
 
 bool CompilerEnv::FindNativeCode( U32 id, NativeCode* nativeCode )
 {
-#if 0
-    auto it = mIdMap.find( id );
-    if ( it == mIdMap.end() )
+    auto it = mNatives.find( id );
+    if ( it == mNatives.end() )
         return false;
 
-    if ( it->second.Kind != External_Native )
-        return false;
-
-    *nativeCode = it->second.NativeCode;
+    *nativeCode = it->second;
     return true;
-#else
-    if ( id >= mNatives.size() )
-        return false;
-
-    *nativeCode = mNatives[id];
-    return true;
-#endif
 }
 
 bool CompilerEnv::AddGlobal( const std::string& name, int offset )
@@ -294,7 +280,7 @@ void TestCompileAndRun(
     int expectedResult,
     int param,
     int expectedStack,
-    NativeFunc* natives
+    NativePair* natives
 )
 {
     TestCompileAndRun(
@@ -313,12 +299,12 @@ void TestCompileAndRun(
     int expectedResult,
     const std::initializer_list<int>& params,
     int expectedStack,
-    NativeFunc* natives
+    NativePair* natives
 )
 {
     U8          bin1[1024];
     size_t      binSize = 0;
-    CELL        data1[1024];
+    std::vector<CELL> data1;
     size_t      dataSize = 0;
     uint32_t    maxStack = 0;
 
@@ -385,10 +371,12 @@ void TestCompileAndRun(
 
         if ( compiler1.GetDataSize() > 0 )
         {
-            curMod->DataBase = data1 + dataSize;
+            // Don't assign DataBase yet, because growing the buffer can reallocate it
             curMod->DataSize = (U16) compiler1.GetDataSize();
 
-            std::copy_n( compiler1.GetData(), compiler1.GetDataSize(), data1 + dataSize );
+            data1.resize( data1.size() + compiler1.GetDataSize() );
+
+            std::copy_n( compiler1.GetData(), compiler1.GetDataSize(), data1.data() + dataSize );
 
             dataSize += compiler1.GetDataSize();
         }
@@ -409,6 +397,20 @@ void TestCompileAndRun(
     Machine machine;
 
     machine.Init( stack, _countof( stack ), &env );
+
+    dataSize = 0;
+
+    for ( ModSize i = 0; i < env.GetModuleCount(); i++ )
+    {
+        Module* mod = env.FindModule( i );
+
+        if ( mod->DataSize > 0 )
+        {
+            mod->DataBase = data1.data() + dataSize;
+
+            dataSize += mod->DataSize;
+        }
+    }
 
     if ( natives != nullptr )
         env.SetNativeFuncs( natives );

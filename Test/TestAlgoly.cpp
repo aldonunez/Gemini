@@ -1208,6 +1208,22 @@ TEST_CASE( "Algoly: multi type alias int", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 4 );
 }
 
+TEST_CASE( "Algoly: elide branch before discarded catch all", "[algoly]" )
+{
+    // See the elision of B instruction at end of Cond generation
+
+    const char code[] =
+        "def a\n"
+        "  var n := 1\n"
+        "  if n then B() else 3 end\n"
+        "  0\n"
+        "end\n"
+        "def B end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+}
+
 
 //----------------------------------------------------------------------------
 // Arrays again
@@ -1288,6 +1304,56 @@ TEST_CASE( "Algoly: assign countof to const", "[algoly]" )
         ;
 
     TestCompileAndRunAlgoly( code, sizeof code, 3 );
+}
+
+TEST_CASE( "Algoly: big array 32768 extrapolate", "[algoly]" )
+{
+    const char code[] =
+        "var ar: [32768] := [1, 2...+]\n"
+        "def a\n"
+        "  var total := 0\n"
+        "  for i := 0 to countof(ar)-1 do\n"
+        "    total := ar[i] + total\n"
+        "  end"
+        "  total\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 536887296 );
+}
+
+TEST_CASE( "Algoly: big array 65534 extrapolate", "[algoly]" )
+{
+    const char code[] =
+        "var ar: [65534] := [1, 2...+]\n"
+        "def a\n"
+        "  var total := 0\n"
+        "  for i := 0 to countof(ar)-1 do\n"
+        "    total := ar[i] + total\n"
+        "  end"
+        "  total\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 2147385345 );
+}
+
+TEST_CASE( "Algoly: big array 63x1024 extrapolate repeat", "[algoly]" )
+{
+    const char code[] =
+        "var ar: [63] of [1024] := [[1, 2...+]...]\n"
+        "def a\n"
+        "  var total := 0\n"
+        "  for i := 0 to countof(ar)-1 do\n"
+        "    for j := 0 to countof(ar[0])-1 do\n"
+        "      total := ar[i][j] + total\n"
+        "    end\n"
+        "  end"
+        "  total\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 33062400 );
 }
 
 
