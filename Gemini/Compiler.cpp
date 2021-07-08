@@ -896,22 +896,17 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         && ((Function*) decl)->ModIndex == mModIndex )
     {
         Function* func = (Function*) decl;
-        U32 addr = 0;
 
         mCodeBinPtr[0] = OP_CALL;
         mCodeBinPtr[1] = callFlags;
         mCodeBinPtr += 2;
 
-        if ( func->Address != UndefinedAddr )
-        {
-            addr = func->Address;
-        }
-        else
+        if ( func->Address == UndefinedAddr )
         {
             PushFuncPatch( func->Name, { CodeRefKind::Code, mCodeBinPtr - mCodeBin } );
         }
 
-        WriteU24( mCodeBinPtr, addr );
+        WriteU24( mCodeBinPtr, func->Address );
 
         if ( mInFunc )
             mCurFunc->CalledFunctions.push_back( { mCurExprDepth, func->Name } );
