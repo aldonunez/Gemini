@@ -327,16 +327,13 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             }
             else if ( param->Mode == ParamMode::InOutRef )
             {
-                mCodeBinPtr[0] = OP_LDARG;
-                mCodeBinPtr[1] = param->Offset;
-                mCodeBinPtr += 2;
+                EmitU8( OP_LDARG, param->Offset );
                 IncreaseExprDepth();
 
                 if ( offset > 0 )
                     EmitSpilledAddrOffset( offset );
 
-                mCodeBinPtr[0] = OP_LOADI;
-                mCodeBinPtr += 1;
+                Emit( OP_LOADI );
             }
             else
             {
@@ -503,9 +500,7 @@ void Compiler::EmitCountofArray( Syntax* arrayNode )
         // Only ref params are allowed to take open array types
         auto param = (ParamStorage*) decl;
 
-        mCodeBinPtr[0] = OP_LDARG;
-        mCodeBinPtr[1] = param->Offset + 1;
-        mCodeBinPtr += 2;
+        EmitU8( OP_LDARG, param->Offset + 1 );
 
         IncreaseExprDepth();
     }
@@ -685,16 +680,13 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
             }
             else if ( param->Mode == ParamMode::InOutRef )
             {
-                mCodeBinPtr[0] = OP_LDARG;
-                mCodeBinPtr[1] = param->Offset;
-                mCodeBinPtr += 2;
+                EmitU8( OP_LDARG, param->Offset );
                 IncreaseExprDepth();
 
                 if ( offset > 0 )
                     EmitSpilledAddrOffset( offset );
 
-                mCodeBinPtr[0] = OP_STOREI;
-                mCodeBinPtr += 1;
+                Emit( OP_STOREI );
                 DecreaseExprDepth();
             }
             else
@@ -1724,9 +1716,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
 
                 if ( param->Mode == ParamMode::InOutRef )
                 {
-                    mCodeBinPtr[0] = OP_LDARG;
-                    mCodeBinPtr[1] = param->Offset;
-                    mCodeBinPtr += 2;
+                    EmitU8( OP_LDARG, param->Offset );
 
                     if ( offset != 0 )
                         EmitSpilledAddrOffset( offset );
