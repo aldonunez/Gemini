@@ -690,8 +690,8 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
     }
     else
     {
-        *mCodeBinPtr++ = OP_OVER;
-        *mCodeBinPtr++ = OP_OVER;
+        Emit( OP_OVER );
+        Emit( OP_OVER );
         IncreaseExprDepth();
         IncreaseExprDepth();
     }
@@ -703,7 +703,7 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
 
     EmitLoadAddress( assignment->Left.get(), baseDecl, offset );
 
-    *mCodeBinPtr++ = OP_COPYBLOCK;
+    Emit( OP_COPYBLOCK );
 
     DecreaseExprDepth( 3 );
 
@@ -868,10 +868,8 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
 
         Generate( valueElem );
 
-        mCodeBinPtr[0] = OP_LDLOCA;
-        mCodeBinPtr[1] = offset;
-        mCodeBinPtr[2] = OP_COPYBLOCK;
-        mCodeBinPtr += 3;
+        EmitU8( OP_LDLOCA, offset );
+        Emit( OP_COPYBLOCK );
 
         DecreaseExprDepth( 3 );
         return;

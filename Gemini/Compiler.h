@@ -262,7 +262,7 @@ private:
     typedef std::vector<Unique<Unit>> UnitVec;
     typedef std::map<int32_t, std::shared_ptr<ModuleDeclaration>> ModIdMap;
 
-    using CodeVec = std::vector<U8>;
+    using CodeVec           = std::vector<U8>;
     using GlobalVec         = std::vector<I32>;
     using MemTransferVec    = std::vector<MemTransfer>;
 
