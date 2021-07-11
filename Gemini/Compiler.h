@@ -456,7 +456,7 @@ private:
     size_t ReserveCode( size_t size );
     void DeleteCode( size_t size );
     void DeleteCode( size_t start, size_t size );
-    void EmitBranch( OpCode opcode );
+    void EmitBranch( OpCode opcode, PatchChain* chain );
     void Emit( OpCode opcode );
     void EmitU8( OpCode opcode, U8 operand );
     void EmitU16( OpCode opcode, U16 operand );

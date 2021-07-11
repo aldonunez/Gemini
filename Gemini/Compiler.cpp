@@ -159,12 +159,11 @@ void Compiler::Generate( Syntax* node, const GenConfig& config, GenStatus& statu
     {
         if ( config.trueChain != nullptr )
         {
-            PushPatch( config.trueChain );
-            EmitBranch( (config.invert && status.kind != ExprKind::Comparison) ? OP_BFALSE : OP_BTRUE );
+            OpCode opcode = (config.invert && status.kind != ExprKind::Comparison) ? OP_BFALSE : OP_BTRUE;
+            EmitBranch( opcode, config.trueChain );
             DecreaseExprDepth();
 
-            PushPatch( config.falseChain );
-            EmitBranch( OP_B );
+            EmitBranch( OP_B, config.falseChain );
         }
         else if ( config.invert && status.kind != ExprKind::Comparison )
         {
@@ -488,8 +487,7 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
                 IncreaseExprDepth();
             }
 
-            PushPatch( &leaveChain );
-            EmitBranch( OP_BTRUE );
+            EmitBranch( OP_BTRUE, &leaveChain );
             DecreaseExprDepth();
         }
         else
@@ -511,8 +509,7 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
                 // Not the last clause; or last one is not catch-all and not discarding.
                 // So, we'll emit LDC.S 0 below. And here we emit a jump over it.
 
-                PushPatch( &leaveChain );
-                EmitBranch( OP_B );
+                EmitBranch( OP_B, &leaveChain );
             }
 
             ElideFalse( &trueChain, &falseChain );
@@ -997,8 +994,7 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
     // for a usual test.
     DecreaseExprDepth();
 
-    PushPatch( &testChain );
-    EmitBranch( OP_B );
+    EmitBranch( OP_B, &testChain );
 
     int32_t bodyLoc = mCodeBin.size();
 
@@ -1029,8 +1025,7 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
     EmitU8( OP_PRIM, primitive );
     DecreaseExprDepth();
 
-    PushPatch( &bodyChain );
-    EmitBranch( OP_BTRUE );
+    EmitBranch( OP_BTRUE, &bodyChain );
     DecreaseExprDepth();
 
     Patch( &bodyChain, bodyLoc );
@@ -1056,8 +1051,7 @@ void Compiler::GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& con
 
     if ( loopStmt->Condition == nullptr )
     {
-        PushPatch( &nextChain );
-        EmitBranch( OP_B );
+        EmitBranch( OP_B, &nextChain );
 
         Patch( &nextChain, bodyLoc );
     }
@@ -1101,8 +1095,7 @@ void Compiler::GenerateDo( WhileStatement* whileStmt, const GenConfig& config, G
     // Body
     GenerateStatements( &whileStmt->Body, config.WithLoop( &breakChain, &nextChain ), status );
 
-    PushPatch( &nextChain );
-    EmitBranch( OP_B );
+    EmitBranch( OP_B, &nextChain );
 
     Patch( &breakChain );
     Patch( &nextChain, testLoc );
@@ -1120,8 +1113,7 @@ void Compiler::GenerateBreak( BreakStatement* breakStmt, const GenConfig& config
     if ( config.breakChain == nullptr )
         mRep.ThrowError( CERR_SEMANTICS, breakStmt, "Cannot use break outside of a loop" );
 
-    PushPatch( config.breakChain );
-    EmitBranch( OP_B );
+    EmitBranch( OP_B, config.breakChain );
 
     status.discarded = true;
 }
@@ -1136,8 +1128,7 @@ void Compiler::GenerateNext( NextStatement* nextStmt, const GenConfig& config, G
     if ( config.nextChain == nullptr )
         mRep.ThrowError( CERR_SEMANTICS, nextStmt, "Cannot use next outside of a loop" );
 
-    PushPatch( config.nextChain );
-    EmitBranch( OP_B );
+    EmitBranch( OP_B, config.nextChain );
 
     status.discarded = true;
 }
@@ -1197,14 +1188,12 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
 
             if ( i == clause->Keys.size() )
             {
-                PushPatch( &falseChain );
-                EmitBranch( OP_BFALSE );
+                EmitBranch( OP_BFALSE, &falseChain );
                 DecreaseExprDepth();
             }
             else
             {
-                PushPatch( &trueChain );
-                EmitBranch( OP_BTRUE );
+                EmitBranch( OP_BTRUE, &trueChain );
                 DecreaseExprDepth();
             }
         }
@@ -1213,8 +1202,7 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
 
         GenerateImplicitProgn( &clause->Body, statementConfig, status );
 
-        PushPatch( &exitChain );
-        EmitBranch( OP_B );
+        EmitBranch( OP_B, &exitChain );
 
         Patch( &falseChain );
     }
@@ -1370,8 +1358,7 @@ void Compiler::Atomize( ConjSpec* spec, BinaryExpr* binary, bool invert, bool di
     {
         EmitU8( OP_LDC_S, 1 );
 
-        PushPatch( &endChain );
-        EmitBranch( OP_B );
+        EmitBranch( OP_B, &endChain );
     }
 
     Patch( &falseChain );
@@ -2102,8 +2089,10 @@ void Compiler::DeleteCode( size_t start, size_t size )
     mCodeBin.erase( mCodeBin.begin() + start, mCodeBin.begin() + start + size );
 }
 
-void Compiler::EmitBranch( OpCode opcode )
+void Compiler::EmitBranch( OpCode opcode, PatchChain* chain )
 {
+    PushPatch( chain );
+
     size_t curIndex = ReserveCode( BranchInst::Size );
 
     mCodeBin[curIndex] = opcode;
