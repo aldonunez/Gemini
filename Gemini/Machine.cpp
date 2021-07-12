@@ -79,14 +79,24 @@ void Machine::Init( CELL* stack, U16 stackSize, UserContext scriptCtx )
     Reset();
 }
 
-bool Machine::IsRunning()
+bool Machine::IsRunning() const
 {
     return mFramePtr < mStackSize;
 }
 
-UserContext Machine::GetScriptContext()
+UserContext Machine::GetScriptContext() const
 {
     return mScriptCtx;
+}
+
+U32 Machine::GetPC() const
+{
+    return mPC;
+}
+
+U8 Machine::GetModIndex() const
+{
+    return mModIndex;
 }
 
 CELL* Machine::Start( U8 modIndex, U32 address, U8 argCount )
@@ -202,6 +212,8 @@ int Machine::Run()
 
     while ( true )
     {
+        mPC = codePtr - mMod->CodeBase;
+
         const U8 op = *codePtr;
         codePtr++;
 

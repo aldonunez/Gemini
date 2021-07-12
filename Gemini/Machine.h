@@ -58,8 +58,6 @@ struct NativeCode
 class IEnvironment
 {
 public:
-    virtual ~IEnvironment() {}
-
     virtual bool FindNativeCode( U32 id, NativeCode* nativeCode ) = 0;
     virtual const Module* FindModule( U8 index ) = 0;
 };
@@ -106,8 +104,12 @@ public:
 
     void Init( CELL* stack, U16 stackSize, IEnvironment* environment, UserContext scriptCtx = 0 );
     void Init( CELL* stack, U16 stackSize, U8 modIndex, const Module* module, UserContext scriptCtx = 0 );
-    bool IsRunning();
-    UserContext GetScriptContext();
+
+    bool IsRunning() const;
+    UserContext GetScriptContext() const;
+    U32 GetPC() const;
+    U8 GetModIndex() const;
+
     CELL* Start( U8 modIndex, U32 address, U8 argCount );
     void Reset();
     int Run();
