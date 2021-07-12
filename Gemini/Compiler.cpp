@@ -313,10 +313,10 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
 
 void Compiler::EmitSpilledAddrOffset( int32_t offset )
 {
-    EmitLoadConstant( offset );
+    // TODO: Consider adding an OFFSET instruction that safely adds a constant offset to an address
 
-    // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
-    EmitU8( OP_PRIM, PRIM_ADD );
+    EmitLoadConstant( offset );
+    EmitU8( OP_INDEX_S, 1 );
 
     DecreaseExprDepth();
 }
@@ -1621,14 +1621,9 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
     {
         EmitU32( OP_INDEX, arrayType.ElemType->GetSize() );
     }
-    else if ( arrayType.ElemType->GetSize() > 1 )
-    {
-        EmitU8( OP_INDEX_S, static_cast<U8>(arrayType.ElemType->GetSize()) );
-    }
     else
     {
-        // TODO: Do we need an add-address primitive that doesn't overwrite the module byte?
-        EmitU8( OP_PRIM, PRIM_ADD );
+        EmitU8( OP_INDEX_S, static_cast<U8>(arrayType.ElemType->GetSize()) );
     }
 
     DecreaseExprDepth();

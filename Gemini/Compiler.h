@@ -47,8 +47,6 @@ struct ExternalFunc
 class ICompilerEnv
 {
 public:
-    virtual ~ICompilerEnv() { }
-
     virtual bool AddExternal( const std::string& name, ExternalKind kind, int address ) = 0;
     virtual bool FindExternal( const std::string& name, ExternalFunc* func ) = 0;
     virtual bool AddGlobal( const std::string& name, int offset ) = 0;
@@ -64,8 +62,6 @@ enum LogCategory
 class ICompilerLog
 {
 public:
-    virtual ~ICompilerLog() { }
-
     virtual void Add( LogCategory category, const char* fileName, int line, int column, const char* message ) = 0;
 };
 
