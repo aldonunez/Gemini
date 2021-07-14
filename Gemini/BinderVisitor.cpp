@@ -59,6 +59,15 @@ static bool IsVarDeclaration( DeclKind kind )
         || kind == DeclKind::Local;
 }
 
+static bool IsSimpleValueDeclaration( DeclKind kind )
+{
+    return kind == DeclKind::Param
+        || kind == DeclKind::Global
+        || kind == DeclKind::Local
+        || kind == DeclKind::Const
+        ;
+}
+
 static bool IsAddressableDeclaration( DeclKind kind )
 {
     return kind == DeclKind::Func
@@ -352,8 +361,10 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
     if ( caseExpr->TestKey->Type->GetKind() != TypeKind::Int )
         mRep.ThrowError( CERR_SEMANTICS, caseExpr->TestKey.get(), "Case only supports integers" );
 
-    if ( caseExpr->TestKey->Kind != SyntaxKind::Name
-        && caseExpr->TestKey->Kind != SyntaxKind::Number )
+    auto decl = caseExpr->TestKey->GetDecl();
+
+    if ( caseExpr->TestKey->Kind != SyntaxKind::Number
+        && (decl == nullptr || !IsSimpleValueDeclaration( decl->Kind )) )
     {
         RewriteCaseWithComplexKey( caseExpr );
         return;
