@@ -1163,3 +1163,41 @@ TEST_CASE( "Algoly: StackUse: global slice dim0 var indexes", "[algoly][stack]" 
 
     TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 4 );
 }
+
+TEST_CASE( "Algoly: calls across 3 modules", "[algoly][stack]" )
+{
+    const char* modeCodeB[] =
+    {
+        "def Z(x) var q := x+2; q end\n"
+        ,
+        nullptr
+    };
+
+    const char* modeCodeA[] =
+    {
+        "import ModB\n"
+        "def Y(p) ModB.Z(p) end\n"
+        "def X var n := 3; Y(n) end\n"
+        "def W X() end\n"
+        ,
+        nullptr
+    };
+
+    const char* mainCode[] =
+    {
+        "import ModA\n"
+        "def a ModA.W() end\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "ModB",   modeCodeB },
+        { "ModA",   modeCodeA },
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 5, 0, 16 );
+}

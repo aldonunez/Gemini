@@ -292,7 +292,7 @@ private:
 
     typedef std::vector<AddrRef> AddrRefVec;
     typedef std::vector<Unique<Unit>> UnitVec;
-    typedef std::vector<std::shared_ptr<ModuleDeclaration>> ModVec;
+    typedef std::map<int32_t, std::shared_ptr<ModuleDeclaration>> ModIdMap;
 
     using CodeVec = std::vector<U8>;
     using GlobalVec = std::vector<I32>;
@@ -309,6 +309,7 @@ private:
     SymTable        mGlobalTable;
     SymTable        mModuleTable;
     SymTable        mPublicTable;
+    ModIdMap        mModulesById;
     FuncPatchMap    mFuncPatchMap;
     AddrRefVec      mLocalAddrRefs;
     bool            mInFunc = false;

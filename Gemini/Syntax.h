@@ -611,8 +611,9 @@ struct ParamStorage : public Declaration
 
 struct CallSite
 {
-    int16_t     ExprDepth;
     std::string FunctionName;
+    int16_t     ExprDepth;
+    uint8_t     ModIndex;
 };
 
 struct Function : public Declaration
@@ -657,6 +658,7 @@ struct ModuleDeclaration : public Declaration
 {
     std::string Name;
     SymTable    Table;
+    int32_t     Index;
 
     ModuleDeclaration();
 };

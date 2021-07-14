@@ -31,7 +31,15 @@ void Compiler::AddUnit( Unique<Unit>&& unit )
 
 void Compiler::AddModule( std::shared_ptr<ModuleDeclaration> moduleDecl )
 {
-    mModuleTable.insert( SymTable::value_type( moduleDecl->Name, moduleDecl ) );
+    auto modTabResult = mModuleTable.insert( SymTable::value_type( moduleDecl->Name, moduleDecl ) );
+
+    if ( !modTabResult.second )
+        mRep.ThrowError( CERR_SEMANTICS, NULL, "Module name already used: %u %s", moduleDecl->Index, moduleDecl->Name.c_str() );
+
+    auto modIdResult = mModulesById.insert( ModIdMap::value_type( moduleDecl->Index, moduleDecl ) );
+
+    if ( !modIdResult.second )
+        mRep.ThrowError( CERR_SEMANTICS, NULL, "Module index already used: %u %s", moduleDecl->Index, moduleDecl->Name.c_str() );
 }
 
 CompilerErr Compiler::Compile()
@@ -93,6 +101,7 @@ std::shared_ptr<ModuleDeclaration> Compiler::GetMetadata( const char* modName )
     std::shared_ptr<ModuleDeclaration> modDecl( new ModuleDeclaration() );
 
     modDecl->Name = modName;
+    modDecl->Index = mModIndex;
     modDecl->Table = std::move( mPublicTable );
     modDecl->Type = std::shared_ptr<ModuleType>( new ModuleType() );
 
@@ -873,7 +882,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         StoreU24( &mCodeBin[curIndex+2], func->Address );
 
         if ( mInFunc )
-            mCurFunc->CalledFunctions.push_back( { mCurExprDepth, func->Name } );
+            mCurFunc->CalledFunctions.push_back( { func->Name, mCurExprDepth, mModIndex } );
     }
     else
     {
@@ -887,7 +896,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
             opCode = OP_CALLM;
             id = CodeAddr::Build( func->Address, func->ModIndex );
 
-            // TODO: Add this external call to the list of called functions
+            mCurFunc->CalledFunctions.push_back( { func->Name, mCurExprDepth, func->ModIndex } );
         }
         else if ( decl->Kind == DeclKind::NativeFunc )
         {
@@ -2010,8 +2019,26 @@ void Compiler::CalculateStackDepth( Function* func )
 
     for ( const auto& site : func->CalledFunctions )
     {
-        if ( auto it = mGlobalTable.find( site.FunctionName );
-            it != mGlobalTable.end() )
+        SymTable* table = nullptr;
+
+        if ( site.ModIndex == mModIndex )
+        {
+            table = &mGlobalTable;
+        }
+        else
+        {
+            if ( auto modIt = mModulesById.find( site.ModIndex );
+                modIt != mModulesById.end() )
+            {
+                table = &modIt->second->Table;
+            }
+        }
+
+        if ( table == nullptr )
+            continue;
+
+        if ( auto it = table->find( site.FunctionName );
+            it != table->end() )
         {
             if ( it->second->Kind != DeclKind::Func )
                 continue;
