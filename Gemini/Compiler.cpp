@@ -1149,22 +1149,6 @@ void Compiler::GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config,
 
     const GenConfig& statementConfig = config;
 
-    if ( caseExpr->TestKeyDecl != nullptr )
-    {
-        auto local = (LocalStorage*) caseExpr->TestKeyDecl.get();
-
-        Generate( caseExpr->TestKey.get() );
-        EmitU8( OP_STLOC, local->Offset );
-        DecreaseExprDepth();
-
-        // Replace the keyform expression with the temporary variable
-        Unique<NameExpr> localSym( new NameExpr() );
-        localSym->String = "$testKey";
-        localSym->Decl = caseExpr->TestKeyDecl;
-        localSym->Type = localSym->Decl->Type;
-        caseExpr->TestKey = std::move( localSym );
-    }
-
     for ( auto& clause : caseExpr->Clauses )
     {
         PatchChain falseChain;

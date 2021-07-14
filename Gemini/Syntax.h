@@ -276,8 +276,6 @@ public:
     Unique<CaseElse> Fallback;
     std::vector<Unique<CaseWhen>> Clauses;
 
-    std::shared_ptr<Declaration> TestKeyDecl;
-
     virtual void Accept( IVisitor* visitor ) override;
 };
 
@@ -490,7 +488,10 @@ public:
     virtual void Accept( IVisitor* visitor ) override;
 };
 
+
 std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
+
+void CopyBaseSyntax( Syntax& dest, const Syntax& source );
 
 
 //----------------------------------------------------------------------------

@@ -347,8 +347,6 @@ void BinderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
 
 void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
 {
-    LocalScope localScope( *this );
-
     Visit( caseExpr->TestKey );
 
     if ( caseExpr->TestKey->Type->GetKind() != TypeKind::Int )
@@ -357,8 +355,8 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
     if ( caseExpr->TestKey->Kind != SyntaxKind::Name
         && caseExpr->TestKey->Kind != SyntaxKind::Number )
     {
-        // TODO: Ideally simplify a complex test key in one place
-        caseExpr->TestKeyDecl = AddLocal( "$testKey", caseExpr->TestKey->Type, 1 );
+        RewriteCaseWithComplexKey( caseExpr );
+        return;
     }
 
     std::shared_ptr<Type> bodyType;
@@ -396,6 +394,29 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
     }
 
     caseExpr->Type = bodyType;
+}
+
+void BinderVisitor::RewriteCaseWithComplexKey( CaseExpr* caseExpr )
+{
+    Unique<VarDecl> varDecl{ new VarDecl };
+    varDecl->Name = "$testKey";
+    varDecl->Initializer = std::move( caseExpr->TestKey );
+
+    Unique<NameExpr> nameExpr{ new NameExpr( "$testKey" ) };
+
+    Unique<CaseExpr> newCase{ new CaseExpr };
+    newCase->Clauses.swap( caseExpr->Clauses );
+    newCase->Fallback.swap( caseExpr->Fallback );
+    newCase->TestKey = std::move( nameExpr );
+    CopyBaseSyntax( *newCase, *caseExpr );
+
+    Unique<LetStatement> letStmt{ new LetStatement };
+    letStmt->Variables.push_back( std::move( varDecl ) );
+    letStmt->Body.Statements.push_back( std::move( newCase ) );
+
+    letStmt->Accept( this );
+
+    mReplacementNode = std::move( letStmt );
 }
 
 void BinderVisitor::VisitCondExpr( CondExpr* condExpr )

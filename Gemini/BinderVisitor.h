@@ -16,11 +16,6 @@ namespace Gemini
 class BinderVisitor final : public IVisitor
 {
     using SymStack = std::vector<SymTable*>;
-
-    // This relies on the syntax nodes sticking around outside of its control.
-    // But since shared_ptr is used, instead of internal ref counts,
-    // this is not robust.
-
     using LambdaVec = std::vector<Unique<ProcDecl>>;
 
     friend class LocalScope;
@@ -104,6 +99,8 @@ private:
     void Visit( Unique<Syntax>& child );
 
     void BindLambdas( Unit* unit );
+
+    void RewriteCaseWithComplexKey( CaseExpr* caseExpr );
 
     void VisitProc( ProcDecl* procDecl );
     void VisitLetBinding( DataDecl* varDecl );

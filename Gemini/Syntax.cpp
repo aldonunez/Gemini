@@ -320,6 +320,13 @@ std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node )
     return std::optional<int32_t>();
 }
 
+void CopyBaseSyntax( Syntax& dest, const Syntax& source )
+{
+    dest.Line = source.Line;
+    dest.Column = source.Column;
+    dest.FileName = source.FileName;
+}
+
 
 //----------------------------------------------------------------------------
 //  Visitors
