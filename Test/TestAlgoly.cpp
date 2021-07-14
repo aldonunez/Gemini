@@ -1454,6 +1454,9 @@ TEST_CASE( "Algoly: native call back", "[algoly]" )
 //  Modules, units
 //----------------------------------------------------------------------------
 
+// What happens when you init a global in 1 mod with a global in another mod?
+//  Globals must be initialized with constant data
+
 TEST_CASE( "Algoly: mod dotted slice index", "[algoly]" )
 {
     const char* modeCodeA[] =
@@ -1463,8 +1466,6 @@ TEST_CASE( "Algoly: mod dotted slice index", "[algoly]" )
 
         nullptr
     };
-
-    // TODO: What happens when you init a global in 1 mod with a global in another mod?
 
     const char* mainCode[] =
     {
@@ -1499,8 +1500,6 @@ TEST_CASE( "Algoly: mod dotted array count", "[algoly]" )
         nullptr
     };
 
-    // TODO: What happens when you init a global in 1 mod with a global in another mod?
-
     const char* mainCode[] =
     {
         "import ModA\n"
@@ -1532,8 +1531,6 @@ TEST_CASE( "Algoly: mod dotted type alias", "[algoly]" )
         nullptr
     };
 
-    // TODO: What happens when you init a global in 1 mod with a global in another mod?
-
     const char* mainCode[] =
     {
         "import ModA\n"
@@ -1563,8 +1560,6 @@ TEST_CASE( "Algoly: mod dotted callOrSymbol", "[algoly]" )
 
         nullptr
     };
-
-    // TODO: What happens when you init a global in 1 mod with a global in another mod?
 
     const char* mainCode[] =
     {
@@ -1599,8 +1594,6 @@ TEST_CASE( "Algoly: multi unit and mod", "[algoly]" )
 
         nullptr
     };
-
-    // TODO: What happens when you init a global in 1 mod with a global in another mod?
 
     const char* mainCode[] =
     {

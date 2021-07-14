@@ -415,7 +415,6 @@ void Compiler::VisitReturnStatement( ReturnStatement* retStmt )
     GenerateReturn( retStmt, Config(), Status() );
 }
 
-// TODO: move
 void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
 {
     if ( Config().discard )

@@ -718,8 +718,6 @@ TEST_CASE( "Algoly: StackUse: while", "[algoly][stack]" )
     TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 3 );
 }
 
-// TODO: test case, array, slice
-
 TEST_CASE( "Algoly: StackUse: if no else", "[algoly][stack]" )
 {
     const char code[] =
@@ -833,8 +831,6 @@ TEST_CASE( "Algoly: StackUse: add two if else", "[algoly][stack]" )
     WHEN( "1, 1" )
         TestCompileAndRunAlgoly( code, sizeof code, 9, { 1, 1 }, 6 );
 }
-
-// TODO: test case, array, slice
 
 TEST_CASE( "Algoly: StackUse: case no else", "[algoly][stack]" )
 {
@@ -950,10 +946,6 @@ TEST_CASE( "Algoly: StackUse: add two case else", "[algoly][stack]" )
     WHEN( "2, 2" )
         TestCompileAndRunAlgoly( code, sizeof code, 30, { 2, 2 }, 7 );
 }
-
-// TODO: test slice
-
-// TODO: storage, indexing, rank, assignment
 
 TEST_CASE( "Algoly: StackUse: read global array 2x2 2-const indexes", "[algoly][stack]" )
 {
