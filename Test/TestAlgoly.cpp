@@ -824,8 +824,6 @@ TEST_CASE( "Algoly: Let, call, complex exprs", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 120 );
 }
 
-// TODO: Test local array like this
-
 TEST_CASE( "Algoly: Global array, complex elem with fptr elem and repeat init", "[algoly]" )
 {
     const char code[] =
@@ -1830,8 +1828,6 @@ TEST_CASE( "Algoly: mod array 1", "[algoly]" )
     TestCompileAndRun( Language::Gema, modSources, 5 + 30, 0 );
 }
 
-// TODO: cross module arrays
-
 
 // TODO:
 //TEST_CASE( "For ??? 1", "[algoly]" )
@@ -1846,5 +1842,3 @@ TEST_CASE( "Algoly: mod array 1", "[algoly]" )
 //
 //    TestCompileAndRunAlgoly( code, sizeof code, 36 );
 //}
-
-// TODO: test loops returning 0

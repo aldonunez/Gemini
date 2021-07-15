@@ -658,7 +658,7 @@ struct ModuleDeclaration : public Declaration
 {
     std::string Name;
     SymTable    Table;
-    int32_t     Index;
+    int32_t     Index = 0;
 
     ModuleDeclaration();
 };
