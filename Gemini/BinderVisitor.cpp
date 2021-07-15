@@ -612,9 +612,9 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
 
         auto enumType = (EnumType*) ((TypeDeclaration*) decl)->ReferentType.get();
 
-        auto it = enumType->ByNameTable.find( dotExpr->Member );
+        auto it = enumType->MembersByName.find( dotExpr->Member );
 
-        if ( it == enumType->ByNameTable.end() )
+        if ( it == enumType->MembersByName.end() )
             mRep.ThrowError( CERR_SEMANTICS, dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
 
         dotExpr->Decl = it->second;
@@ -630,7 +630,7 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 {
     auto enumType = Make<EnumType>();
 
-    BorrowedScope scope( *this, enumType->ByNameTable );
+    BorrowedScope scope( *this, enumType->MembersByName );
 
     int32_t value = -1;
 
@@ -652,7 +652,7 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 
         member->Value = value;
 
-        enumType->ByNameTable.insert( SymTable::value_type( memberDef->Name, member ) );
+        enumType->MembersByName.insert( SymTable::value_type( memberDef->Name, member ) );
     }
 
     enumTypeRef->Type = mTypeType;

@@ -863,8 +863,7 @@ public:
 class EnumType : public Type
 {
 public:
-    // TODO: Rename MembersByName
-    SymTable    ByNameTable;
+    SymTable    MembersByName;
 
     EnumType();
 
