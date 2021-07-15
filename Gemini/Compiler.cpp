@@ -1875,8 +1875,6 @@ void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t 
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
     {
-        // TODO: tell it not to spill
-
         // Defer these globals until all function addresses are known and put in source blocks
 
         Declaration* baseDecl = nullptr;
