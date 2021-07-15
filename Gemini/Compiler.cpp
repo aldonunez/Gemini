@@ -1920,9 +1920,11 @@ Compiler::GenStatus& Compiler::Status()
 
 void Compiler::GenerateSentinel()
 {
+    size_t curIndex = ReserveProgram( SENTINEL_SIZE );
+
     for ( int i = 0; i < SENTINEL_SIZE; i++ )
     {
-        Emit( OP_SENTINEL );
+        mCodeBin[curIndex++] = OP_SENTINEL;
     }
 }
 
@@ -2069,7 +2071,7 @@ void Compiler::CalculateStackDepth( Function* func )
     func->TreeStackUsage = func->IndividualStackUsage + maxChildStackUsage;
 }
 
-size_t Compiler::ReserveCode( size_t size )
+size_t Compiler::ReserveProgram( size_t size )
 {
     if ( size > (CodeSizeMax - mCodeBin.size()) )
         mRep.ThrowError( CERR_SEMANTICS, NULL, "Generated code is too big. Max=%u", CodeSizeMax );
@@ -2078,6 +2080,12 @@ size_t Compiler::ReserveCode( size_t size )
     mCodeBin.resize( mCodeBin.size() + size );
 
     return curIndex;
+}
+
+size_t Compiler::ReserveCode( size_t size )
+{
+    assert( mInFunc );
+    return ReserveProgram( size );
 }
 
 void Compiler::DeleteCode( size_t size )

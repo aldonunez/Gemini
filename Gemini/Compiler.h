@@ -450,6 +450,7 @@ private:
     void CalculateStackDepth( Function* func );
 
     // Emitting instructions
+    size_t ReserveProgram( size_t size );
     size_t ReserveCode( size_t size );
     void DeleteCode( size_t size );
     void DeleteCode( size_t start, size_t size );
