@@ -9,6 +9,7 @@
 #include "OpCodes.h"
 #include <ctype.h>
 #include <cstdarg>
+#include <cstring>
 #include "BinderVisitor.h"
 #include "FolderVisitor.h"
 
@@ -1975,7 +1976,7 @@ void Compiler::CalculateStackDepth()
 
             CalculateStackDepth( func );
 
-            if ( name._Starts_with( "$Lambda$" ) )
+            if ( func->IsLambda )
             {
                 callStats = &mStats.Lambda;
             }
@@ -2185,7 +2186,7 @@ void Reporter::ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* 
         column = elem->Column;
     }
     ThrowError( exceptionCode, fileName, line, column, format, args );
-    va_end( args );
+    // No need to run va_end( args ), since an exception was thrown
 }
 
 void Reporter::ThrowError( CompilerErr exceptionCode, const char* fileName, int line, int col, const char* format, va_list args )
@@ -2204,7 +2205,7 @@ void Reporter::ThrowInternalError( const char* format, ... )
     va_list args;
     va_start( args, format );
     ThrowError( CERR_INTERNAL, "", 0, 0, format, args );
-    va_end( args );
+    // No need to run va_end( args ), since an exception was thrown
 }
 
 void Reporter::Log( LogCategory category, const char* fileName, int line, int col, const char* format, va_list args )
@@ -2226,7 +2227,7 @@ void Log( ICompilerLog* log, LogCategory category, const char* fileName, int lin
     if ( log != nullptr )
     {
         char msg[256] = "";
-        vsprintf_s( msg, format, args );
+        vsnprintf( msg, sizeof msg, format, args );
         log->Add( category, fileName, line, col, msg );
     }
 }

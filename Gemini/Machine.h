@@ -42,7 +42,7 @@ struct Module
 
 struct ByteCode
 {
-    const Module*   Module;
+    const ::Module* Module;
     U32             Address;
 };
 

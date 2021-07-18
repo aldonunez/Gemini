@@ -39,7 +39,7 @@ TEST_CASE( "Algoly: StackUse: negate negative min number", "[algoly][stack]" )
         "def a - -2147483648 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, -2147483648, 0, 3 );
+    TestCompileAndRunAlgoly( code, sizeof code, INT32_MIN, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: negative min number", "[algoly][stack]" )
@@ -48,7 +48,7 @@ TEST_CASE( "Algoly: StackUse: negative min number", "[algoly][stack]" )
         "def a -2147483648 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, -2147483648, 0, 3 );
+    TestCompileAndRunAlgoly( code, sizeof code, INT32_MIN, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: unary not", "[algoly][stack]" )

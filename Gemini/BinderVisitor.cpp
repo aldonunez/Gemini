@@ -9,6 +9,7 @@
 #include <cstdarg>
 #include "Compiler.h"
 #include "FolderVisitor.h"
+#include <stdio.h>
 
 
 namespace Gemini
@@ -661,7 +662,7 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
 
     char name[32];
 
-    sprintf_s( name, "$Lambda$%zu", mLambdas.size() );
+    snprintf( name, sizeof name, "$Lambda$%zu", mLambdas.size() );
 
     auto funcType = MakeFuncType( lambdaExpr->Proc.get() );
 
@@ -670,6 +671,7 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
     std::shared_ptr<Function> func = AddFunc( name, false );
 
     func->Type = funcType;
+    func->IsLambda = true;
 
     lambdaExpr->Proc->Name = name;
     lambdaExpr->Proc->Decl = func;
@@ -961,11 +963,11 @@ void BinderVisitor::VisitProcDecl( ProcDecl* procDecl )
 
     mGlobalTable.erase( procDecl->Name );
 
-    auto forward = AddFunc( procDecl->Name, true );
+    auto func = AddFunc( procDecl->Name, true );
 
-    forward->Type = MakeFuncType( procDecl );
+    func->Type = MakeFuncType( procDecl );
 
-    procDecl->Decl = forward;
+    procDecl->Decl = func;
 }
 
 void BinderVisitor::BindNamedProc( ProcDecl* procDecl )

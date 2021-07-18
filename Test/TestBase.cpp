@@ -6,6 +6,7 @@
 #include "../Gemini/Compiler.h"
 #include "../Gemini/Disassembler.h"
 #include "../Gemini/Machine.h"
+#include <cstring>
 
 #define ENABLE_DISASSEMBLY 0
 
@@ -45,8 +46,8 @@ class CompilerEnv : public ICompilerEnv, public IEnvironment
         ExternalKind    Kind;
         union
         {
-            ByteCode    ByteCode;
-            NativeCode  NativeCode;
+            ::ByteCode      ByteCode;
+            ::NativeCode    NativeCode;
         };
     };
 
@@ -67,8 +68,8 @@ class CompilerEnv : public ICompilerEnv, public IEnvironment
 public:
     CompilerEnv();
 
-    bool AddExternal( const std::string& name, ExternalKind kind, int address );
-    bool FindExternal( const std::string& name, ExternalFunc* func );
+    bool AddExternal( const std::string& name, ExternalKind kind, int address ) override;
+    bool FindExternal( const std::string& name, ExternalFunc* func ) override;
 
     void SetCurrentModule( Module* mod );
 
@@ -86,7 +87,7 @@ public:
     }
 
     bool FindByteCode( U32 id, ByteCode* byteCode );
-    bool FindNativeCode( U32 id, NativeCode* nativeCode );
+    bool FindNativeCode( U32 id, NativeCode* nativeCode ) override;
 
     bool AddGlobal( const std::string& name, int offset ) override;
     bool FindGlobal( const std::string& name, int& offset ) override;
@@ -221,7 +222,7 @@ void Disassemble( const uint8_t* program, int size )
     while ( totalBytesDisasm < size )
     {
         char disasm[256];
-        int bytesDisasm = disassembler.Disassemble( disasm, _countof( disasm ) );
+        int bytesDisasm = disassembler.Disassemble( disasm, std::size( disasm ) );
         if ( bytesDisasm <= 0 )
             break;
         totalBytesDisasm += bytesDisasm;
@@ -403,7 +404,7 @@ void TestCompileAndRun(
     CELL stack[Machine::MIN_STACK * 8];
     Machine machine;
 
-    machine.Init( stack, _countof( stack ), &env );
+    machine.Init( stack, static_cast<U16>( std::size( stack ) ), &env );
 
     binSize = 0;
     dataSize = 0;
@@ -456,5 +457,5 @@ void TestCompileAndRun(
     } while ( err == ERR_YIELDED );
 
     REQUIRE( err == 0 );
-    REQUIRE( stack[_countof( stack ) - 1] == expectedResult );
+    REQUIRE( stack[std::size( stack ) - 1] == expectedResult );
 }

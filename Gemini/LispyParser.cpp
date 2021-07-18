@@ -252,7 +252,7 @@ void LispyParser::SkipWhitespace()
 
 bool LispyParser::IsIdentifierInitial( int c )
 {
-    return (c < sizeof sIdentifierInitialCharMap)
+    return (static_cast<unsigned char>(c) < sizeof sIdentifierInitialCharMap)
         && sIdentifierInitialCharMap[c];
 }
 
@@ -642,7 +642,7 @@ Unique<DataDecl> LispyParser::ParseLetBinding( Unique<DataDecl>&& varDecl, bool 
     if ( !isParam )
         ScanRParen();
 
-    return varDecl;
+    return std::move( varDecl );
 }
 
 Unique<TypeRef> LispyParser::ParseTypeRef( bool embedded )
@@ -1069,7 +1069,7 @@ void LispyParser::ThrowSyntaxError( const char* format, ... )
     va_list args;
     va_start( args, format );
     mRep.ThrowError( CERR_SYNTAX, mUnitFileName, mTokLine, mTokCol, format, args );
-    va_end( args );
+    // No need to run va_end( args ), since an exception was thrown
 }
 
 }
@@ -1089,7 +1089,7 @@ void GenerateIdCharTable()
     constexpr unsigned int TableSize = 128;
     bool table[TableSize] = { false };
 
-    for ( int i = 0; i < _countof( sExtAlphaChars ); i++ )
+    for ( int i = 0; i < std::size( sExtAlphaChars ); i++ )
     {
         table[sExtAlphaChars[i]] = true;
     }

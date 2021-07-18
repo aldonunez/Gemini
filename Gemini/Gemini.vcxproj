@@ -158,7 +158,6 @@
     <ClInclude Include="OpCodes.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Syntax.h" />
-    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AlgolyParser.cpp" />

@@ -80,7 +80,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     else
         opName = "*Invalid opcode";
 
-    charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), "%06X:  %s", addr, opName );
+    charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), "%06X:  %s", addr, opName );
     if ( charsWritten < 0 )
         return -1;
 
@@ -107,7 +107,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LDLOCA:
         {
             int value = *(U8*) mCodePtr++;
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " %d", value );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );
         }
         break;
 
@@ -115,7 +115,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_INDEX_S:
         {
             int value = *(I8*) mCodePtr++;
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " %d", value );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );
         }
         break;
 
@@ -124,7 +124,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         {
             int iMod = ReadU8( mCodePtr );
             U16 dataAddr = ReadU16( mCodePtr );
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " $%02X, $%04X", iMod, dataAddr );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " $%02X, $%04X", iMod, dataAddr );
         }
         break;
 
@@ -132,7 +132,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_INDEX:
         {
             int value = ReadI32( mCodePtr );
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " %d", value );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );
         }
         break;
 
@@ -140,7 +140,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         {
             U8 callFlags = *mCodePtr++;
             U32 funcAddr = ReadU24( mCodePtr );
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten),
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),
                 "%s(%d) $%06X",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),
                 CallFlags::GetCount( callFlags ), funcAddr );
@@ -150,7 +150,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_CALLI:
         {
             U8 callFlags = *mCodePtr++;
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten),
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),
                 "%s(%d)",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),
                 CallFlags::GetCount( callFlags ) );
@@ -163,7 +163,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
             if ( primitive >= PRIM_MAXPRIMITIVE )
                 return -1;
             const char* primitiveName = gPrimitives[primitive];
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten),
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),
                 " %s",
                 primitiveName );
         }
@@ -174,7 +174,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         {
             U8 callFlags = *mCodePtr++;
             U32 id = ReadU32( mCodePtr );
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten),
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),
                 "%s(%d) $%08X",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),
                 CallFlags::GetCount( callFlags ), id );
@@ -186,7 +186,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
             U8 callFlags = *mCodePtr++;
             int id = *mCodePtr;
             mCodePtr += 1;
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten),
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),
                 "%s(%d) $%02X",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),
                 CallFlags::GetCount( callFlags ), id );
@@ -199,13 +199,13 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         {
             int offset = BranchInst::ReadOffset( mCodePtr );
             int target = static_cast<int32_t>(mCodePtr - mCodeBin) + offset;
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " $%06X", target );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " $%06X", target );
         }
         break;
 
     default:
         {
-            charsWritten = sprintf_s( disassembly, (capacity - totalCharsWritten), " $%02X", op );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " $%02X", op );
         }
         break;
     }
