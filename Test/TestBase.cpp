@@ -6,6 +6,7 @@
 #include "../Gemini/Compiler.h"
 #include "../Gemini/Disassembler.h"
 #include "../Gemini/Machine.h"
+#include <cstring>
 
 #define ENABLE_DISASSEMBLY 0
 
@@ -45,8 +46,8 @@ class CompilerEnv : public ICompilerEnv, public IEnvironment
         ExternalKind    Kind;
         union
         {
-            ByteCode    ByteCode;
-            NativeCode  NativeCode;
+            ::ByteCode      ByteCode;
+            ::NativeCode    NativeCode;
         };
     };
 
@@ -403,7 +404,7 @@ void TestCompileAndRun(
     CELL stack[Machine::MIN_STACK * 8];
     Machine machine;
 
-    machine.Init( stack, std::size( stack ), &env );
+    machine.Init( stack, static_cast<U16>( std::size( stack ) ), &env );
 
     binSize = 0;
     dataSize = 0;

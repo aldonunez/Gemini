@@ -868,7 +868,7 @@ bool AlgolyParser::IsTokenMultiplicativeOp()
 
 Unique<Syntax> AlgolyParser::ParseBinaryPart( int level )
 {
-    if ( level + 1 >= std::size( AlgolyParser::sTestOpFuncs ) )
+    if ( level + 1 >= static_cast<int>( std::size( AlgolyParser::sTestOpFuncs ) ) )
         return ParseUnary();
     else
         return ParseBinary( level + 1 );
@@ -1758,7 +1758,7 @@ void AlgolyParser::ThrowSyntaxError( const char* format, ... )
     va_list args;
     va_start( args, format );
     mRep.ThrowError( CERR_SYNTAX, mUnitFileName, mTokLine, mTokCol, format, args );
-    va_end( args );
+    // No need to run va_end( args ), since an exception was thrown
 }
 
 }

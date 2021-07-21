@@ -4,7 +4,7 @@
 
 int main( int argc, char* argv[] )
 {
-#if defined(_WIN32)
+#if defined( _WIN32 )
     _CrtSetDbgFlag(
         _crtDbgFlag
         | _CRTDBG_LEAK_CHECK_DF

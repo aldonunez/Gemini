@@ -19,9 +19,8 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <unordered_map>
 
-#if defined(_WIN32)
+#if defined( _WIN32 )
 
     #define _CRTDBG_MAP_ALLOC
     #include <crtdbg.h>

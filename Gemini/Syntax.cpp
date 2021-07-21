@@ -6,6 +6,7 @@
 
 #include "stdafx.h"
 #include "Syntax.h"
+#include <algorithm>
 
 
 namespace Gemini
@@ -98,7 +99,7 @@ Unit::Unit( const std::string& fileName )
 {
     mFileName.resize( fileName.size() + 1 );
 
-    memcpy( mFileName.data(), fileName.data(), fileName.size() );
+    std::copy_n( fileName.data(), fileName.size(), mFileName.data() );
     mFileName[fileName.size()] = '\0';
 
     FileName = GetUnitFileName();

@@ -79,7 +79,7 @@ public:
 
     // All nodes in the same syntax tree refer to the file name string in the root Unit
 
-    std::shared_ptr<Type>   Type;
+    std::shared_ptr<Gemini::Type>   Type;
 
     virtual ~Syntax() {}
     virtual void Accept( IVisitor* visitor ) = 0;
@@ -193,8 +193,8 @@ public:
 class DataDecl : public DeclSyntax
 {
 public:
-    Unique<TypeRef>    TypeRef;
-    Unique<Syntax>     Initializer;
+    Unique<Gemini::TypeRef>     TypeRef;
+    Unique<Syntax>              Initializer;
 };
 
 class ConstDecl : public DataDecl
@@ -222,7 +222,7 @@ public:
 class TypeDecl : public DeclSyntax
 {
 public:
-    Unique<TypeRef>    TypeRef;
+    Unique<Gemini::TypeRef>     TypeRef;
 
     virtual void Accept( IVisitor* visitor ) override;
 };
@@ -563,8 +563,8 @@ enum class DeclKind
 
 struct Declaration
 {
-    const DeclKind          Kind;
-    std::shared_ptr<Type>   Type;
+    const DeclKind                  Kind;
+    std::shared_ptr<Gemini::Type>   Type;
 
     virtual ~Declaration() { }
 
@@ -622,6 +622,7 @@ struct Function : public Declaration
     std::string Name;
     CodeSize    Address = UndefinedAddr;
     ModSize     ModIndex = 0;
+    bool        IsLambda = false;
 
     LocalSize   LocalCount = 0;
     ParamSize   ParamCount = 0;
