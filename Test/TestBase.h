@@ -53,4 +53,5 @@ void TestCompileAndRun(
     NativePair* natives = nullptr
 );
 
-NativePair gNatives[];
+
+extern NativePair gNatives[];

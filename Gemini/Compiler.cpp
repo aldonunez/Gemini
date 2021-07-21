@@ -1975,7 +1975,7 @@ void Compiler::CalculateStackDepth()
 
             CalculateStackDepth( func );
 
-            if ( name._Starts_with( "$Lambda$" ) )
+            if ( name.compare( 0, (sizeof "$Lambda$")-1, "$Lambda$" ) == 0 )
             {
                 callStats = &mStats.Lambda;
             }
@@ -2226,7 +2226,7 @@ void Log( ICompilerLog* log, LogCategory category, const char* fileName, int lin
     if ( log != nullptr )
     {
         char msg[256] = "";
-        vsprintf_s( msg, format, args );
+        vsnprintf( msg, sizeof msg, format, args );
         log->Add( category, fileName, line, col, msg );
     }
 }

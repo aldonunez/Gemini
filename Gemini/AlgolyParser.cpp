@@ -868,7 +868,7 @@ bool AlgolyParser::IsTokenMultiplicativeOp()
 
 Unique<Syntax> AlgolyParser::ParseBinaryPart( int level )
 {
-    if ( level + 1 >= _countof( AlgolyParser::sTestOpFuncs ) )
+    if ( level + 1 >= std::size( AlgolyParser::sTestOpFuncs ) )
         return ParseUnary();
     else
         return ParseBinary( level + 1 );
@@ -1219,7 +1219,7 @@ Unique<DataDecl> AlgolyParser::ParseVar( Unique<DataDecl>&& varDecl, std::option
         varDecl->Initializer = ParseInitExpr();
     }
 
-    return varDecl;
+    return std::move( varDecl );
 }
 
 Unique<DataDecl> AlgolyParser::ParseVarDecl()

@@ -642,7 +642,7 @@ Unique<DataDecl> LispyParser::ParseLetBinding( Unique<DataDecl>&& varDecl, bool 
     if ( !isParam )
         ScanRParen();
 
-    return varDecl;
+    return std::move( varDecl );
 }
 
 Unique<TypeRef> LispyParser::ParseTypeRef( bool embedded )
@@ -1089,7 +1089,7 @@ void GenerateIdCharTable()
     constexpr unsigned int TableSize = 128;
     bool table[TableSize] = { false };
 
-    for ( int i = 0; i < _countof( sExtAlphaChars ); i++ )
+    for ( int i = 0; i < std::size( sExtAlphaChars ); i++ )
     {
         table[sExtAlphaChars[i]] = true;
     }

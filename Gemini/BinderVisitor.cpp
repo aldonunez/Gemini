@@ -9,6 +9,7 @@
 #include <cstdarg>
 #include "Compiler.h"
 #include "FolderVisitor.h"
+#include <stdio.h>
 
 
 namespace Gemini
@@ -661,7 +662,7 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
 
     char name[32];
 
-    sprintf_s( name, "$Lambda$%zu", mLambdas.size() );
+    snprintf( name, sizeof name, "$Lambda$%zu", mLambdas.size() );
 
     auto funcType = MakeFuncType( lambdaExpr->Proc.get() );
 
