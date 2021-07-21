@@ -11,14 +11,8 @@
 
 #pragma once
 
-#include "targetver.h"
-
-#define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
-#include <crtdbg.h>
-
 #include <stdio.h>
-#include <tchar.h>
 #include <assert.h>
 
 #include <memory>
@@ -26,3 +20,10 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+
+#if defined(_WIN32)
+
+    #define _CRTDBG_MAP_ALLOC
+    #include <crtdbg.h>
+
+#endif
