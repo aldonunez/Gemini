@@ -8,7 +8,6 @@
 #include "BinderVisitor.h"
 #include "FolderVisitor.h"
 #include <assert.h>
-#include <stdarg.h>
 #include <stdio.h>
 
 

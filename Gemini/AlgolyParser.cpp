@@ -7,6 +7,7 @@
 #include "pch.h"
 #include "AlgolyParser.h"
 #include <assert.h>
+#include <limits.h>
 #include <stdarg.h>
 
 

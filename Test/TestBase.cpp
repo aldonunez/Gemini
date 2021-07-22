@@ -6,7 +6,7 @@
 #include "../Gemini/Compiler.h"
 #include "../Gemini/Disassembler.h"
 #include "../Gemini/Machine.h"
-#include <cstring>
+#include <string.h>
 
 #define ENABLE_DISASSEMBLY 0
 
