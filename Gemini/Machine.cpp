@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include "Machine.h"
 #include "OpCodes.h"
+#include <memory>
 
 
 /*

@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include "Syntax.h"
 #include <algorithm>
+#include <assert.h>
 
 
 namespace Gemini

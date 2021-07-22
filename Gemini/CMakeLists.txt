@@ -16,6 +16,7 @@ set(GEMINI_PUBLIC_HEADERS
     Compiler.h
     Disassembler.h
     GeminiCommon.h
+    LangCommon.h
     LispyParser.h
     Machine.h
     Syntax.h

@@ -6,6 +6,7 @@
 
 #include "stdafx.h"
 #include "AlgolyParser.h"
+#include <assert.h>
 #include <stdarg.h>
 
 

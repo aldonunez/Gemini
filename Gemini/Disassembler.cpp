@@ -7,6 +7,7 @@
 #include "stdafx.h"
 #include "Disassembler.h"
 #include "OpCodes.h"
+#include <stdio.h>
 
 
 static const char* gOpCodes[] = 

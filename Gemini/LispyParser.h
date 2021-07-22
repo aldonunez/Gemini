@@ -6,8 +6,11 @@
 
 #pragma once
 
-#include "Compiler.h"
+#include "LangCommon.h"
+#include "Syntax.h"
+#include <map>
 #include <string>
+#include <vector>
 
 
 namespace Gemini

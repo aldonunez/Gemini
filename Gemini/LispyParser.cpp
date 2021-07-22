@@ -6,6 +6,7 @@
 
 #include "stdafx.h"
 #include "LispyParser.h"
+#include <assert.h>
 #include <stdarg.h>
 
 

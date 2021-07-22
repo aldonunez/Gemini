@@ -7,7 +7,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <climits>
+#include <limits.h>
 
 
 typedef unsigned char U8;

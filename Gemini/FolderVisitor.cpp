@@ -6,6 +6,7 @@
 
 #include "stdafx.h"
 #include "FolderVisitor.h"
+#include <assert.h>
 
 
 namespace Gemini

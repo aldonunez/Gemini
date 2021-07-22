@@ -153,6 +153,7 @@
     <ClInclude Include="Disassembler.h" />
     <ClInclude Include="FolderVisitor.h" />
     <ClInclude Include="GeminiCommon.h" />
+    <ClInclude Include="LangCommon.h" />
     <ClInclude Include="LispyParser.h" />
     <ClInclude Include="Machine.h" />
     <ClInclude Include="OpCodes.h" />

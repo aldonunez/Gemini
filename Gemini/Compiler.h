@@ -7,13 +7,11 @@
 #pragma once
 
 #include "GeminiCommon.h"
+#include "LangCommon.h"
+#include "Syntax.h"
 #include <string>
 #include <vector>
-#include <memory>
 #include <map>
-#include <optional>
-#include <unordered_map>
-#include "Syntax.h"
 
 
 enum OpCode : uint8_t;
@@ -22,20 +20,12 @@ enum OpCode : uint8_t;
 namespace Gemini
 {
 
-enum CompilerErr
-{
-    CERR_OK,
-    CERR_INTERNAL,
-    CERR_UNSUPPORTED,
-    CERR_SYNTAX,
-    CERR_SEMANTICS,
-};
-
 enum ExternalKind
 {
     External_Bytecode,
     External_Native,
 };
+
 
 struct ExternalFunc
 {
@@ -43,6 +33,7 @@ struct ExternalFunc
     int             Address;
     ExternalKind    Kind;
 };
+
 
 class ICompilerEnv
 {
@@ -53,17 +44,6 @@ public:
     virtual bool FindGlobal( const std::string& name, int& offset ) = 0;
 };
 
-enum LogCategory
-{
-    LOG_ERROR,
-    LOG_WARNING,
-};
-
-class ICompilerLog
-{
-public:
-    virtual void Add( LogCategory category, const char* fileName, int line, int column, const char* message ) = 0;
-};
 
 struct CallStats
 {
@@ -71,6 +51,7 @@ struct CallStats
     uint32_t    MaxStackUsage;
     bool        Recurses;
 };
+
 
 struct CompilerStats
 {
@@ -80,8 +61,6 @@ struct CompilerStats
     CallStats   Static;
 };
 
-
-class LocalScope;
 
 class CompilerException : public std::exception
 {
@@ -97,24 +76,6 @@ public:
     {
         return mError;
     }
-};
-
-class Reporter
-{
-    ICompilerLog* mLog;
-
-public:
-    Reporter( ICompilerLog* log );
-
-    ICompilerLog* GetLog();
-
-    void Log( LogCategory category, const char* fileName, int line, int col, const char* format, va_list args );
-    void LogWarning( const char* fileName, int line, int col, const char* format, ... );
-
-    [[noreturn]] void ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* format, ... );
-    [[noreturn]] void ThrowError( CompilerErr exceptionCode, const char* fileName, int line, int col, const char* format, va_list args );
-    [[noreturn]] void ThrowInternalError();
-    [[noreturn]] void ThrowInternalError( const char* format, ... );
 };
 
 

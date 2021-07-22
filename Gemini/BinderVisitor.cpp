@@ -6,9 +6,9 @@
 
 #include "stdafx.h"
 #include "BinderVisitor.h"
-#include <cstdarg>
-#include "Compiler.h"
 #include "FolderVisitor.h"
+#include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 
@@ -149,13 +149,11 @@ BinderVisitor::BinderVisitor(
     SymTable& globalTable,
     SymTable& moduleTable,
     SymTable& publicTable,
-    ICompilerEnv* env,
     ICompilerLog* log )
     :
     mGlobalTable( globalTable ),
     mModuleTable( moduleTable ),
     mPublicTable( publicTable ),
-    mEnv( env ),
     mRep( log ),
     mModIndex( modIndex )
 {
@@ -1240,7 +1238,7 @@ void BinderVisitor::CheckAndConsolidateClauseType( Syntax* clause, std::shared_p
         CheckType( bodyType, clause->Type, clause );
 }
 
-I32 BinderVisitor::Evaluate( Syntax* node, const char* message )
+int32_t BinderVisitor::Evaluate( Syntax* node, const char* message )
 {
     FolderVisitor folder( mRep.GetLog() );
 

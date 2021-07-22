@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "LangCommon.h"
 #include "Syntax.h"
-#include "Compiler.h"
 #include <optional>
 
 

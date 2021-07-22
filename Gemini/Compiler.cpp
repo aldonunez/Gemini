@@ -6,12 +6,11 @@
 
 #include "stdafx.h"
 #include "Compiler.h"
-#include "OpCodes.h"
-#include <ctype.h>
-#include <cstdarg>
-#include <cstring>
 #include "BinderVisitor.h"
 #include "FolderVisitor.h"
+#include "OpCodes.h"
+#include <stdarg.h>
+#include <string.h>
 
 
 namespace Gemini
@@ -111,7 +110,7 @@ std::shared_ptr<ModuleDeclaration> Compiler::GetMetadata( const char* modName )
 
 void Compiler::BindAttributes()
 {
-    BinderVisitor binder( mModIndex, mGlobalTable, mModuleTable, mPublicTable, mEnv, mRep.GetLog() );
+    BinderVisitor binder( mModIndex, mGlobalTable, mModuleTable, mPublicTable, mRep.GetLog() );
 
     for ( auto& unit : mUnits )
         binder.Declare( unit.get() );

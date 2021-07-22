@@ -6,8 +6,8 @@
 
 #pragma once
 
+#include "LangCommon.h"
 #include "Syntax.h"
-#include "Compiler.h"
 
 
 namespace Gemini
@@ -26,7 +26,6 @@ class BinderVisitor final : public IVisitor
     SymTable&       mGlobalTable;
     SymTable&       mModuleTable;
     SymTable&       mPublicTable;
-    ICompilerEnv*   mEnv = nullptr;
     Reporter        mRep;
 
     Function*       mCurFunc = nullptr;
@@ -49,7 +48,6 @@ public:
         SymTable& globalTable,
         SymTable& moduleTable,
         SymTable& publicTable,
-        ICompilerEnv* env,
         ICompilerLog* log );
 
     void Declare( Unit* unit );
@@ -108,7 +106,7 @@ private:
     void VisitStorage( DataDecl* varDecl, DeclKind declKind );
     std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef );
 
-    I32 Evaluate( Syntax* node, const char* message = nullptr );
+    int32_t Evaluate( Syntax* node, const char* message = nullptr );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
 
     void CheckType(
