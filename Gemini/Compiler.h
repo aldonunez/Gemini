@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "GeminiCommon.h"
+#include "VmCommon.h"
 #include "LangCommon.h"
 #include "Syntax.h"
 #include <string>

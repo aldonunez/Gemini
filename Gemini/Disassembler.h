@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "GeminiCommon.h"
+#include "VmCommon.h"
 
 
 class Disassembler
