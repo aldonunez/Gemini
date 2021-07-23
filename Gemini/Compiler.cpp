@@ -1557,19 +1557,26 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 ((GlobalStorage*) baseDecl)->Offset + offset,
                 ((GlobalStorage*) baseDecl)->ModIndex );
             EmitU32( OP_LDC, addrWord );
+            IncreaseExprDepth();
             break;
 
         case DeclKind::Local:
             assert( offset >= 0 && offset <= LocalSizeMax );
             EmitU8( OP_LDLOCA, ((LocalStorage*) baseDecl)->Offset - offset );
+            IncreaseExprDepth();
+            break;
+
+        case DeclKind::LoadedAddress:
+            assert( offset >= 0 && offset <= DataSizeMax );
+
+            if ( offset > 0 )
+                EmitSpilledAddrOffset( offset );
             break;
 
         default:
             mRep.ThrowError( CERR_SEMANTICS, node, "'aref' supports only globals and locals" );
         }
     }
-
-    IncreaseExprDepth();
 }
 
 void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status )

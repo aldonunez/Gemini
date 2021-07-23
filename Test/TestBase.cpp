@@ -393,8 +393,7 @@ void TestCompileAndRun(
 
 #if ENABLE_DISASSEMBLY
         printf( "------------\n" );
-        //Disassemble( bin1, stats.CodeBytesWritten );
-        Disassemble( curMod->CodeBase, curMod->CodeSize );
+        Disassemble( compiler1.GetCode(), compiler1.GetCodeSize() );
 #endif
     }
 
