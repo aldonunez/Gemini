@@ -142,7 +142,7 @@ class EnumTypeRef : public TypeRef
 public:
     std::vector<Unique<EnumMemberDef>> Members;
 
-    virtual void Accept( IVisitor* visitor ) override;
+    virtual void Accept( Visitor* visitor ) override;
 };
 
 class EnumMemberDef : public Syntax
@@ -151,7 +151,7 @@ public:
     std::string     Name;
     Unique<Syntax>  Initializer;
 
-    virtual void Accept( IVisitor* visitor ) override;
+    virtual void Accept( Visitor* visitor ) override;
 };
 
 class ArrayTypeRef : public TypeRef
@@ -253,7 +253,7 @@ public:
     Unique<Syntax>      Inner;
     Unique<NameExpr>    TargetTypeName;
 
-    virtual void Accept( IVisitor* visitor ) override;
+    virtual void Accept( Visitor* visitor ) override;
 };
 
 class LambdaExpr : public Syntax

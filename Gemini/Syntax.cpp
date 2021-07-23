@@ -123,7 +123,7 @@ void ArrayTypeRef::Accept( Visitor* visitor )
     visitor->VisitArrayTypeRef( this );
 }
 
-void AsExpr::Accept( IVisitor* visitor )
+void AsExpr::Accept( Visitor* visitor )
 {
     visitor->VisitAsExpr( this );
 }
@@ -196,12 +196,12 @@ void DotExpr::Accept( Visitor* visitor )
     visitor->VisitDotExpr( this );
 }
 
-void EnumMemberDef::Accept( IVisitor* visitor )
+void EnumMemberDef::Accept( Visitor* visitor )
 {
     visitor->VisitEnumMemberDef( this );
 }
 
-void EnumTypeRef::Accept( IVisitor* visitor )
+void EnumTypeRef::Accept( Visitor* visitor )
 {
     visitor->VisitEnumTypeRef( this );
 }
@@ -361,7 +361,7 @@ void Visitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 {
 }
 
-void IVisitor::VisitAsExpr( AsExpr* asExpr )
+void Visitor::VisitAsExpr( AsExpr* asExpr )
 {
 }
 
@@ -405,11 +405,11 @@ void Visitor::VisitDotExpr( DotExpr* dotExpr )
 {
 }
 
-void IVisitor::VisitEnumMemberDef( EnumMemberDef* enumMemberDef )
+void Visitor::VisitEnumMemberDef( EnumMemberDef* enumMemberDef )
 {
 }
 
-void IVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
+void Visitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 {
 }
 
