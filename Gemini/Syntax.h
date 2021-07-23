@@ -404,7 +404,7 @@ class CountofExpr : public Syntax
 public:
     Unique<Syntax>      Expr;
 
-    virtual void Accept( IVisitor* visitor ) override;
+    virtual void Accept( Visitor* visitor ) override;
 };
 
 class LetStatement : public Syntax
