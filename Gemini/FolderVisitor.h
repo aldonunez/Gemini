@@ -14,7 +14,7 @@
 namespace Gemini
 {
 
-class FolderVisitor final : public IVisitor
+class FolderVisitor final : public Visitor
 {
     std::optional<int32_t>  mLastValue;
     bool                    mFoldNodes;
@@ -28,7 +28,7 @@ public:
     std::optional<int32_t> Evaluate( Syntax* node );
     void Fold( Syntax* node );
 
-    // IVisitor
+    // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
     virtual void VisitArrayTypeRef( ArrayTypeRef* typeRef ) override;
     virtual void VisitAssignmentExpr( AssignmentExpr* assignment ) override;

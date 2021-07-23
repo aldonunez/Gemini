@@ -10,13 +10,14 @@
 #include <limits.h>
 
 
-typedef unsigned char U8;
-typedef unsigned short U16;
-typedef unsigned int U32;
-typedef unsigned long long U64;
-typedef signed char I8;
-typedef signed short I16;
-typedef signed int I32;
+typedef uint8_t U8;
+typedef uint16_t U16;
+typedef uint32_t U32;
+typedef uint64_t U64;
+
+typedef int8_t I8;
+typedef int16_t I16;
+typedef int32_t I32;
 
 
 constexpr uint8_t SENTINEL_SIZE = 6;

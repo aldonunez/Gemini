@@ -112,197 +112,197 @@ const char* Unit::GetUnitFileName()
 }
 
 
-void AddrOfExpr::Accept( IVisitor* visitor )
+void AddrOfExpr::Accept( Visitor* visitor )
 {
     visitor->VisitAddrOfExpr( this );
 }
 
-void ArrayTypeRef::Accept( IVisitor* visitor )
+void ArrayTypeRef::Accept( Visitor* visitor )
 {
     visitor->VisitArrayTypeRef( this );
 }
 
-void AssignmentExpr::Accept( IVisitor* visitor )
+void AssignmentExpr::Accept( Visitor* visitor )
 {
     visitor->VisitAssignmentExpr( this );
 }
 
-void BinaryExpr::Accept( IVisitor* visitor )
+void BinaryExpr::Accept( Visitor* visitor )
 {
     visitor->VisitBinaryExpr( this );
 }
 
-void BreakStatement::Accept( IVisitor* visitor )
+void BreakStatement::Accept( Visitor* visitor )
 {
     visitor->VisitBreakStatement( this );
 }
 
-void CallExpr::Accept( IVisitor* visitor )
+void CallExpr::Accept( Visitor* visitor )
 {
     visitor->VisitCallExpr( this );
 }
 
-void CallOrSymbolExpr::Accept( IVisitor* visitor )
+void CallOrSymbolExpr::Accept( Visitor* visitor )
 {
     visitor->VisitCallOrSymbolExpr( this );
 }
 
-void CaseElse::Accept( IVisitor* visitor )
+void CaseElse::Accept( Visitor* visitor )
 {
-    // There's no entry in IVisitor for this node
+    // There's no entry in Visitor for this node
 }
 
-void CaseExpr::Accept( IVisitor* visitor )
+void CaseExpr::Accept( Visitor* visitor )
 {
     visitor->VisitCaseExpr( this );
 }
 
-void CaseWhen::Accept( IVisitor* visitor )
+void CaseWhen::Accept( Visitor* visitor )
 {
-    // There's no entry in IVisitor for this node
+    // There's no entry in Visitor for this node
 }
 
-void CondClause::Accept( IVisitor* visitor )
+void CondClause::Accept( Visitor* visitor )
 {
-    // There's no entry in IVisitor for this node
+    // There's no entry in Visitor for this node
 }
 
-void CondExpr::Accept( IVisitor* visitor )
+void CondExpr::Accept( Visitor* visitor )
 {
     visitor->VisitCondExpr( this );
 }
 
-void ConstDecl::Accept( IVisitor* visitor )
+void ConstDecl::Accept( Visitor* visitor )
 {
     visitor->VisitConstDecl( this );
 }
 
-void CountofExpr::Accept( IVisitor* visitor )
+void CountofExpr::Accept( Visitor* visitor )
 {
     visitor->VisitCountofExpr( this );
 }
 
-void DotExpr::Accept( IVisitor* visitor )
+void DotExpr::Accept( Visitor* visitor )
 {
     visitor->VisitDotExpr( this );
 }
 
-void ForStatement::Accept( IVisitor* visitor )
+void ForStatement::Accept( Visitor* visitor )
 {
     visitor->VisitForStatement( this );
 }
 
-void ImportDecl::Accept( IVisitor* visitor )
+void ImportDecl::Accept( Visitor* visitor )
 {
     visitor->VisitImportDecl( this );
 }
 
-void IndexExpr::Accept( IVisitor* visitor )
+void IndexExpr::Accept( Visitor* visitor )
 {
     visitor->VisitIndexExpr( this );
 }
 
-void InitList::Accept( IVisitor* visitor )
+void InitList::Accept( Visitor* visitor )
 {
     visitor->VisitInitList( this );
 }
 
-void LambdaExpr::Accept( IVisitor* visitor )
+void LambdaExpr::Accept( Visitor* visitor )
 {
     visitor->VisitLambdaExpr( this );
 }
 
-void LetStatement::Accept( IVisitor* visitor )
+void LetStatement::Accept( Visitor* visitor )
 {
     visitor->VisitLetStatement( this );
 }
 
-void LoopStatement::Accept( IVisitor* visitor )
+void LoopStatement::Accept( Visitor* visitor )
 {
     visitor->VisitLoopStatement( this );
 }
 
-void NameExpr::Accept( IVisitor* visitor )
+void NameExpr::Accept( Visitor* visitor )
 {
     visitor->VisitNameExpr( this );
 }
 
-void NameTypeRef::Accept( IVisitor* visitor )
+void NameTypeRef::Accept( Visitor* visitor )
 {
     visitor->VisitNameTypeRef( this );
 }
 
-void NextStatement::Accept( IVisitor* visitor )
+void NextStatement::Accept( Visitor* visitor )
 {
     visitor->VisitNextStatement( this );
 }
 
-void NativeDecl::Accept( IVisitor* visitor )
+void NativeDecl::Accept( Visitor* visitor )
 {
     visitor->VisitNativeDecl( this );
 }
 
-void NumberExpr::Accept( IVisitor* visitor )
+void NumberExpr::Accept( Visitor* visitor )
 {
     visitor->VisitNumberExpr( this );
 }
 
-void ParamDecl::Accept( IVisitor* visitor )
+void ParamDecl::Accept( Visitor* visitor )
 {
     visitor->VisitParamDecl( this );
 }
 
-void PointerTypeRef::Accept( IVisitor* visitor )
+void PointerTypeRef::Accept( Visitor* visitor )
 {
     visitor->VisitPointerTypeRef( this );
 }
 
-void ProcDecl::Accept( IVisitor* visitor )
+void ProcDecl::Accept( Visitor* visitor )
 {
     visitor->VisitProcDecl( this );
 }
 
-void ProcTypeRef::Accept( IVisitor* visitor )
+void ProcTypeRef::Accept( Visitor* visitor )
 {
     visitor->VisitProcTypeRef( this );
 }
 
-void ReturnStatement::Accept( IVisitor* visitor )
+void ReturnStatement::Accept( Visitor* visitor )
 {
     visitor->VisitReturnStatement( this );
 }
 
-void SliceExpr::Accept( IVisitor* visitor )
+void SliceExpr::Accept( Visitor* visitor )
 {
     visitor->VisitSliceExpr( this );
 }
 
-void StatementList::Accept( IVisitor* visitor )
+void StatementList::Accept( Visitor* visitor )
 {
     visitor->VisitStatementList( this );
 }
 
-void TypeDecl::Accept( IVisitor* visitor )
+void TypeDecl::Accept( Visitor* visitor )
 {
     visitor->VisitTypeDecl( this );
 }
 
-void UnaryExpr::Accept( IVisitor* visitor )
+void UnaryExpr::Accept( Visitor* visitor )
 {
     visitor->VisitUnaryExpr( this );
 }
 
-void Unit::Accept( IVisitor* visitor )
+void Unit::Accept( Visitor* visitor )
 {
     visitor->VisitUnit( this );
 }
 
-void VarDecl::Accept( IVisitor* visitor )
+void VarDecl::Accept( Visitor* visitor )
 {
     visitor->VisitVarDecl( this );
 }
 
-void WhileStatement::Accept( IVisitor* visitor )
+void WhileStatement::Accept( Visitor* visitor )
 {
     visitor->VisitWhileStatement( this );
 }
@@ -334,147 +334,147 @@ void CopyBaseSyntax( Syntax& dest, const Syntax& source )
 //  Visitors
 //----------------------------------------------------------------------------
 
-void IVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
+void Visitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 {
 }
 
-void IVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
+void Visitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 {
 }
 
-void IVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
+void Visitor::VisitAssignmentExpr( AssignmentExpr* assignment )
 {
 }
 
-void IVisitor::VisitBinaryExpr( BinaryExpr* binary )
+void Visitor::VisitBinaryExpr( BinaryExpr* binary )
 {
 }
 
-void IVisitor::VisitBreakStatement( BreakStatement* breakStmt )
+void Visitor::VisitBreakStatement( BreakStatement* breakStmt )
 {
 }
 
-void IVisitor::VisitCallExpr( CallExpr* call )
+void Visitor::VisitCallExpr( CallExpr* call )
 {
 }
 
-void IVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
+void Visitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
 {
 }
 
-void IVisitor::VisitCaseExpr( CaseExpr* caseExpr )
+void Visitor::VisitCaseExpr( CaseExpr* caseExpr )
 {
 }
 
-void IVisitor::VisitCondExpr( CondExpr* condExpr )
+void Visitor::VisitCondExpr( CondExpr* condExpr )
 {
 }
 
-void IVisitor::VisitConstDecl( ConstDecl* constDecl )
+void Visitor::VisitConstDecl( ConstDecl* constDecl )
 {
 }
 
-void IVisitor::VisitCountofExpr( CountofExpr* countofExpr )
+void Visitor::VisitCountofExpr( CountofExpr* countofExpr )
 {
 }
 
-void IVisitor::VisitDotExpr( DotExpr* dotExpr )
+void Visitor::VisitDotExpr( DotExpr* dotExpr )
 {
 }
 
-void IVisitor::VisitForStatement( ForStatement* forStmt )
+void Visitor::VisitForStatement( ForStatement* forStmt )
 {
 }
 
-void IVisitor::VisitImportDecl( ImportDecl* importDecl )
+void Visitor::VisitImportDecl( ImportDecl* importDecl )
 {
 }
 
-void IVisitor::VisitIndexExpr( IndexExpr* indexExpr )
+void Visitor::VisitIndexExpr( IndexExpr* indexExpr )
 {
 }
 
-void IVisitor::VisitInitList( InitList* initList )
+void Visitor::VisitInitList( InitList* initList )
 {
 }
 
-void IVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
+void Visitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
 {
 }
 
-void IVisitor::VisitLetStatement( LetStatement* letStmt )
+void Visitor::VisitLetStatement( LetStatement* letStmt )
 {
 }
 
-void IVisitor::VisitLoopStatement( LoopStatement* loopStmt )
+void Visitor::VisitLoopStatement( LoopStatement* loopStmt )
 {
 }
 
-void IVisitor::VisitNameExpr( NameExpr* nameExpr )
+void Visitor::VisitNameExpr( NameExpr* nameExpr )
 {
 }
 
-void IVisitor::VisitNameTypeRef( NameTypeRef* nameTypeRef )
+void Visitor::VisitNameTypeRef( NameTypeRef* nameTypeRef )
 {
 }
 
-void IVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
+void Visitor::VisitNativeDecl( NativeDecl* nativeDecl )
 {
 }
 
-void IVisitor::VisitNextStatement( NextStatement* nextStmt )
+void Visitor::VisitNextStatement( NextStatement* nextStmt )
 {
 }
 
-void IVisitor::VisitNumberExpr( NumberExpr* numberExpr )
+void Visitor::VisitNumberExpr( NumberExpr* numberExpr )
 {
 }
 
-void IVisitor::VisitParamDecl( ParamDecl* paramDecl )
+void Visitor::VisitParamDecl( ParamDecl* paramDecl )
 {
 }
 
-void IVisitor::VisitPointerTypeRef( PointerTypeRef* pointerTypeRef )
+void Visitor::VisitPointerTypeRef( PointerTypeRef* pointerTypeRef )
 {
 }
 
-void IVisitor::VisitProcDecl( ProcDecl* procDecl )
+void Visitor::VisitProcDecl( ProcDecl* procDecl )
 {
 }
 
-void IVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
+void Visitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 {
 }
 
-void IVisitor::VisitReturnStatement( ReturnStatement* retStmt )
+void Visitor::VisitReturnStatement( ReturnStatement* retStmt )
 {
 }
 
-void IVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
+void Visitor::VisitSliceExpr( SliceExpr* sliceExpr )
 {
 }
 
-void IVisitor::VisitStatementList( StatementList* stmtmList )
+void Visitor::VisitStatementList( StatementList* stmtmList )
 {
 }
 
-void IVisitor::VisitTypeDecl( TypeDecl* typeDecl )
+void Visitor::VisitTypeDecl( TypeDecl* typeDecl )
 {
 }
 
-void IVisitor::VisitUnaryExpr( UnaryExpr* unary )
+void Visitor::VisitUnaryExpr( UnaryExpr* unary )
 {
 }
 
-void IVisitor::VisitUnit( Unit* unit )
+void Visitor::VisitUnit( Unit* unit )
 {
 }
 
-void IVisitor::VisitVarDecl( VarDecl* varDecl )
+void Visitor::VisitVarDecl( VarDecl* varDecl )
 {
 }
 
-void IVisitor::VisitWhileStatement( WhileStatement* whileStmt )
+void Visitor::VisitWhileStatement( WhileStatement* whileStmt )
 {
 }
 

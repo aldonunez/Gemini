@@ -6,9 +6,9 @@
 
 #pragma once
 
-#include "VmCommon.h"
 #include "LangCommon.h"
 #include "Syntax.h"
+#include "VmCommon.h"
 #include <string>
 #include <vector>
 #include <map>
@@ -79,7 +79,7 @@ public:
 };
 
 
-class Compiler final : public IVisitor
+class Compiler final : public Visitor
 {
 public:
     enum class CodeRefKind
@@ -423,7 +423,7 @@ private:
     void EmitModAccess( OpCode opcode, U8 mod, U16 addr );
 
 
-    // IVisitor
+    // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
     virtual void VisitAssignmentExpr( AssignmentExpr* assignment ) override;
     virtual void VisitBinaryExpr( BinaryExpr* binary ) override;

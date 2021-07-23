@@ -13,7 +13,7 @@
 namespace Gemini
 {
 
-class BinderVisitor final : public IVisitor
+class BinderVisitor final : public Visitor
 {
     using SymStack = std::vector<SymTable*>;
     using LambdaVec = std::vector<Unique<ProcDecl>>;
@@ -55,7 +55,7 @@ public:
 
     size_t GetDataSize();
 
-    // IVisitor
+    // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
     virtual void VisitArrayTypeRef( ArrayTypeRef* typeRef ) override;
     virtual void VisitAssignmentExpr( AssignmentExpr* assignment ) override;
