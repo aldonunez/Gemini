@@ -68,7 +68,7 @@ private:
 };
 
 
-class FuncAddrVisitor final : public IVisitor
+class FuncAddrVisitor final : public Visitor
 {
     Reporter                    mRep;
     std::shared_ptr<Function>   mLastValue;
