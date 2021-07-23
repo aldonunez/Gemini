@@ -864,13 +864,12 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
     {
-        EmitLoadConstant( valueElem->Type->GetSize() );
-
         Generate( valueElem );
 
         EmitU8( OP_LDLOCA, offset );
         Emit( OP_COPYBLOCK );
 
+        IncreaseExprDepth();
         DecreaseExprDepth( 3 );
         return;
     }
@@ -1740,18 +1739,24 @@ void Compiler::GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenS
     Declaration* baseDecl = nullptr;
     int32_t offset = 0;
 
-    CalcAddress( indexExpr, baseDecl, offset );
+    // Calculate address in each clause below instead of once here,
+    // because it might spill. And in the case of array, the spilled address
+    // must be right after the size.
 
     auto& arrayType = (ArrayType&) *indexExpr->Head->Type;
     auto& elemType = *arrayType.ElemType;
 
     if ( IsScalarType( elemType.GetKind() ) )
     {
+        CalcAddress( indexExpr, baseDecl, offset );
+
         EmitLoadScalar( indexExpr, baseDecl, offset );
     }
     else
     {
         EmitLoadConstant( elemType.GetSize() );
+
+        CalcAddress( indexExpr, baseDecl, offset );
 
         EmitLoadAddress( indexExpr, baseDecl, offset );
     }
