@@ -1720,6 +1720,8 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
 
                     if ( offset != 0 )
                         EmitSpilledAddrOffset( offset );
+
+                    IncreaseExprDepth();
                 }
                 else
                 {
