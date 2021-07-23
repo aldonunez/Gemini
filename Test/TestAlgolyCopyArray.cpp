@@ -157,6 +157,392 @@ TEST_CASE( "Algoly: CopyArray: init array with shorter array local-local", "[alg
     TestCompileAndRunAlgoly( code, sizeof code, 18, 0, 10 );
 }
 
+
+//----------------------------------------------------------------------------
+//  Assign array with indexing
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing, global-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "var ar1: [2] := []\n"
+        "def a\n"
+        "  ar1 := ar2[1]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 5 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing, global-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "def a\n"
+        "  var ar1: [2] := []\n"
+        "  ar1 := ar2[1]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 7 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing, local-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] := []\n"
+        "def a\n"
+        "  var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "  ar1 := ar2[1]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 9 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing, local-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "def a\n"
+        "  var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "  var ar1: [2] := []\n"
+        "  ar1 := ar2[1]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 11 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, global-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "var ar1: [2] := []\n"
+        "var n := 1\n"
+        "def a\n"
+        "  ar1 := ar2[n]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 5 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, global-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "var n := 1\n"
+        "def a\n"
+        "  var ar1: [2] := []\n"
+        "  ar1 := ar2[n]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 7 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, local-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] := []\n"
+        "var n := 1\n"
+        "def a\n"
+        "  var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "  ar1 := ar2[n]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 9 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, local-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var n := 1\n"
+        "def a\n"
+        "  var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "  var ar1: [2] := []\n"
+        "  ar1 := ar2[n]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 11 );
+}
+
+//----------
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, global-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] of [2] := [[1, 2], []]\n"
+        "var ar2: [2] := [3, 4]\n"
+        "def a\n"
+        "  ar1[1] := ar2\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0] + ar2[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 5 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, global-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] of [2] := [[1, 2], []]\n"
+        "def a\n"
+        "  var ar2: [2] := [3, 4]\n"
+        "  ar1[1] := ar2\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0] + ar2[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 7 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, local-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] := [3, 4]\n"
+        "def a\n"
+        "  var ar1: [2] of [2] := [[1, 2], []]\n"
+        "  ar1[1] := ar2\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0] + ar2[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 9 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, local-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "def a\n"
+        "  var ar1: [2] of [2] := [[1, 2], []]\n"
+        "  var ar2: [2] := [3, 4]\n"
+        "  ar1[1] := ar2\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0] + ar2[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 11 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, global-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] of [2] := [[1, 2], []]\n"
+        "var ar2: [2] := [3, 4]\n"
+        "var n := 1\n"
+        "def a\n"
+        "  ar1[n] := ar2\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0] + ar2[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 6 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, global-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] of [2] := [[1, 2], []]\n"
+        "var n := 1\n"
+        "def a\n"
+        "  var ar2: [2] := [3, 4]\n"
+        "  ar1[n] := ar2\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0] + ar2[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 8 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, local-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] := [3, 4]\n"
+        "var n := 1\n"
+        "def a\n"
+        "  var ar1: [2] of [2] := [[1, 2], []]\n"
+        "  ar1[n] := ar2\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0] + ar2[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 10 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, local-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var n := 1\n"
+        "def a\n"
+        "  var ar1: [2] of [2] := [[1, 2], []]\n"
+        "  var ar2: [2] := [3, 4]\n"
+        "  ar1[n] := ar2\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0] + ar2[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 12 );
+}
+
+//----------
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing both, global-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] of [2] := [[1, 2], []]\n"
+        "var ar2: [2] of [2] := [[], [3, 4]]\n"
+        "def a\n"
+        "  ar1[1] := ar2[1]\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 5 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing both, global-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] of [2] := [[1, 2], []]\n"
+        "def a\n"
+        "  var ar2: [2] of [2] := [[], [3, 4]]\n"
+        "  ar1[1] := ar2[1]\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 7+2 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing both, local-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] of [2] := [[], [3, 4]]\n"
+        "def a\n"
+        "  var ar1: [2] of [2] := [[1, 2], []]\n"
+        "  ar1[1] := ar2[1]\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 7 + 2 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with indexing both, local-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "def a\n"
+        "  var ar1: [2] of [2] := [[1, 2], []]\n"
+        "  var ar2: [2] of [2] := [[], [3, 4]]\n"
+        "  ar1[1] := ar2[1]\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 11+2 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, global-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] of [2] := [[1, 2], []]\n"
+        "var ar2: [2] of [2] := [[], [3, 4]]\n"
+        "var n := 1\n"
+        "def a\n"
+        "  ar1[n] := ar2[n]\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 6 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, global-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar1: [2] of [2] := [[1, 2], []]\n"
+        "var n := 1\n"
+        "def a\n"
+        "  var ar2: [2] of [2] := [[], [3, 4]]\n"
+        "  ar1[n] := ar2[n]\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 8+2 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, local-global", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] of [2] := [[], [3, 4]]\n"
+        "var n := 1\n"
+        "def a\n"
+        "  var ar1: [2] of [2] := [[1, 2], []]\n"
+        "  ar1[n] := ar2[n]\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 8 + 2 );
+}
+
+TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, local-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var n := 1\n"
+        "def a\n"
+        "  var ar1: [2] of [2] := [[1, 2], []]\n"
+        "  var ar2: [2] of [2] := [[], [3, 4]]\n"
+        "  ar1[n] := ar2[n]\n"
+        "  ar1[0][0] + ar1[0][1] + ar1[1][0] + ar1[1][1] +\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 12+2 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Chained assignment 3
+//----------------------------------------------------------------------------
+
 TEST_CASE( "Algoly: CopyArray: global chained array assignment 3", "[algoly][copy-array]" )
 {
     const char code[] =
@@ -361,6 +747,11 @@ TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing all 3"
     TestCompileAndRunAlgoly( code, sizeof code, 21, 0, 7 + 12 );
 }
 
+
+//----------------------------------------------------------------------------
+//  Init array with indexing
+//----------------------------------------------------------------------------
+
 TEST_CASE( "Algoly: CopyArray: init array with indexing, global-global", "[algoly][copy-array]" )
 {
     const char code[] =
@@ -375,12 +766,56 @@ TEST_CASE( "Algoly: CopyArray: init array with indexing, global-global", "[algol
     TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 4 );
 }
 
+TEST_CASE( "Algoly: CopyArray: init array with indexing, global-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "def a\n"
+        "  var ar1: [2] := ar2[1]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 7 );
+}
+
 TEST_CASE( "Algoly: CopyArray: init array with indexing, local-local", "[algoly][copy-array]" )
 {
     const char code[] =
         "def a\n"
         "  var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
         "  var ar1: [2] := ar2[1]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 11 );
+}
+
+TEST_CASE( "Algoly: CopyArray: init array with dynamic indexing, global-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "var n := 1\n"
+        "def a\n"
+        "  var ar1: [2] := ar2[n]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0, 7 );
+}
+
+TEST_CASE( "Algoly: CopyArray: init array with dynamic indexing, local-local", "[algoly][copy-array]" )
+{
+    const char code[] =
+        "var n := 1\n"
+        "def a\n"
+        "  var ar2: [2] of [2] := [[1, 2], [3, 4]]\n"
+        "  var ar1: [2] := ar2[n]\n"
         "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1] +\n"
         "  ar1[0] + ar1[1]\n"
         "end\n"
