@@ -196,12 +196,12 @@ void DotExpr::Accept( Visitor* visitor )
     visitor->VisitDotExpr( this );
 }
 
-void FieldDecl::Accept( IVisitor* visitor )
+void FieldDecl::Accept( Visitor* visitor )
 {
     visitor->VisitFieldDecl( this );
 }
 
-void FieldInitializer::Accept( IVisitor* visitor )
+void FieldInitializer::Accept( Visitor* visitor )
 {
     visitor->VisitFieldInitializer( this );
 }
@@ -286,12 +286,12 @@ void ProcTypeRef::Accept( Visitor* visitor )
     visitor->VisitProcTypeRef( this );
 }
 
-void RecordInitializer::Accept( IVisitor* visitor )
+void RecordInitializer::Accept( Visitor* visitor )
 {
     visitor->VisitRecordInitializer( this );
 }
 
-void RecordTypeRef::Accept( IVisitor* visitor )
+void RecordTypeRef::Accept( Visitor* visitor )
 {
     visitor->VisitRecordTypeRef( this );
 }
@@ -411,11 +411,11 @@ void Visitor::VisitDotExpr( DotExpr* dotExpr )
 {
 }
 
-void IVisitor::VisitFieldDecl( FieldDecl* fieldDecl )
+void Visitor::VisitFieldDecl( FieldDecl* fieldDecl )
 {
 }
 
-void IVisitor::VisitFieldInitializer( FieldInitializer* fieldInit )
+void Visitor::VisitFieldInitializer( FieldInitializer* fieldInit )
 {
 }
 
@@ -483,11 +483,11 @@ void Visitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 {
 }
 
-void IVisitor::VisitRecordInitializer( RecordInitializer* recordInitializer )
+void Visitor::VisitRecordInitializer( RecordInitializer* recordInitializer )
 {
 }
 
-void IVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
+void Visitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 {
 }
 

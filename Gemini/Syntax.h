@@ -167,7 +167,7 @@ class RecordTypeRef : public TypeRef
 public:
     std::vector<Unique<DataDecl>> Fields;
 
-    virtual void Accept( IVisitor* visitor ) override;
+    virtual void Accept( Visitor* visitor ) override;
 };
 
 enum class ArrayFill
@@ -198,7 +198,7 @@ public:
 
     std::vector<Unique<FieldInitializer>> Fields;
 
-    virtual void Accept( IVisitor* visitor ) override;
+    virtual void Accept( Visitor* visitor ) override;
 };
 
 class DeclSyntax : public Syntax
@@ -244,13 +244,13 @@ public:
 class FieldDecl : public DataDecl
 {
 public:
-    virtual void Accept( IVisitor* visitor ) override;
+    virtual void Accept( Visitor* visitor ) override;
 };
 
 class FieldInitializer : public DataDecl
 {
 public:
-    virtual void Accept( IVisitor* visitor ) override;
+    virtual void Accept( Visitor* visitor ) override;
 };
 
 class TypeDecl : public DeclSyntax
