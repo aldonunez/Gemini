@@ -951,7 +951,7 @@ Unique<Syntax> AlgolyParser::ParseAsExpr()
         SkipLineEndings();
 
         asExpr->Inner = std::move( first );
-        asExpr->TargetTypeName = ParseSymbol();
+        asExpr->TargetTypeRef = ParseNameTypeRef();
 
         first = std::move( asExpr );
     }

@@ -271,22 +271,18 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
 
 void BinderVisitor::VisitAsExpr( AsExpr* asExpr )
 {
-    asExpr->Inner->Accept( this );
-    asExpr->TargetTypeName->Accept( this );
+    Visit( asExpr->Inner );
 
-    auto decl = asExpr->TargetTypeName->GetDecl();
-
-    if ( decl->Kind != DeclKind::Type )
-        mRep.ThrowError( CERR_SEMANTICS, asExpr->TargetTypeName.get(), "Expected named type" );
+    asExpr->TargetTypeRef->Accept( this );
 
     auto srcType = asExpr->Inner->Type;
-    auto dstType = ((TypeDeclaration*) decl)->ReferentType;
+    auto dstType = asExpr->TargetTypeRef->ReferentType;
 
     if ( !IsIntegralType( srcType->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, asExpr->Inner.get(), "Type is not numeric compatible" );
+        mRep.ThrowError( CERR_SEMANTICS, asExpr->Inner.get(), "Type is not integral" );
 
     if ( !IsIntegralType( dstType->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, asExpr->TargetTypeName.get(), "Type is not numeric compatible" );
+        mRep.ThrowError( CERR_SEMANTICS, asExpr->TargetTypeRef.get(), "Type is not integral" );
 
     asExpr->Type = dstType;
 }
@@ -636,16 +632,21 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 
     for ( auto& memberDef : enumTypeRef->Members )
     {
-        value++;
-
         if ( memberDef->Initializer )
         {
-            memberDef->Initializer->Accept( this );
+            Visit( memberDef->Initializer );
 
             if ( memberDef->Initializer->Type->GetKind() != TypeKind::Int )
                 CheckType( enumType, memberDef->Initializer->Type, memberDef->Initializer.get() );
 
             value = Evaluate( memberDef->Initializer.get() );
+        }
+        else
+        {
+            if ( value == INT32_MAX )
+                mRep.ThrowError( CERR_SEMANTICS, memberDef.get(), "Enum member is out of range" );
+
+            value++;
         }
 
         auto member = Make<EnumMember>( value, enumType );

@@ -72,6 +72,16 @@ TEST_CASE( "Algoly: explicit all enum last", "[algoly][enum]" )
     TestCompileAndRunAlgoly( code, sizeof code, 6, 0, 3 );
 }
 
+TEST_CASE( "Algoly: enum as self", "[algoly][enum]" )
+{
+    const char code[] =
+        "type E = enum E1, E2, E3 end\n"
+        "def a -> E E.E3 as E end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 2, 0, 3 );
+}
+
 TEST_CASE( "Algoly: explicit first enum last as int", "[algoly][enum]" )
 {
     const char code[] =
@@ -150,4 +160,68 @@ TEST_CASE( "Algoly: reference member inside enum def", "[algoly][enum]" )
         ;
 
     TestCompileAndRunAlgoly( code, sizeof code, 16, 0, 3 );
+}
+
+TEST_CASE( "Algoly: int as int", "[algoly][enum]" )
+{
+    const char code[] =
+        "def a 3 as int end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+}
+
+TEST_CASE( "Algoly: enum as mod dotted int alias", "[algoly][enum]" )
+{
+    const char* modeCodeA[] =
+    {
+        "type T = int\n"
+        ,
+        nullptr
+    };
+
+    const char* mainCode[] =
+    {
+        "import ModA\n"
+        "type E = enum E3 = 3 end\n"
+        "def a var i := E.E3; i as ModA.T end\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "ModA",   modeCodeA },
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 3, 0 );
+}
+
+TEST_CASE( "Algoly: int as mod enum", "[algoly][enum]" )
+{
+    const char* modeCodeA[] =
+    {
+        "type E = enum E3 = 3 end\n"
+        ,
+        nullptr
+    };
+
+    const char* mainCode[] =
+    {
+        "import ModA\n"
+        "def a -> ModA.E var i := 3; i as ModA.E end\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "ModA",   modeCodeA },
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 3, 0 );
 }

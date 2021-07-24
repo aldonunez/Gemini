@@ -136,7 +136,6 @@ public:
 
 class EnumMemberDef;
 
-// TODO: Or EnumTypeDef?
 class EnumTypeRef : public TypeRef
 {
 public:
@@ -250,8 +249,8 @@ public:
 class AsExpr : public Syntax
 {
 public:
-    Unique<Syntax>      Inner;
-    Unique<NameExpr>    TargetTypeName;
+    Unique<Syntax>              Inner;
+    Unique<Gemini::TypeRef>     TargetTypeRef;
 
     virtual void Accept( Visitor* visitor ) override;
 };
@@ -746,11 +745,9 @@ class EnumType;
 
 struct EnumMember : public Constant
 {
-    //int32_t                 Value;
     std::weak_ptr<EnumType> ParentType;
 
     EnumMember( int32_t value, std::shared_ptr<EnumType> parentType ) :
-        //Value( value ),
         ParentType( parentType )
     {
         Value = value;
