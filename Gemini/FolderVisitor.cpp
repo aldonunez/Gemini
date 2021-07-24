@@ -431,23 +431,20 @@ void FuncAddrVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 
 void FuncAddrVisitor::VisitDotExpr( DotExpr* dotExpr )
 {
-    if ( dotExpr->GetDecl()->Kind == DeclKind::Const
-        && ((Constant*) dotExpr->GetDecl())->Value.GetKind() == ValueKind::Function )
-    {
-        mLastValue = ((Constant*) dotExpr->GetDecl())->Value.GetFunction();
-    }
-    else
-    {
-        mLastValue.reset();
-    }
+    VisitDotOrNameExpr( dotExpr );
 }
 
 void FuncAddrVisitor::VisitNameExpr( NameExpr* nameExpr )
 {
-    if ( nameExpr->Decl->Kind == DeclKind::Const
-        && ((Constant*) nameExpr->GetDecl())->Value.GetKind() == ValueKind::Function )
+    VisitDotOrNameExpr( nameExpr );
+}
+
+void FuncAddrVisitor::VisitDotOrNameExpr( Syntax* expr )
+{
+    if ( expr->GetDecl()->Kind == DeclKind::Const
+        && ((Constant*) expr->GetDecl())->Value.GetKind() == ValueKind::Function )
     {
-        mLastValue = ((Constant*) nameExpr->Decl.get())->Value.GetFunction();
+        mLastValue = ((Constant*) expr->GetDecl())->Value.GetFunction();
     }
     else
     {
