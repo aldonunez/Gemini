@@ -80,10 +80,12 @@ public:
 
     std::shared_ptr<Function> Evaluate( Syntax* node );
 
-    // IVisitor
+    // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
     virtual void VisitDotExpr( DotExpr* dotExpr ) override;
     virtual void VisitNameExpr( NameExpr* nameExpr ) override;
+
+    void VisitDotOrNameExpr( Syntax* expr );
 };
 
 }
