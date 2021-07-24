@@ -1409,7 +1409,6 @@ Unique<TypeRef> AlgolyParser::ParsePtrFuncTypeRef()
     return pointerTypeRef;
 }
 
-// TODO: move
 ParamSpecRef AlgolyParser::ParseBareParameter()
 {
     ParamSpecRef param;

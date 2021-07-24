@@ -165,6 +165,7 @@ struct ParamSpecRef
     }
 
     ParamSpecRef( const ParamSpecRef& ) = delete;
+    ParamSpecRef& operator=( const ParamSpecRef& ) = delete;
 };
 
 class ProcTypeRef : public TypeRef
@@ -793,8 +794,8 @@ public:
 struct ParamSpec
 {
     std::shared_ptr<Type>   Type;
-    ParamMode               Mode;
-    ParamSize               Size;
+    ParamMode               Mode = ParamMode::Value;
+    ParamSize               Size = 0;
 };
 
 class FuncType : public Type

@@ -498,6 +498,8 @@ void Compiler::EmitCountofArray( Syntax* arrayNode )
             mRep.ThrowInternalError();
 
         // Only ref params are allowed to take open array types
+        // Because of this, the address calculation above won't spill
+
         auto param = (ParamStorage*) decl;
 
         EmitU8( OP_LDARG, param->Offset + 1 );

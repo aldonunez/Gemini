@@ -722,7 +722,6 @@ Unique<TypeRef> LispyParser::ParsePtrFuncTypeRef()
     return pointerTypeRef;
 }
 
-// TODO: move
 ParamSpecRef LispyParser::ParseBareParameter()
 {
     ParamSpecRef param;

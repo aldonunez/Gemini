@@ -1601,9 +1601,11 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
         }
 
     case ParamMode::InOutRef:
+        // Open array: dope vector + address
         if ( type->GetKind() == TypeKind::Array && ((ArrayType&) *type).Count == 0 )
             return 2;
 
+        // Closed array: address
         return 1;
 
     default:
