@@ -838,15 +838,8 @@ public:
 
     RecordType();
 
-    virtual bool IsAssignableFrom( Type* other ) const override;
+    virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;
-};
-
-
-class RecordInitializerType : public Type
-{
-public:
-    RecordInitializerType();
 };
 
 }

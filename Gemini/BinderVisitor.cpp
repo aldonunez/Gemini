@@ -557,7 +557,7 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
     }
     else if ( dotExpr->Head->Type->GetKind() == TypeKind::Record )
     {
-        auto recType = (RecordType&) *dotExpr->Head->Type;
+        auto& recType = (RecordType&) *dotExpr->Head->Type;
 
         auto it = recType.Fields.find( dotExpr->Member );
 
@@ -1171,11 +1171,6 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 
     procTypeRef->Type = mTypeType;
     procTypeRef->ReferentType = funcType;
-}
-
-void BinderVisitor::VisitRecordInitializer( RecordInitializer* recordInitializer )
-{
-    recordInitializer->Type = Make<RecordInitializerType>();
 }
 
 void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )

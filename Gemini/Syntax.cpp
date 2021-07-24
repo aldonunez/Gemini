@@ -764,7 +764,7 @@ RecordType::RecordType() :
 {
 }
 
-bool RecordType::IsAssignableFrom( Type* other ) const
+bool RecordType::IsEqual( Type* other ) const
 {
     return other == this;
 }
@@ -780,12 +780,6 @@ DataSize RecordType::GetSize() const
     }
 
     return mSize;
-}
-
-
-RecordInitializerType::RecordInitializerType() :
-    Type( TypeKind::RecordInit )
-{
 }
 
 }
