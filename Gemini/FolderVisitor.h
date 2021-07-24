@@ -82,6 +82,8 @@ public:
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
     virtual void VisitDotExpr( DotExpr* dotExpr ) override;
     virtual void VisitNameExpr( NameExpr* nameExpr ) override;
+
+    void VisitDotOrNameExpr( Syntax* expr );
 };
 
 }
