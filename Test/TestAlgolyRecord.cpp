@@ -299,7 +299,10 @@ TEST_CASE( "Algoly: write record of record", "[algoly][record]" )
     TestCompileAndRunAlgoly( code, sizeof code, 12, 0, 4 );
 }
 
-//---
+
+//----------------------------------------------------------------------------
+//  array of record
+//----------------------------------------------------------------------------
 
 TEST_CASE( "Algoly: read global array of record (int, &proc, int) repeat, const indexes", "[algoly][record]" )
 {
@@ -331,6 +334,41 @@ TEST_CASE( "Algoly: read local array of record (int, &proc, int) repeat, const i
     TestCompileAndRunAlgoly( code, sizeof code, 214, 0, 10 );
 }
 
+TEST_CASE( "Algoly: read global array of record (int, int), var indexes", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y: int end\n"
+        "var r: [2] of R := [{ x:3, y: 4 }, { x: 5, y : 6 }]\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  r[zero].x + r[zero].y +\n"
+        "  r[one].x + r[one].y\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 18, 0, 5 );
+}
+
+TEST_CASE( "Algoly: read local array of record (int, int), var indexes", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y: int end\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var r: [2] of R := [{ x:3, y: 4 }, { x: 5, y : 6 }]\n"
+        "  r[zero].x + r[zero].y +\n"
+        "  r[one].x + r[one].y\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 18, 0, 9 );
+}
+
+
+//----------------------------------------------------------------------------
+//  record of array
+//----------------------------------------------------------------------------
+
 TEST_CASE( "Algoly: read global record of array", "[algoly][record]" )
 {
     const char code[] =
@@ -357,6 +395,36 @@ TEST_CASE( "Algoly: read local record of array", "[algoly][record]" )
         ;
 
     TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 8 );
+}
+
+TEST_CASE( "Algoly: read global record of array, var indexes", "[algoly][record]" )
+{
+    const char code[] =
+        // Output: 10
+        "type R = record a: [2], b: [2] end\n"
+        "var r: R := { a: [1, 2], b: [3, 4] }\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  r.a[zero] + r.a[one] + r.b[zero] + r.b[one]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 5 );
+}
+
+TEST_CASE( "Algoly: read local record of array, var indexes", "[algoly][record]" )
+{
+    const char code[] =
+        // Output: 10
+        "type R = record a: [2], b: [2] end\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var r: R := { a: [1, 2], b: [3, 4] }\n"
+        "  r.a[zero] + r.a[one] + r.b[zero] + r.b[one]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 9 );
 }
 
 
