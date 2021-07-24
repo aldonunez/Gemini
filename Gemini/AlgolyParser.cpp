@@ -609,6 +609,29 @@ Unique<NativeDecl> AlgolyParser::ParseNative()
         native->Params = ParseParamList();
     }
 
+    if ( mCurToken == TokenCode::EQ )
+    {
+        ScanToken();
+
+        if ( mCurToken == TokenCode::Number )
+        {
+            auto numberExpr = ParseNumber();
+
+            if ( numberExpr->Value > INT32_MAX )
+                ThrowSyntaxError( "Native ID is out of range" );
+
+            native->OptionalId = std::move( numberExpr );
+        }
+        else if ( mCurToken == TokenCode::Symbol )
+        {
+            native->OptionalId = ParseSymbol();
+        }
+        else
+        {
+            ThrowSyntaxError( "Only a number or name can be used as a native ID" );
+        }
+    }
+
     return native;
 }
 

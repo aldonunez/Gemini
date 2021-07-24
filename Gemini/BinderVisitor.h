@@ -17,6 +17,7 @@ class BinderVisitor final : public Visitor
 {
     using SymStack = std::vector<SymTable*>;
     using LambdaVec = std::vector<Unique<ProcDecl>>;
+    using NatTypeMap = std::map<int32_t, std::shared_ptr<Type>>;
 
     friend class LocalScope;
 
@@ -26,6 +27,7 @@ class BinderVisitor final : public Visitor
     SymTable&       mGlobalTable;
     SymTable&       mModuleTable;
     SymTable&       mPublicTable;
+    NatTypeMap      mNativeTypeMap;
     Reporter        mRep;
 
     Function*       mCurFunc = nullptr;
@@ -35,7 +37,7 @@ class BinderVisitor final : public Visitor
     LocalSize       mCurLocalCount = 0;
     LocalSize       mMaxLocalCount = 0;
     GlobalSize      mGlobalSize = 0;
-    int             mNextNativeId = 0;
+    int32_t         mPrevNativeId = -1;
 
     std::shared_ptr<TypeType>   mTypeType;
     std::shared_ptr<ModuleType> mModuleType;

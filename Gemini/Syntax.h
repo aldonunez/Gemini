@@ -463,6 +463,8 @@ public:
 class NativeDecl : public ProcDeclBase
 {
 public:
+    Unique<Syntax> OptionalId;
+
     virtual void Accept( Visitor* visitor ) override;
 };
 

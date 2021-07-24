@@ -8,6 +8,7 @@
 #include "BinderVisitor.h"
 #include "FolderVisitor.h"
 #include <assert.h>
+#include <inttypes.h>
 #include <stdio.h>
 
 
@@ -891,13 +892,55 @@ void BinderVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
 
     mGlobalTable.erase( nativeDecl->Name );
 
-    std::shared_ptr<NativeFunction> native( new NativeFunction() );
-    native->Id = mNextNativeId;
-    mGlobalTable.insert( SymTable::value_type( nativeDecl->Name, native ) );
+    if ( nativeDecl->OptionalId )
+    {
+        Visit( nativeDecl->OptionalId );
 
-    mNextNativeId++;
+        if ( nativeDecl->OptionalId->Kind == SyntaxKind::Number )
+        {
+            assert( ((NumberExpr&) *nativeDecl->OptionalId).Value <= INT32_MAX );
+            mPrevNativeId = static_cast<int32_t>( ((NumberExpr&) *nativeDecl->OptionalId).Value );
+        }
+        else if ( nativeDecl->OptionalId->Kind == SyntaxKind::Name )
+        {
+            auto decl = nativeDecl->OptionalId->GetDecl();
+
+            if ( decl->Kind != DeclKind::NativeFunc )
+                mRep.ThrowError( CERR_SEMANTICS, nativeDecl->OptionalId.get(), "Name of native expected" );
+
+            mPrevNativeId = ((NativeFunction*) decl)->Id;
+        }
+        else
+        {
+            mRep.ThrowInternalError();
+        }
+    }
+    else
+    {
+        if ( mPrevNativeId == INT32_MAX )
+            mRep.ThrowError( CERR_SEMANTICS, nativeDecl, "ID of native is out of range" );
+
+        mPrevNativeId++;
+    }
+
+    std::shared_ptr<NativeFunction> native( new NativeFunction() );
 
     native->Type = MakeFuncType( nativeDecl );
+    native->Id = mPrevNativeId;
+
+    auto typeIt = mNativeTypeMap.find( native->Id );
+
+    if ( typeIt == mNativeTypeMap.end() )
+    {
+        mNativeTypeMap.insert( NatTypeMap::value_type( native->Id, native->Type ) );
+    }
+    else
+    {
+        if ( !typeIt->second->IsEqual( native->Type.get() ) )
+            mRep.ThrowError( CERR_SEMANTICS, nativeDecl, "Native ID is assigned a different type: %" PRId32, native->Id );
+    }
+
+    mGlobalTable.insert( SymTable::value_type( nativeDecl->Name, native ) );
 
     nativeDecl->Decl = native;
 }

@@ -922,8 +922,6 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         }
         else
         {
-            // TODO: test case for big native ID
-
             size_t curIndex = ReserveCode( 6 );
             mCodeBin[curIndex + 0] = opCode;
             mCodeBin[curIndex + 1] = callFlags;

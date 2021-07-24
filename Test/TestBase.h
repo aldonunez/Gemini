@@ -54,4 +54,9 @@ void TestCompileAndRun(
 );
 
 
+// Sample natives
+
+int NatAdd( Machine* machine, U8 argc, CELL* args, UserContext context );
+int NatMul( Machine* machine, U8 argc, CELL* args, UserContext context );
+
 extern NativePair gNatives[];

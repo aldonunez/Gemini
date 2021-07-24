@@ -1369,7 +1369,6 @@ TEST_CASE( "Algoly: native basic", "[algoly]" )
         "native Add(a, b)\n"
         "native Mul(a, b)\n"
         ,
-
         nullptr
     };
 
@@ -1380,6 +1379,114 @@ TEST_CASE( "Algoly: native basic", "[algoly]" )
     };
 
     TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gNatives );
+}
+
+static NativePair gHighNatives[] =
+{
+    { INT32_MAX-1, NatAdd },
+    { INT32_MAX-0, NatMul },
+    { 0, nullptr }
+};
+
+TEST_CASE( "Algoly: native high", "[algoly]" )
+{
+    const char* mainCode[] =
+    {
+        "def a\n"
+        "  Add(20, 30) + Mul(2, 3)\n"
+        "end\n"
+        "native Add(a, b) = 2147483646\n"
+        "native Mul(a, b)\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gHighNatives );
+}
+
+static NativePair gLowHighNatives[] =
+{
+    { INT32_MAX - 0, NatAdd },
+    { 1, NatMul },
+    { 0, nullptr }
+};
+
+TEST_CASE( "Algoly: native low and high", "[algoly]" )
+{
+    const char* mainCode[] =
+    {
+        "def a\n"
+        "  Add(20, 30) + Mul(2, 3)\n"
+        "end\n"
+        "native Add(a, b) = 2147483647\n"
+        "native Mul(a, b) = 1\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gLowHighNatives );
+}
+
+TEST_CASE( "Algoly: native reuse ID", "[algoly]" )
+{
+    const char* mainCode[] =
+    {
+        "def a\n"
+        "  Add(20, 30) + Mul(2, 3) +\n"
+        "  AddEx(40, 50) + MulEx(4, 5)\n"
+        "end\n"
+        "native Add(a, b)\n"
+        "native Mul(a, b)\n"
+        "native AddEx(a, b) = 0\n"
+        "native MulEx(a, b) = 1\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 56+110, 0, 0, gNatives );
+}
+
+TEST_CASE( "Algoly: native refer other", "[algoly]" )
+{
+    const char* mainCode[] =
+    {
+        "def a\n"
+        "  Add(20, 30) + Mul(2, 3) +\n"
+        "  AddEx(40, 50) + MulEx(4, 5)\n"
+        "end\n"
+        "native Add(a, b)\n"
+        "native Mul(a, b)\n"
+        "native AddEx(a, b) = Add\n"
+        "native MulEx(a, b) = Mul\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 56 + 110, 0, 0, gNatives );
 }
 
 TEST_CASE( "Algoly: native separate units", "[algoly]" )
