@@ -110,12 +110,12 @@ int AlgolyParser::GetColumn()
     return static_cast<int>(mCodeTextPtr - mLineStart) + 1;
 }
 
-int AlgolyParser::PeekChar() const
+char AlgolyParser::PeekChar() const
 {
     return mCurChar;
 }
 
-int AlgolyParser::PeekChar( int index ) const
+char AlgolyParser::PeekChar( int index ) const
 {
     if ( (mCodeTextEnd - mCodeTextPtr) < (index + 1) )
         return 0;
