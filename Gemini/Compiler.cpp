@@ -882,7 +882,9 @@ void Compiler::AddLocalDataRecord( LocalSize offset, Syntax* recordValue )
     {
         auto fieldDecl = (FieldStorage*) fieldInit->GetDecl();
 
-        GenerateLocalInit( offset - fieldDecl->Offset, fieldInit->Initializer.get() );
+        assert( offset >= fieldDecl->Offset );
+
+        GenerateLocalInit( static_cast<LocalSize>(offset - fieldDecl->Offset), fieldInit->Initializer.get() );
     }
 }
 
