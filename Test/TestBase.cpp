@@ -397,8 +397,8 @@ void TestCompileAndRun(
 #endif
     }
 
-    if ( expectedStack != 0 )
-        REQUIRE( expectedStack == maxStack );
+    if ( expectedStack > 0 )
+        REQUIRE( (size_t) expectedStack == maxStack );
 
     CELL stack[Machine::MIN_STACK * 8];
     Machine machine;

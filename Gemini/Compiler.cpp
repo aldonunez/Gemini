@@ -544,8 +544,8 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
     if ( (mCodeBin.size() - startLoc) >= BranchInst::Size
         && mCodeBin[mCodeBin.size() - BranchInst::Size] == OP_B
         && leaveChain.First != nullptr
-        && leaveChain.First->Ref == (mCodeBin.size() - BranchInst::Size)
-        && falseChain.PatchedInstIndex == mCodeBin.size() )
+        && leaveChain.First->Ref == ((int32_t) mCodeBin.size() - BranchInst::Size)
+        && falseChain.PatchedInstIndex == (int32_t) mCodeBin.size() )
     {
         PopPatch( &leaveChain );
         DeleteCode( BranchInst::Size );
@@ -1433,7 +1433,7 @@ void Compiler::ElideTrue( PatchChain* trueChain, PatchChain* falseChain )
 
     if ( diff == BranchInst::Size
         && mCodeBin[mCodeBin.size() - BranchInst::Size] == OP_B
-        && (mCodeBin.size() - BranchInst::Size) == falseChain->First->Ref
+        && ((int32_t) mCodeBin.size() - BranchInst::Size) == falseChain->First->Ref
         )
     {
         falseChain->First->Ref = trueChain->First->Ref;
