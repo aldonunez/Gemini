@@ -901,13 +901,16 @@ bool Machine::IsCodeInBounds( U32 address ) const
 std::pair<int, void*> Machine::GetSizedDataPtr( CELL addrWord, CELL size )
 {
     U8  iMod = CodeAddr::GetModule( addrWord );
-    U16 offs = CodeAddr::GetAddress( addrWord );
+    U32 offs = CodeAddr::GetAddress( addrWord );
 
     auto [err, mod] = GetDataModule( iMod );
     if ( err != ERR_NONE )
         return std::pair( err, nullptr );
 
-    if ( offs >= mod->DataSize || size > (mod->DataSize - offs) )
+    if ( size < 0 )
+        return std::pair( ERR_BAD_ARG, nullptr );
+
+    if ( offs >= mod->DataSize || size > static_cast<CELL>(mod->DataSize - offs) )
         return std::pair( ERR_BAD_ADDRESS, nullptr );
 
     return std::pair( 0, mod->DataBase + offs );
