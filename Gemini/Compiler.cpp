@@ -275,22 +275,28 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
     {
     case DeclKind::Global:
         assert( offset >= 0 && offset <= GlobalSizeMax );
+        assert( offset <= (GlobalSizeMax - ((GlobalStorage*) decl)->Offset) );
+
         EmitModAccess(
             OP_LDMOD,
             ((GlobalStorage*) decl)->ModIndex,
-            ((GlobalStorage*) decl)->Offset + offset );
+            static_cast<uint16_t>(((GlobalStorage*) decl)->Offset + offset) );
         IncreaseExprDepth();
         break;
 
     case DeclKind::Local:
         assert( offset >= 0 && offset <= LocalSizeMax );
-        EmitU8( OP_LDLOC, ((LocalStorage*) decl)->Offset - offset );
+        assert( offset <= ((LocalStorage*) decl)->Offset );
+
+        EmitU8( OP_LDLOC, static_cast<uint8_t>(((LocalStorage*) decl)->Offset - offset) );
         IncreaseExprDepth();
         break;
 
     case DeclKind::Param:
         assert( offset >= 0 && offset <= ParamSizeMax );
-        EmitU8( OP_LDARG, ((ParamStorage*) decl)->Offset + offset );
+        assert( offset <= (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+
+        EmitU8( OP_LDARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
         IncreaseExprDepth();
         break;
 
@@ -592,20 +598,26 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
     {
     case DeclKind::Global:
         assert( offset >= 0 && offset <= GlobalSizeMax );
+        assert( offset <= (GlobalSizeMax - ((GlobalStorage*) decl)->Offset) );
+
         EmitModAccess(
             OP_STMOD,
             ((GlobalStorage*) decl)->ModIndex,
-            ((GlobalStorage*) decl)->Offset + offset );
+            static_cast<uint16_t>(((GlobalStorage*) decl)->Offset + offset) );
         break;
 
     case DeclKind::Local:
         assert( offset >= 0 && offset <= LocalSizeMax );
-        EmitU8( OP_STLOC, ((LocalStorage*) decl)->Offset - offset );
+        assert( offset <= ((LocalStorage*) decl)->Offset );
+
+        EmitU8( OP_STLOC, static_cast<uint8_t>(((LocalStorage*) decl)->Offset - offset) );
         break;
 
     case DeclKind::Param:
         assert( offset >= 0 && offset <= ParamSizeMax );
-        EmitU8( OP_STARG, ((ParamStorage*) decl)->Offset + offset );
+        assert( offset <= (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+
+        EmitU8( OP_STARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
         break;
 
     case DeclKind::Func:
@@ -797,9 +809,11 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
         if ( i == size )
             mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
 
+        assert( locIndex+1 >= entry->Type->GetSize() );
+
         GenerateLocalInit( locIndex, entry.get() );
         i++;
-        locIndex -= entry->Type->GetSize();
+        locIndex -= static_cast<LocalSize>(entry->Type->GetSize());
     }
 
     if ( initList->Fill == ArrayFill::Extrapolate && initList->Values.size() > 0 )
@@ -835,8 +849,10 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
 
         for ( ; i < size; i++ )
         {
+            assert( locIndex+1 >= lastNode->Type->GetSize() );
+
             GenerateLocalInit( locIndex, lastNode );
-            locIndex -= lastNode->Type->GetSize();
+            locIndex -= static_cast<LocalSize>(lastNode->Type->GetSize());
         }
     }
 }
@@ -1551,6 +1567,8 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
         {
         case DeclKind::Global:
             assert( offset >= 0 && offset <= GlobalSizeMax );
+            assert( offset <= (GlobalSizeMax - ((GlobalStorage*) baseDecl)->Offset) );
+
             addrWord = CodeAddr::Build(
                 ((GlobalStorage*) baseDecl)->Offset + offset,
                 ((GlobalStorage*) baseDecl)->ModIndex );
@@ -1560,7 +1578,9 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
 
         case DeclKind::Local:
             assert( offset >= 0 && offset <= LocalSizeMax );
-            EmitU8( OP_LDLOCA, ((LocalStorage*) baseDecl)->Offset - offset );
+            assert( offset <= ((LocalStorage*) baseDecl)->Offset );
+
+            EmitU8( OP_LDLOCA, static_cast<uint8_t>(((LocalStorage*) baseDecl)->Offset - offset) );
             IncreaseExprDepth();
             break;
 
@@ -1591,7 +1611,9 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     if ( optIndexVal.has_value() )
     {
-        status.offset += optIndexVal.value() * arrayType.ElemType->GetSize();
+        assert( optIndexVal.value() <= DataSizeMax );
+
+        status.offset += static_cast<DataSize>(optIndexVal.value()) * arrayType.ElemType->GetSize();
         return;
     }
 
@@ -1683,7 +1705,9 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
 
         int32_t indexVal = GetSyntaxValue( sliceExpr->FirstIndex.get(), "" );
 
-        status.offset += indexVal * arrayType.ElemType->GetSize();
+        assert( indexVal <= DataSizeMax );
+
+        status.offset += static_cast<DataSize>(indexVal) * arrayType.ElemType->GetSize();
         return;
     }
 
