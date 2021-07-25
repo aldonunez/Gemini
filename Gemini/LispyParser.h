@@ -38,7 +38,7 @@ class LispyParser
     const char*     mCodeTextEnd;
     const char*     mLineStart;
     int             mLine;
-    int             mCurChar;
+    char            mCurChar;
 
     TokenCode       mCurToken;
     std::string     mCurString;
@@ -58,8 +58,8 @@ private:
     // Scanning
 
     int GetColumn();
-    int PeekChar() const;
-    int PeekChar( int index ) const;
+    char PeekChar() const;
+    char PeekChar( int index ) const;
     void NextChar();
     void SkipWhitespace();
     TokenCode ScanToken();

@@ -102,12 +102,12 @@ int LispyParser::GetColumn()
     return static_cast<int>(mCodeTextPtr - mLineStart) + 1;
 }
 
-int LispyParser::PeekChar() const
+char LispyParser::PeekChar() const
 {
     return mCurChar;
 }
 
-int LispyParser::PeekChar( int index ) const
+char LispyParser::PeekChar( int index ) const
 {
     if ( (mCodeTextEnd - mCodeTextPtr) < (index + 1) )
         return 0;
