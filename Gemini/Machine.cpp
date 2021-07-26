@@ -908,9 +908,9 @@ std::pair<int, void*> Machine::GetSizedDataPtr( CELL addrWord, CELL size )
         return std::pair( err, nullptr );
 
     if ( size < 0 )
-        return std::pair( ERR_BAD_ARG, nullptr );
+        return std::pair( ERR_BAD_ADDRESS, nullptr );
 
-    if ( offs >= mod->DataSize || size > static_cast<CELL>(mod->DataSize - offs) )
+    if ( offs >= mod->DataSize || size > mod->DataSize - static_cast<U16>(offs) )
         return std::pair( ERR_BAD_ADDRESS, nullptr );
 
     return std::pair( 0, mod->DataBase + offs );

@@ -102,12 +102,12 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     {
     case OP_POP:
     case OP_DUP:
+    case OP_OVER:
     case OP_NOT:
     case OP_LOADI:
     case OP_STOREI:
     case OP_RET:
     case OP_COPYBLOCK:
-    case OP_OVER:
         break;
 
     case OP_PUSH:
