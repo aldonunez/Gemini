@@ -767,7 +767,7 @@ Unique<Syntax> AlgolyParser::ParseExprStatement()
 
     if ( !IsStatementSeparator( mCurToken ) )
     {
-        if ( expr->Kind == SyntaxKind::Name )
+        if ( expr->Kind == SyntaxKind::Name || expr->Kind == SyntaxKind::DotExpr )
         {
             // The parsed expression was only a symbol. But there are more tokens.
             // So, parse them into arguments for a call without parentheses.
@@ -821,13 +821,6 @@ Unique<Syntax> AlgolyParser::ParseAssignment()
 
     if ( mCurToken == TokenCode::Assign )
     {
-        if ( first->Kind != SyntaxKind::Name
-            && first->Kind != SyntaxKind::Index
-            && first->Kind != SyntaxKind::DotExpr )
-        {
-            mRep.ThrowError( CERR_SYNTAX, first.get(), "Left side of assignment must be modifiable" );
-        }
-
         auto assignment = Make<AssignmentExpr>();
 
         assignment->Left = std::move( first );
@@ -1002,9 +995,6 @@ Unique<Syntax> AlgolyParser::ParseSingle()
 Unique<Syntax> AlgolyParser::ParseCall( Unique<Syntax>&& head, bool indirect, bool parens )
 {
     auto call = Make<CallExpr>();
-
-    if ( head->Kind == SyntaxKind::Number )
-        ThrowSyntaxError( "A number cannot designate a procedure to call" );
 
     call->IsIndirect = indirect;
     call->Head = std::move( head );
@@ -1749,7 +1739,6 @@ Unique<NameExpr> AlgolyParser::WrapSymbol()
 Unique<NumberExpr> AlgolyParser::MakeNumber( int64_t value )
 {
     NumberExpr* number = new NumberExpr();
-    number->Kind = SyntaxKind::Number;
     number->Value = value;
     number->Line = mTokLine;
     number->Column = mTokCol;
@@ -1760,7 +1749,6 @@ Unique<NumberExpr> AlgolyParser::MakeNumber( int64_t value )
 Unique<NameExpr> AlgolyParser::MakeSymbol( const char* string )
 {
     NameExpr* symbol = new NameExpr();
-    symbol->Kind = SyntaxKind::Name;
     symbol->String = string;
     symbol->Line = mTokLine;
     symbol->Column = mTokCol;

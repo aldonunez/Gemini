@@ -1687,6 +1687,33 @@ TEST_CASE( "Algoly: mod dotted callOrSymbol", "[algoly]" )
     TestCompileAndRun( Language::Gema, modSources, 7, 0 );
 }
 
+TEST_CASE( "Algoly: mod dotted callOrSymbol, 1 arg", "[algoly]" )
+{
+    const char* modeCodeA[] =
+    {
+        "def X(n) n+2 end\n"
+        ,
+        nullptr
+    };
+
+    const char* mainCode[] =
+    {
+        "import ModA\n"
+        "def a ModA.X 3 end\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "ModA",   modeCodeA },
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 5, 0 );
+}
+
 TEST_CASE( "Algoly: multi unit and mod", "[algoly]" )
 {
     const char* modeCodeM2[] =

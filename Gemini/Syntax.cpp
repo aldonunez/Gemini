@@ -51,11 +51,6 @@ NumberExpr::NumberExpr( int64_t value ) :
     Kind = SyntaxKind::Number;
 }
 
-ArrayTypeRef::ArrayTypeRef()
-{
-    Kind = SyntaxKind::ArrayTypeRef;
-}
-
 InitList::InitList()
 {
     Kind = SyntaxKind::ArrayInitializer;

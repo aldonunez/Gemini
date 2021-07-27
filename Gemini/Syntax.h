@@ -31,7 +31,6 @@ enum class SyntaxKind
     AddrOfExpr,
     Index,
     DotExpr,
-    ArrayTypeRef,
     ArrayInitializer,
     ConstDecl,
     VarDecl,
@@ -139,8 +138,6 @@ class ArrayTypeRef : public TypeRef
 public:
     Unique<Syntax>  SizeExpr;
     Unique<TypeRef> ElementTypeRef;
-
-    ArrayTypeRef();
 
     virtual void Accept( Visitor* visitor ) override;
 };

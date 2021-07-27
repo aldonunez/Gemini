@@ -136,6 +136,19 @@ static bool IsStorageType( TypeKind kind )
         ;
 }
 
+static bool IsLValue( const Syntax& node )
+{
+    if ( node.Kind != SyntaxKind::Name
+        && node.Kind != SyntaxKind::DotExpr
+        && node.Kind != SyntaxKind::Index )
+    {
+        return false;
+    }
+
+    return IsAssignableType( node.Type->GetKind() );
+}
+
+
 template <typename T, typename... Args>
 std::shared_ptr<T> Make( Args&&... args )
 {
@@ -236,15 +249,8 @@ void BinderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
     Visit( assignment->Left );
     Visit( assignment->Right );
 
-    if ( assignment->Left->Kind == SyntaxKind::Name )
-    {
-        // Don't allow constants
-
-        auto decl = assignment->Left->GetDecl();
-
-        if ( !IsVarDeclaration( decl->Kind ) )
-            mRep.ThrowError( CERR_SEMANTICS, assignment->Left.get(), "Left side is not a variable object" );
-    }
+    if ( !IsLValue( *assignment->Left ) )
+        mRep.ThrowError( CERR_SEMANTICS, assignment->Left.get(), "Left side cannot be assigned" );
 
     CheckAssignableType( assignment->Left.get() );
 
