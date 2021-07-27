@@ -74,14 +74,3 @@ TEST_CASE( "Algoly: complex ptr-const", "[algoly][ptr-const]" )
 
     TestCompileAndRunAlgoly( code, sizeof code, 22, 0, 5 );
 }
-
-#if 0
-TEST_CASE( "Algoly: simple", "[algoly][ptr-const]" )
-{
-    const char code[] =
-        "def a 33 end"
-        ;
-
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 0 );
-}
-#endif
