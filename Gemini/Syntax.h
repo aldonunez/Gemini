@@ -744,7 +744,6 @@ enum class TypeKind
     Func,
     Pointer,
     Record,
-    RecordInit,
 };
 
 class Type
@@ -831,7 +830,7 @@ public:
 
 class RecordType : public Type
 {
-    mutable int32_t mSize = 0;
+    mutable DataSize mSize = 0;
 
 public:
     SymTable    Fields;
