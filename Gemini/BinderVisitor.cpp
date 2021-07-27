@@ -651,8 +651,6 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 
         auto member = Make<EnumMember>( value, enumType );
 
-        member->Value = value;
-
         enumType->MembersByName.insert( SymTable::value_type( memberDef->Name, member ) );
     }
 

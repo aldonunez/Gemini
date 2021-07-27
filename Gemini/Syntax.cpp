@@ -570,7 +570,7 @@ ModuleDeclaration::ModuleDeclaration() :
 }
 
 LoadedAddressDeclaration::LoadedAddressDeclaration() :
-    Declaration( DeclKind::LoadedAddress )
+    CommonDeclaration( DeclKind::LoadedAddress )
 {
 }
 

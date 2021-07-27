@@ -731,14 +731,9 @@ struct ModuleDeclaration : public CommonDeclaration
     ModuleDeclaration();
 };
 
-struct LoadedAddressDeclaration : public Declaration
+struct LoadedAddressDeclaration : public CommonDeclaration
 {
     LoadedAddressDeclaration();
-
-    virtual std::shared_ptr<Type> GetType() const override
-    {
-        return nullptr;
-    }
 };
 
 class EnumType;
