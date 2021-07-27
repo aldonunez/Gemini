@@ -12,9 +12,9 @@
 
 static const char* gOpCodes[] = 
 {
+    "POP",
     "DUP",
     "PUSH",
-    "POP",
     "NOT",
     "LDARG",
     "STARG",
@@ -92,8 +92,8 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 
     switch ( op )
     {
-    case OP_DUP:
     case OP_POP:
+    case OP_DUP:
     case OP_NOT:
     case OP_LOADI:
     case OP_STOREI:

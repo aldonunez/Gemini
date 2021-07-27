@@ -220,6 +220,15 @@ int Machine::Run()
 
         switch ( op )
         {
+        case OP_POP:
+            {
+                if ( WouldUnderflow() )
+                    return ERR_STACK_UNDERFLOW;
+
+                mSP++;
+            }
+            break;
+
         case OP_DUP:
             {
                 if ( WouldOverflow() )
@@ -243,15 +252,6 @@ int Machine::Run()
                 mSP -= count;
 
                 std::fill( mSP, mSP + count, 0 );
-            }
-            break;
-
-        case OP_POP:
-            {
-                if ( WouldUnderflow() )
-                    return ERR_STACK_UNDERFLOW;
-
-                mSP++;
             }
             break;
 
