@@ -7,6 +7,7 @@
 #include "pch.h"
 #include "Disassembler.h"
 #include "OpCodes.h"
+#include <stdexcept>
 #include <stdio.h>
 
 
@@ -61,10 +62,15 @@ Disassembler::Disassembler( const U8* code )
     :   mCodeBin( code ),
         mCodePtr( code )
 {
+    if ( code == nullptr )
+        throw std::invalid_argument( "code" );
 }
 
 int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 {
+    if ( disassembly == nullptr )
+        throw std::invalid_argument( "disassembly" );
+
     U32 addr = static_cast<int32_t>(mCodePtr - mCodeBin);
 
     const U8* origCodePtr = mCodePtr;

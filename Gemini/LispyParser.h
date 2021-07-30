@@ -50,7 +50,7 @@ class LispyParser
     ParserMap       mParserMap;
 
 public:
-    LispyParser( const char* codeText, int codeTextLen, const char* fileName, ICompilerLog* log );
+    LispyParser( const char* codeText, size_t codeTextLen, const char* fileName, ICompilerLog* log );
 
     Unique<Unit> Parse();
 

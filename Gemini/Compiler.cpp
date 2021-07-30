@@ -11,6 +11,7 @@
 #include "OpCodes.h"
 #include <stdarg.h>
 #include <string.h>
+#include <stdexcept>
 
 
 namespace Gemini
@@ -21,16 +22,31 @@ Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
     mRep( log ),
     mModIndex( modIndex )
 {
+    if ( env == nullptr )
+        throw std::invalid_argument( "env" );
+
+    if ( log == nullptr )
+        throw std::invalid_argument( "log" );
+
+    if ( modIndex < 0 || modIndex > ModSizeMax )
+        throw std::invalid_argument( "modIndex" );
+
     mLoadedAddrDecl.reset( new LoadedAddressDeclaration() );
 }
 
 void Compiler::AddUnit( Unique<Unit>&& unit )
 {
+    if ( !unit )
+        throw std::invalid_argument( "unit" );
+
     mUnits.push_back( std::move( unit ) );
 }
 
 void Compiler::AddModule( std::shared_ptr<ModuleDeclaration> moduleDecl )
 {
+    if ( !moduleDecl )
+        throw std::invalid_argument( "moduleDecl" );
+
     auto modTabResult = mModuleTable.insert( SymTable::value_type( moduleDecl->Name, moduleDecl ) );
 
     if ( !modTabResult.second )
@@ -98,6 +114,9 @@ size_t Compiler::GetDataSize()
 
 std::shared_ptr<ModuleDeclaration> Compiler::GetMetadata( const char* modName )
 {
+    if ( modName == nullptr )
+        throw std::invalid_argument( "modName" );
+
     std::shared_ptr<ModuleDeclaration> modDecl( new ModuleDeclaration() );
 
     modDecl->Name = modName;

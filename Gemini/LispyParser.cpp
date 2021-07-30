@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stdexcept>
 
 
 static const uint8_t sIdentifierInitialCharMap[] =
@@ -37,7 +38,7 @@ static const char* gTokenNames[] =
 namespace Gemini
 {
 
-LispyParser::LispyParser( const char* codeText, int codeTextLen, const char* fileName, ICompilerLog* log ) :
+LispyParser::LispyParser( const char* codeText, size_t codeTextLen, const char* fileName, ICompilerLog* log ) :
     mFileName( fileName != nullptr ? fileName : "" ),
     mUnitFileName(),
     mCodeTextPtr( codeText ),
@@ -51,9 +52,14 @@ LispyParser::LispyParser( const char* codeText, int codeTextLen, const char* fil
     mTokCol( 0 ),
     mRep( log )
 {
-    // Column numbers start at 1 and depend on the position in the code.
-    // So make sure (text length + 1) is in range.
-    assert( codeTextLen < INT_MAX );
+    if ( codeText == nullptr )
+        throw std::invalid_argument( "codeText" );
+
+    if ( fileName == nullptr )
+        throw std::invalid_argument( "fileName" );
+
+    if ( log == nullptr )
+        throw std::invalid_argument( "log" );
 
     if ( mCodeTextPtr < mCodeTextEnd )
     {
@@ -99,7 +105,12 @@ LispyParser::LispyParser( const char* codeText, int codeTextLen, const char* fil
 
 int LispyParser::GetColumn()
 {
-    return static_cast<int>(mCodeTextPtr - mLineStart) + 1;
+    auto diff = mCodeTextPtr - mLineStart;
+
+    if ( diff >= INT_MAX )
+        diff = INT_MAX - 1;
+
+    return static_cast<int>(diff) + 1;
 }
 
 char LispyParser::PeekChar() const

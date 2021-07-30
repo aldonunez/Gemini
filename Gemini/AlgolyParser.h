@@ -107,7 +107,7 @@ class AlgolyParser
     Reporter        mRep;
 
 public:
-    AlgolyParser( const char* codeText, int codeTextLen, const char* fileName, ICompilerLog* log );
+    AlgolyParser( const char* codeText, size_t codeTextLen, const char* fileName, ICompilerLog* log );
 
     Unique<Unit> Parse();
 
