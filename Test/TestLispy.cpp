@@ -261,6 +261,33 @@ TEST_CASE( "Lispy: Local array refs in binary exprs, init array with mixed calls
     TestCompileAndRunLispy( code, sizeof code, 6 );
 }
 
+TEST_CASE( "Lispy: pfunc(int)->int", "[lispy]" )
+{
+    const char code[] =
+        "(defun a () (let ( ((f : -> int int) (function B)) )\n"
+        "  (set f (function C))\n"
+        "  (funcall f 3 5)\n"
+        "  ))\n"
+        "(defun B (x y) (+ x y))\n"
+        "(defun C (x y) (* x y))\n"
+        ;
+
+    TestCompileAndRunLispy( code, sizeof code, 15 );
+}
+
+TEST_CASE( "Lispy: pfunc(int)->pfunc->int", "[lispy]" )
+{
+    const char code[] =
+        "(defun a () (let ( ((f : -> int (-> int)) (function B)) )\n"
+        "  (funcall f 1 (function C))\n"
+        "  ))\n"
+        "(defun B (x (y : -> int)) (+ x (funcall y 2)) )\n"
+        "(defun C (x) (* x 3))\n"
+        ;
+
+    TestCompileAndRunLispy( code, sizeof code, 7 );
+}
+
 
 //---------------------------------------------
 

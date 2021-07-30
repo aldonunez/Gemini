@@ -359,8 +359,8 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
 {
     Visit( caseExpr->TestKey );
 
-    if ( caseExpr->TestKey->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowSemanticsError( caseExpr->TestKey.get(), "Case only supports integers" );
+    if ( !IsIntegralType( caseExpr->TestKey->Type->GetKind() ) )
+        mRep.ThrowSemanticsError( caseExpr->TestKey.get(), "Case only supports integral types" );
 
     auto decl = caseExpr->TestKey->GetDecl();
 
@@ -379,8 +379,7 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
         {
             Visit( key );
 
-            if ( key->Type->GetKind() != TypeKind::Int )
-                mRep.ThrowSemanticsError( key.get(), "Case key only supports integers" );
+            CheckType( caseExpr->TestKey->Type, key->Type, key.get() );
         }
 
         clause->Body.Accept( this );
@@ -690,6 +689,7 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
     Unique<AddrOfExpr> addrOf( new AddrOfExpr() );
     addrOf->Inner = std::move( nameExpr );
     addrOf->Type = pointerType;
+    CopyBaseSyntax( *addrOf, *lambdaExpr );
 
     mReplacementNode = std::move( addrOf );
 }

@@ -1107,6 +1107,18 @@ Unique<Syntax> AlgolyParser::ParseIndexingOrDot( Unique<Syntax>&& head )
     return expr;
 }
 
+Unique<Syntax> AlgolyParser::ParseQualifiedName()
+{
+    auto name = ParseSymbol();
+
+    if ( mCurToken == TokenCode::Dot )
+    {
+        return ParseDotExpr( std::move( name ) );
+    }
+
+    return name;
+}
+
 Unique<Syntax> AlgolyParser::ParseCountof()
 {
     auto countofExpr = Make<CountofExpr>();
@@ -1310,16 +1322,7 @@ Unique<TypeRef> AlgolyParser::ParseNameTypeRef()
 {
     auto nameTypeRef = Make<NameTypeRef>();
 
-    auto name = ParseSymbol();
-
-    if ( mCurToken == TokenCode::Dot )
-    {
-        nameTypeRef->QualifiedName = ParseDotExpr( std::move( name ) );
-    }
-    else
-    {
-        nameTypeRef->QualifiedName = std::move( name );
-    }
+    nameTypeRef->QualifiedName = ParseQualifiedName();
 
     return nameTypeRef;
 }
@@ -1636,18 +1639,7 @@ Unique<CaseWhen> AlgolyParser::ParseCaseWhen()
 
         first = false;
 
-        if ( mCurToken == TokenCode::Symbol )
-        {
-            clause->Keys.push_back( ParseSymbol() );
-        }
-        else if ( mCurToken == TokenCode::Number )
-        {
-            clause->Keys.push_back( ParseNumber() );
-        }
-        else
-        {
-            ThrowSyntaxError( "Expected symbol or number" );
-        }
+        clause->Keys.push_back( ParseExpr() );
 
         if ( mCurToken == TokenCode::Then )
             break;

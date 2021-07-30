@@ -249,7 +249,7 @@ TEST_CASE( "Loop, inside inc local, break", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 2 );
 }
 
-TEST_CASE( "1***Loop, inside inc local, break", "[algoly]" )
+TEST_CASE( "For, if-then, break", "[algoly]" )
 {
     const char code[] =
         "def a() for i := 1 to 3 do if i >= 2 then break end end end\n"
@@ -258,7 +258,7 @@ TEST_CASE( "1***Loop, inside inc local, break", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 0 );
 }
 
-TEST_CASE( "2***Loop, inside inc local, break", "[algoly]" )
+TEST_CASE( "For, if-elsif, break", "[algoly]" )
 {
     const char code[] =
         "def a() for i := 1 to 3 do if i >= 3 then elsif i >= 2 then break end end end\n"
@@ -267,7 +267,7 @@ TEST_CASE( "2***Loop, inside inc local, break", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 0 );
 }
 
-TEST_CASE( "3***Loop, inside inc local, break", "[algoly]" )
+TEST_CASE( "For, if-else, break", "[algoly]" )
 {
     const char code[] =
         "def a() for i := 1 to 3 do if i < 2 then elsif i >= 3 then else break end end end\n"
@@ -276,7 +276,7 @@ TEST_CASE( "3***Loop, inside inc local, break", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 0 );
 }
 
-TEST_CASE( "4***Loop, inside inc local, break", "[algoly]" )
+TEST_CASE( "For, case-when, break", "[algoly]" )
 {
     const char code[] =
         "def a() for i := 1 to 3 do case 1 when 1 then break end end end\n"
@@ -285,7 +285,7 @@ TEST_CASE( "4***Loop, inside inc local, break", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 0 );
 }
 
-TEST_CASE( "5***Loop, inside inc local, break", "[algoly]" )
+TEST_CASE( "For, case-else, break", "[algoly]" )
 {
     const char code[] =
         "def a(x) for i := 1 to 3 do case x when 1 then break else break end end end\n"
@@ -302,7 +302,7 @@ TEST_CASE( "5***Loop, inside inc local, break", "[algoly]" )
 
 #if 1
 
-TEST_CASE( "Algoly: ***proc type 0", "[algoly]" )
+TEST_CASE( "Algoly: pfunc(int)->int", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -316,7 +316,7 @@ TEST_CASE( "Algoly: ***proc type 0", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 33 );
 }
 
-TEST_CASE( "Algoly: ***proc type 1", "[algoly]" )
+TEST_CASE( "Algoly: pfunc(int, int)->int", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -331,7 +331,7 @@ TEST_CASE( "Algoly: ***proc type 1", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 15 );
 }
 
-TEST_CASE( "Algoly: ***proc type 2", "[algoly]" )
+TEST_CASE( "Algoly: pfunc(int, pfunc(int)->int)->int", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -346,7 +346,7 @@ TEST_CASE( "Algoly: ***proc type 2", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 7 );
 }
 
-TEST_CASE( "Algoly: ***proc type 3", "[algoly]" )
+TEST_CASE( "Algoly: pfunc(int, pfunc(int)->int)->int with lambda", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -362,7 +362,7 @@ TEST_CASE( "Algoly: ***proc type 3", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 13 );
 }
 
-TEST_CASE( "Algoly: ***proc type 4", "[algoly]" )
+TEST_CASE( "Algoly: pfunc(int)->int replace", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -377,7 +377,7 @@ TEST_CASE( "Algoly: ***proc type 4", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 20 );
 }
 
-TEST_CASE( "Algoly: ***const local", "[algoly]" )
+TEST_CASE( "Algoly: const local", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -391,7 +391,7 @@ TEST_CASE( "Algoly: ***const local", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 6 );
 }
 
-TEST_CASE( "Algoly: ***explicit int return type no params", "[algoly]" )
+TEST_CASE( "Algoly: explicit int return type no params", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -404,7 +404,7 @@ TEST_CASE( "Algoly: ***explicit int return type no params", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 3 );
 }
 
-TEST_CASE( "Algoly: ***explicit int return type params", "[algoly]" )
+TEST_CASE( "Algoly: explicit int return type params", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -417,7 +417,7 @@ TEST_CASE( "Algoly: ***explicit int return type params", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 5 );
 }
 
-TEST_CASE( "Algoly: ***explicit fptr return type no params", "[algoly]" )
+TEST_CASE( "Algoly: explicit fptr return type no params", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -431,7 +431,7 @@ TEST_CASE( "Algoly: ***explicit fptr return type no params", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 3 );
 }
 
-TEST_CASE( "Algoly: ***explicit fptr return type params", "[algoly]" )
+TEST_CASE( "Algoly: explicit fptr return type params", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -445,7 +445,7 @@ TEST_CASE( "Algoly: ***explicit fptr return type params", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 3 );
 }
 
-TEST_CASE( "Algoly: ***explicit fptr chain of 2 return types", "[algoly]" )
+TEST_CASE( "Algoly: explicit fptr chain of 2 return types", "[algoly]" )
 {
     const char code[] =
         "def a()\n"
@@ -459,7 +459,7 @@ TEST_CASE( "Algoly: ***explicit fptr chain of 2 return types", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 3 );
 }
 
-TEST_CASE( "Algoly: ***global array of fptr", "[algoly]" )
+TEST_CASE( "Algoly: global array of fptr", "[algoly]" )
 {
     const char code[] =
         "var arr: [2] of &proc := [&B, &C]\n"
@@ -472,7 +472,7 @@ TEST_CASE( "Algoly: ***global array of fptr", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 5 );
 }
 
-TEST_CASE( "Algoly: ***local array of fptr", "[algoly]" )
+TEST_CASE( "Algoly: local array of fptr", "[algoly]" )
 {
     const char code[] =
         "def a\n"
@@ -485,7 +485,7 @@ TEST_CASE( "Algoly: ***local array of fptr", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 5 );
 }
 
-TEST_CASE( "Algoly: ***fptr type alias", "[algoly]" )
+TEST_CASE( "Algoly: fptr type alias", "[algoly]" )
 {
     const char code[] =
         "type P = &proc(int)->int, I=int\n"
@@ -504,33 +504,6 @@ TEST_CASE( "Algoly: Named int type", "[algoly]" )
         ;
 
     TestCompileAndRunAlgoly( code, sizeof code, 3 );
-}
-
-TEST_CASE( "Lispy: ***proc type 1", "[lispy]" )
-{
-    const char code[] =
-        "(defun a () (let ( ((f : -> int int) (function B)) )\n"
-        "  (set f (function C))\n"
-        "  (funcall f 3 5)\n"
-        "  ))\n"
-        "(defun B (x y) (+ x y))\n"
-        "(defun C (x y) (* x y))\n"
-        ;
-
-    TestCompileAndRunLispy( code, sizeof code, 15 );
-}
-
-TEST_CASE( "Lispy: ***proc type 2", "[algoly]" )
-{
-    const char code[] =
-        "(defun a () (let ( ((f : -> int (-> int)) (function B)) )\n"
-        "  (funcall f 1 (function C))\n"
-        "  ))\n"
-        "(defun B (x (y : -> int)) (+ x (funcall y 2)) )\n"
-        "(defun C (x) (* x 3))\n"
-        ;
-
-    TestCompileAndRunLispy( code, sizeof code, 7 );
 }
 
 #endif
@@ -749,6 +722,58 @@ TEST_CASE( "Case-when, no else", "[algoly]" )
         ;
 
     TestCompileAndRunAlgoly( code, sizeof code, 0 );
+}
+
+TEST_CASE( "Case-when, complex const key", "[algoly]" )
+{
+    const char code[] =
+        "def a(x)\n"
+        "  case x when 1+1+1, 2+2 then 5*2 end\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 10, 4 );
+}
+
+TEST_CASE( "Case-when, complex var key", "[algoly]" )
+{
+    const char code[] =
+        "var m := 3\n"
+        "def a(x)\n"
+        "  case x when m, m+1 then 5*2 end\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 10, 4 );
+}
+
+TEST_CASE( "Algoly: Case-when, mod dotted key", "[algoly]" )
+{
+    const char* modeCodeA[] =
+    {
+        "const N = 2\n"
+        ,
+        nullptr
+    };
+
+    const char* mainCode[] =
+    {
+        "import ModA\n"
+        "def a\n"
+        "  case 2 when ModA.N then 3 end\n"
+        "end\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "ModA",   modeCodeA },
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 3, 0 );
 }
 
 TEST_CASE( "For-to, last expr", "[algoly]" )
