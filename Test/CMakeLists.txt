@@ -2,6 +2,7 @@ add_executable(Test
     TestMain.cpp
     TestAlgoly.cpp
     TestAlgolyMultiArray.cpp
+    TestAlgolyPtrConst.cpp
     TestAlgolyStack.cpp
     TestBase.cpp
     TestLispy.cpp
