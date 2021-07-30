@@ -11,6 +11,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 
@@ -596,43 +597,19 @@ enum class ValueKind
 
 struct Function;
 
-class ValueVariant
+using ValueVariant = std::variant<int32_t, std::shared_ptr<Function>>;
+
+template <ValueKind kind>
+bool IsKind( const ValueVariant& variant )
 {
-    ValueKind mKind = ValueKind::Integer;
+    return variant.index() == (size_t) kind;
+}
 
-    union ValueUnion
-    {
-        int32_t Integer;
-        std::shared_ptr<Function> Function;
-
-        ~ValueUnion() {}
-    } mValue = { 0 };
-
-public:
-    ValueVariant();
-    ~ValueVariant();
-
-    ValueVariant( const ValueVariant& other );
-    ValueVariant& operator=( const ValueVariant& other );
-
-    ValueVariant( ValueVariant&& other ) noexcept;
-    ValueVariant& operator=( ValueVariant&& other ) noexcept;
-
-    ValueVariant( int32_t iValue );
-
-    ValueKind GetKind() const;
-    int32_t GetInteger() const;
-    std::shared_ptr<Function> GetFunction() const;
-
-    void SetInteger( int32_t value ) noexcept;
-    void SetFunction( const std::shared_ptr<Function>& function ) noexcept;
-    void SetFunction( std::shared_ptr<Function>&& function ) noexcept;
-
-private:
-    void Copy( const ValueVariant& other ) noexcept;
-    void Move( ValueVariant&& other ) noexcept;
-    void Destroy() noexcept;
-};
+template <ValueKind kind>
+decltype(auto) GetByKind( const ValueVariant& variant )
+{
+    return std::get<(size_t) kind>( variant );
+}
 
 struct Constant : public Declaration
 {

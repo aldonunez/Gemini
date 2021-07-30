@@ -189,9 +189,9 @@ void FolderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
 void FolderVisitor::VisitDotExpr( DotExpr* dotExpr )
 {
     if ( dotExpr->GetDecl()->Kind == DeclKind::Const
-        && ((Constant*) dotExpr->GetDecl())->Value.GetKind() == ValueKind::Integer )
+        && IsKind<ValueKind::Integer>( ((Constant*) dotExpr->GetDecl())->Value ) )
     {
-        mLastValue = ((Constant*) dotExpr->GetDecl())->Value.GetInteger();
+        mLastValue = GetByKind<ValueKind::Integer>( ((Constant*) dotExpr->GetDecl())->Value );
     }
     else
     {
@@ -265,9 +265,9 @@ void FolderVisitor::VisitLoopStatement( LoopStatement* loopStmt )
 void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
 {
     if ( nameExpr->Decl->Kind == DeclKind::Const
-        && ((Constant*) nameExpr->GetDecl())->Value.GetKind() == ValueKind::Integer )
+        && IsKind<ValueKind::Integer>( ((Constant*) nameExpr->GetDecl())->Value ) )
     {
-        mLastValue = ((Constant*) nameExpr->Decl.get())->Value.GetInteger();
+        mLastValue = GetByKind<ValueKind::Integer>( ((Constant*) nameExpr->Decl.get())->Value );
     }
     else
     {
@@ -442,9 +442,9 @@ void FuncAddrVisitor::VisitNameExpr( NameExpr* nameExpr )
 void FuncAddrVisitor::VisitDotOrNameExpr( Syntax* expr )
 {
     if ( expr->GetDecl()->Kind == DeclKind::Const
-        && ((Constant*) expr->GetDecl())->Value.GetKind() == ValueKind::Function )
+        && IsKind<ValueKind::Function>( ((Constant*) expr->GetDecl())->Value ) )
     {
-        mLastValue = ((Constant*) expr->GetDecl())->Value.GetFunction();
+        mLastValue = GetByKind<ValueKind::Function>( ((Constant*) expr->GetDecl())->Value );
     }
     else
     {
