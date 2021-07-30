@@ -405,8 +405,7 @@ void AlgolyParser::SkipLineSeparators()
 bool AlgolyParser::IsIdentifierInitial( int c )
 {
     return isalpha( c )
-        || (c == '_')
-        || (c == '@');
+        || (c == '_');
 }
 
 bool AlgolyParser::IsIdentifierCoda( int c )
