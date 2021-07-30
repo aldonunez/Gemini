@@ -964,22 +964,22 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
     U8      primitive;
     int32_t step;
 
-    if ( 0 == strcmp( forStmt->Comparison.c_str(), "below" ) )
+    if ( forStmt->Comparison == ForComparison::Below )
     {
         primitive = PRIM_LT;
         step = 1;
     }
-    else if ( 0 == strcmp( forStmt->Comparison.c_str(), "to" ) )
+    else if ( forStmt->Comparison == ForComparison::To )
     {
         primitive = PRIM_LE;
         step = 1;
     }
-    else if ( 0 == strcmp( forStmt->Comparison.c_str(), "downto" ) )
+    else if ( forStmt->Comparison == ForComparison::Downto )
     {
         primitive = PRIM_GE;
         step = -1;
     }
-    else if ( 0 == strcmp( forStmt->Comparison.c_str(), "above" ) )
+    else if ( forStmt->Comparison == ForComparison::Above )
     {
         primitive = PRIM_GT;
         step = -1;

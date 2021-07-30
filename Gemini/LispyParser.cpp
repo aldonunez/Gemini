@@ -886,13 +886,15 @@ Unique<Syntax> LispyParser::ParseLoopFor()
     forStmt->First = ParseExpression();
 
     AssertToken( TokenCode::Symbol );
-    if ( mCurString != "above"
-        && mCurString != "below"
-        && mCurString != "downto"
-        && mCurString != "to" )
+
+    if ( mCurString == "above" )        forStmt->Comparison = ForComparison::Above;
+    else if ( mCurString == "below" )   forStmt->Comparison = ForComparison::Below;
+    else if ( mCurString == "downto" )  forStmt->Comparison = ForComparison::Downto;
+    else if ( mCurString == "to" )      forStmt->Comparison = ForComparison::To;
+    else
         ThrowSyntaxError( "Expected symbol: above, below, downto, to" );
 
-    forStmt->Comparison = ScanSymbol();
+    ScanToken();
 
     forStmt->Last = ParseExpression();
 

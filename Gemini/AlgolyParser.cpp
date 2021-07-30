@@ -1525,17 +1525,17 @@ Unique<Syntax> AlgolyParser::ParseFor()
 
     forStmt->First = ParseExpr();
 
-    if ( mCurToken == TokenCode::Above
-        || mCurToken == TokenCode::Below
-        || mCurToken == TokenCode::Downto
-        || mCurToken == TokenCode::To )
+    switch ( mCurToken )
     {
-        forStmt->Comparison = ParseAsRawSymbol();
-    }
-    else
-    {
+    case TokenCode::Above:  forStmt->Comparison = ForComparison::Above;  break;
+    case TokenCode::Below:  forStmt->Comparison = ForComparison::Below;  break;
+    case TokenCode::Downto: forStmt->Comparison = ForComparison::Downto; break;
+    case TokenCode::To:     forStmt->Comparison = ForComparison::To;     break;
+    default:
         ThrowSyntaxError( "Expected: above, below, downto, to" );
     }
+
+    ScanToken();
 
     forStmt->Last = ParseExpr();
 

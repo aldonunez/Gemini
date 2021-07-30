@@ -394,11 +394,19 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+enum class ForComparison
+{
+    Above,
+    Below,
+    Downto,
+    To,
+};
+
 class ForStatement : public Syntax
 {
 public:
     std::string IndexName;
-    std::string Comparison;
+    ForComparison Comparison;
     Unique<Syntax> First;
     Unique<Syntax> Last;
     Unique<Syntax> Step;
