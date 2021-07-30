@@ -225,3 +225,33 @@ TEST_CASE( "Algoly: int as mod enum", "[algoly][enum]" )
 
     TestCompileAndRun( Language::Gema, modSources, 3, 0 );
 }
+
+TEST_CASE( "Algoly: case with enum key", "[algoly][enum]" )
+{
+    const char code[] =
+        "type E = enum E1, E2, E3 end\n"
+        "def a() case E.E2 when E.E2 then 3 else 1 end end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 3, 0 );
+}
+
+TEST_CASE( "Algoly: case expr has enum type", "[algoly][enum]" )
+{
+    const char code[] =
+        "type E = enum E1, E2, E3 end\n"
+        "def a->E case 2 when 2 then E.E3 else E.E2 end end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 2, 0 );
+}
+
+TEST_CASE( "Algoly: if expr has enum type", "[algoly][enum]" )
+{
+    const char code[] =
+        "type E = enum E1, E2, E3 end\n"
+        "def a->E var n := 2; if n=2 then E.E3 else E.E1 end end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 2, 0 );
+}
