@@ -1897,7 +1897,7 @@ void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t 
 void Compiler::AddGlobalDataRecord( GlobalSize offset, Syntax* recordValue )
 {
     if ( recordValue->Kind != SyntaxKind::RecordInitializer )
-        mRep.ThrowError( CERR_SEMANTICS, recordValue, "Records must be initialized with record initializer" );
+        mRep.ThrowSemanticsError( recordValue, "Records must be initialized with record initializer" );
 
     auto recordInit = (RecordInitializer*) recordValue;
 

@@ -562,7 +562,7 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
         auto it = recType.Fields.find( dotExpr->Member );
 
         if ( it == recType.Fields.end() )
-            mRep.ThrowError( CERR_SEMANTICS, dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
+            mRep.ThrowSemanticsError( dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
 
         dotExpr->Decl = it->second;
         dotExpr->Type = dotExpr->Decl->Type;
@@ -843,7 +843,7 @@ void BinderVisitor::CheckInitializer(
     else if ( initializer->Kind == SyntaxKind::RecordInitializer )
     {
         if ( type->GetKind() != TypeKind::Record )
-            mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Record initializer is invalid here" );
+            mRep.ThrowSemanticsError( initializer.get(), "Record initializer is invalid here" );
 
         auto& recordInit = (RecordInitializer&) *initializer;
         auto& recordType = (RecordType&) *type;
@@ -854,12 +854,12 @@ void BinderVisitor::CheckInitializer(
         for ( auto& fieldInit : recordInit.Fields )
         {
             if ( alreadyInit.find( fieldInit->Name ) != alreadyInit.end() )
-                mRep.ThrowError( CERR_SEMANTICS, fieldInit.get(), "Field already initialized" );
+                mRep.ThrowSemanticsError( fieldInit.get(), "Field already initialized" );
 
             auto it = notInit.find( fieldInit->Name );
 
             if ( it == notInit.end() )
-                mRep.ThrowError( CERR_SEMANTICS, fieldInit.get(), "Field not found: %s", fieldInit->Name.c_str() );
+                mRep.ThrowSemanticsError( fieldInit.get(), "Field not found: %s", fieldInit->Name.c_str() );
 
             auto fieldDecl = it->second;
 
@@ -1184,7 +1184,7 @@ void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
         fieldDef->Accept( this );
 
         if ( fieldDef->Type->GetSize() > (DataSizeMax - offset) )
-            mRep.ThrowError( CERR_SEMANTICS, fieldDef.get(), "Record type is too big" );
+            mRep.ThrowSemanticsError( fieldDef.get(), "Record type is too big" );
 
         auto field = Make<FieldStorage>();
 
