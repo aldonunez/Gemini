@@ -622,7 +622,7 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
         mRep.ThrowSemanticsError( indexExpr->Head.get(), "Only arrays can be indexed" );
 
     if ( indexExpr->Index->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowError( CERR_SEMANTICS, indexExpr->Index.get(), "Index only supports integers" );
+        mRep.ThrowSemanticsError( indexExpr->Index.get(), "Index only supports integers" );
 
     auto arrayType = (ArrayType*) indexExpr->Head->Type.get();
 
@@ -1293,7 +1293,7 @@ void BinderVisitor::CheckParamType(
         && type->GetKind() != TypeKind::Xfer
         && !site->IsPassableFrom( type.get(), mode ) )
     {
-        mRep.ThrowError( CERR_SEMANTICS, node, "Incompatible argument type" );
+        mRep.ThrowSemanticsError( node, "Incompatible argument type" );
     }
 }
 
@@ -1596,7 +1596,7 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
         {
             auto size = type->GetSize();
             if ( size > ParamSizeMax )
-                mRep.ThrowError( CERR_SEMANTICS, NULL, "Parameter is too big" );
+                mRep.ThrowSemanticsError( NULL, "Parameter is too big" );
             return static_cast<ParamSize>(size);
         }
 

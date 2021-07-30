@@ -337,7 +337,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             }
             else
             {
-                mRep.ThrowError( CERR_SEMANTICS, node, "Bad parameter mode" );
+                mRep.ThrowSemanticsError( node, "Bad parameter mode" );
             }
         }
         break;
@@ -693,7 +693,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
             }
             else
             {
-                mRep.ThrowError( CERR_SEMANTICS, node, "Bad parameter mode" );
+                mRep.ThrowSemanticsError( node, "Bad parameter mode" );
             }
         }
         break;
@@ -981,7 +981,7 @@ ParamSize Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, Fu
         GenerateArg( *arguments[i], funcType->Params[i] );
 
         if ( funcType->Params[i].Size > (ParamSizeMax - argCount) )
-            mRep.ThrowError( CERR_SEMANTICS, arguments[i].get(), "Too many arguments" );
+            mRep.ThrowSemanticsError( arguments[i].get(), "Too many arguments" );
 
         argCount += funcType->Params[i].Size;
     }
@@ -1727,7 +1727,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 }
                 else
                 {
-                    mRep.ThrowError( CERR_SEMANTICS, node, "Bad parameter mode" );
+                    mRep.ThrowSemanticsError( node, "Bad parameter mode" );
                 }
             }
             break;
