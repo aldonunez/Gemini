@@ -440,7 +440,7 @@ void FuncAddrVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
     auto decl = addrOf->Inner->GetSharedDecl();
 
     if ( decl->Kind != DeclKind::Func )
-        mRep.ThrowError( CERR_SEMANTICS, addrOf, "Expected function" );
+        mRep.ThrowSemanticsError( addrOf, "Expected function" );
 
     mLastValue = std::static_pointer_cast<Function>(decl);
 }

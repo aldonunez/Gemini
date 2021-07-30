@@ -1578,12 +1578,12 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
         }
         else
         {
-            mRep.ThrowError( CERR_SEMANTICS, node, "Only pointers to functions are allowed" );
+            mRep.ThrowSemanticsError( node, "Only pointers to functions are allowed" );
         }
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, node, "Expected constant value" );
+        mRep.ThrowSemanticsError( node, "Expected constant value" );
     }
 
     return value;
