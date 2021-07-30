@@ -492,7 +492,7 @@ void BinderVisitor::VisitConstDecl( ConstDecl* constDecl )
 void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind )
 {
     if ( !constDecl->Initializer )
-        mRep.ThrowInternalError( "Missing constant initializer" );
+        THROW_INTERNAL_ERROR( "Missing constant initializer" );
 
     Visit( constDecl->Initializer );
 
@@ -755,7 +755,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
     if ( size == 0 )
     {
-        mRep.ThrowInternalError( "Bad type" );
+        THROW_INTERNAL_ERROR( "Bad type" );
     }
 
     varDecl->Decl = AddStorage( varDecl->Name, type, size, declKind );
@@ -918,7 +918,7 @@ void BinderVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
         }
         else
         {
-            mRep.ThrowInternalError();
+            THROW_INTERNAL_ERROR( "" );
         }
     }
     else
@@ -1030,7 +1030,7 @@ void BinderVisitor::BindNamedProc( ProcDecl* procDecl )
     }
     else
     {
-        mRep.ThrowInternalError( "Function wasn't previously declared" );
+        THROW_INTERNAL_ERROR( "Function wasn't previously declared" );
     }
 
     VisitProc( procDecl );
@@ -1382,7 +1382,7 @@ std::shared_ptr<Declaration> BinderVisitor::AddStorage( const std::string& name,
     case DeclKind::Global:  return AddGlobal( name, type, size );
     case DeclKind::Local:   return AddLocal( name, type, size );
     default:
-        mRep.ThrowInternalError();
+        THROW_INTERNAL_ERROR( "" );
     }
 }
 

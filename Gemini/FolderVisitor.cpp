@@ -100,7 +100,7 @@ void FolderVisitor::VisitBinaryExpr( BinaryExpr* binary )
         else if ( binary->Op == "or" )
             result = left || right;
         else
-            mRep.ThrowInternalError();
+            THROW_INTERNAL_ERROR( "" );
 
         mLastValue = result;
     }
@@ -355,7 +355,7 @@ void FolderVisitor::VisitUnaryExpr( UnaryExpr* unary )
         else if ( unary->Op == "not" )
             mLastValue = !mLastValue.value();
         else
-            mRep.ThrowInternalError();
+            THROW_INTERNAL_ERROR( "" );
     }
 }
 

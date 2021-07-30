@@ -1202,7 +1202,7 @@ void AlgolyParser::ParseGlobalVars( Unit* unit )
         }
         else
         {
-            mRep.ThrowInternalError();
+            THROW_INTERNAL_ERROR( "" );
         }
 
     } while ( mCurToken != TokenCode::Eol
@@ -1719,7 +1719,7 @@ Unique<NameExpr> AlgolyParser::ParseSymbol()
 std::string AlgolyParser::ParseAsRawSymbol()
 {
     if ( mCurString.size() == 0 )
-        mRep.ThrowInternalError();
+        THROW_INTERNAL_ERROR( "" );
 
     std::string symbol = std::move( mCurString );
     ScanToken();

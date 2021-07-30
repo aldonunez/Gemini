@@ -321,8 +321,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     default:
-        assert( false );
-        mRep.ThrowInternalError();
+        THROW_INTERNAL_ERROR( "" );
     }
 }
 
@@ -375,10 +374,7 @@ void Compiler::GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, 
     else if ( op == "%" )
         primitive = PRIM_MOD;
     else
-    {
-        assert( false );
-        mRep.ThrowInternalError();
-    }
+        THROW_INTERNAL_ERROR( "" );
 
     GenerateBinaryPrimitive( binary, primitive, config, status );
 }
@@ -446,8 +442,7 @@ void Compiler::VisitCountofExpr( CountofExpr* countofExpr )
     }
     else
     {
-        assert( false );
-        mRep.ThrowInternalError();
+        THROW_INTERNAL_ERROR( "" );
     }
 }
 
@@ -640,8 +635,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     default:
-        assert( false );
-        mRep.ThrowInternalError();
+        THROW_INTERNAL_ERROR( "" );
     }
 
     DecreaseExprDepth();
@@ -671,8 +665,7 @@ void Compiler::VisitProcDecl( ProcDecl* procDecl )
 
 void Compiler::VisitLambdaExpr( LambdaExpr* lambdaExpr )
 {
-    assert( false );
-    mRep.ThrowInternalError( "LambdaExpr was not transformed" );
+    THROW_INTERNAL_ERROR( "LambdaExpr was not transformed" );
 }
 
 void Compiler::GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, GenStatus& status )
@@ -879,7 +872,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
 
     if ( decl == nullptr )
     {
-        mRep.ThrowInternalError( "Call head has no declaration" );
+        THROW_INTERNAL_ERROR( "Call head has no declaration" );
     }
     else if ( decl->Kind == DeclKind::Func
         && ((Function*) decl)->ModIndex == mModIndex )
@@ -925,8 +918,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
         }
         else
         {
-            assert( false );
-            mRep.ThrowInternalError();
+            THROW_INTERNAL_ERROR( "" );
         }
 
         if ( opCode == OP_CALLNATIVE_S )
@@ -1284,8 +1276,7 @@ void Compiler::GenerateComparison( BinaryExpr* binary, const GenConfig& config, 
     }
     else
     {
-        assert( false );
-        mRep.ThrowInternalError();
+        THROW_INTERNAL_ERROR( "" );
     }
 
     GenerateBinaryPrimitive( binary, config.invert ? negativePrimitive : positivePrimitive, config, status );
@@ -1386,8 +1377,7 @@ U8 Compiler::InvertJump( U8 opCode )
     case OP_BTRUE:  return OP_BFALSE;
     case OP_BFALSE: return OP_BTRUE;
     default:
-        assert( false );
-        mRep.ThrowInternalError();
+        THROW_INTERNAL_ERROR( "" );
     }
 }
 
@@ -1508,7 +1498,7 @@ void Compiler::PatchCalls( FuncPatchChain* chain, U32 addr )
         case CodeRefKind::Code: refPtr = &mCodeBin[link->Ref.Location]; break;
         case CodeRefKind::Data: refPtr = &mGlobals[link->Ref.Location]; break;
         default:
-            mRep.ThrowInternalError();
+            THROW_INTERNAL_ERROR( "" );
         }
 
         StoreU24( (uint8_t*) refPtr, addr );
@@ -1557,7 +1547,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
 {
     if ( baseDecl == nullptr )
     {
-        mRep.ThrowInternalError( "Missing declaration" );
+        THROW_INTERNAL_ERROR( "Missing declaration" );
     }
     else
     {
@@ -1766,7 +1756,7 @@ void Compiler::AddGlobalData( GlobalSize offset, Syntax* valueElem )
         }
         else
         {
-            mRep.ThrowInternalError();
+            THROW_INTERNAL_ERROR( "" );
         }
     }
     else
@@ -1878,7 +1868,7 @@ void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
                 break;
 
             default:
-                mRep.ThrowInternalError();
+                THROW_INTERNAL_ERROR( "" );
             }
 
             *instIndexPtr -= PushInstSize;
@@ -2223,16 +2213,11 @@ void Reporter::ThrowError( CompilerErr exceptionCode, const char* fileName, int 
     throw CompilerException( exceptionCode );
 }
 
-void Reporter::ThrowInternalError()
-{
-    ThrowInternalError( "Internal error" );
-}
-
-void Reporter::ThrowInternalError( const char* format, ... )
+void Reporter::ThrowInternalError( const char* fileName, int line, const char* format, ... )
 {
     va_list args;
     va_start( args, format );
-    ThrowError( CERR_INTERNAL, "", 0, 0, format, args );
+    ThrowError( CERR_INTERNAL, fileName, line, 1, format, args );
     // No need to run va_end( args ), since an exception was thrown
 }
 

@@ -51,8 +51,11 @@ public:
 
     [[noreturn]] void ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* format, ... );
     [[noreturn]] void ThrowError( CompilerErr exceptionCode, const char* fileName, int line, int col, const char* format, va_list args );
-    [[noreturn]] void ThrowInternalError();
-    [[noreturn]] void ThrowInternalError( const char* format, ... );
+    [[noreturn]] void ThrowInternalError( const char* fileName, int line, const char* format, ... );
 };
+
+
+#define THROW_INTERNAL_ERROR( ... ) \
+    do { assert( false ); mRep.ThrowInternalError( __FILE__, __LINE__, __VA_ARGS__ ); } while ( 0 )
 
 }
