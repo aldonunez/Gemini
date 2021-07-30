@@ -34,12 +34,12 @@ void Compiler::AddModule( std::shared_ptr<ModuleDeclaration> moduleDecl )
     auto modTabResult = mModuleTable.insert( SymTable::value_type( moduleDecl->Name, moduleDecl ) );
 
     if ( !modTabResult.second )
-        mRep.ThrowError( CERR_SEMANTICS, NULL, "Module name already used: %u %s", moduleDecl->Index, moduleDecl->Name.c_str() );
+        mRep.ThrowSemanticsError( NULL, "Module name already used: %u %s", moduleDecl->Index, moduleDecl->Name.c_str() );
 
     auto modIdResult = mModulesById.insert( ModIdMap::value_type( moduleDecl->Index, moduleDecl ) );
 
     if ( !modIdResult.second )
-        mRep.ThrowError( CERR_SEMANTICS, NULL, "Module index already used: %u %s", moduleDecl->Index, moduleDecl->Name.c_str() );
+        mRep.ThrowSemanticsError( NULL, "Module index already used: %u %s", moduleDecl->Index, moduleDecl->Name.c_str() );
 }
 
 CompilerErr Compiler::Compile()
@@ -59,7 +59,7 @@ CompilerErr Compiler::Compile()
 
     mCompiled = true;
 
-    return CERR_OK;
+    return CompilerErr::OK;
 }
 
 void Compiler::GetStats( CompilerStats& stats )
@@ -301,7 +301,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Func:
-        mRep.ThrowError( CERR_SEMANTICS, node, "functions don't have values" );
+        mRep.ThrowSemanticsError( node, "functions don't have values" );
         break;
 
     case DeclKind::Const:
@@ -617,11 +617,11 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
 
     case DeclKind::Func:
     case DeclKind::NativeFunc:
-        mRep.ThrowError( CERR_SEMANTICS, node, "functions can't be assigned a value" );
+        mRep.ThrowSemanticsError( node, "functions can't be assigned a value" );
         break;
 
     case DeclKind::Const:
-        mRep.ThrowError( CERR_SEMANTICS, node, "Constants can't be changed" );
+        mRep.ThrowSemanticsError( node, "Constants can't be changed" );
         break;
 
     case DeclKind::LoadedAddress:
@@ -658,7 +658,7 @@ void Compiler::VisitProcDecl( ProcDecl* procDecl )
     if ( patchIt != mFuncPatchMap.end() )
         PatchCalls( &patchIt->second, addr );
 
-    mEnv->AddExternal( procDecl->Name, External_Bytecode, func->Address );
+    mEnv->AddExternal( procDecl->Name, ExternalKind::Bytecode, func->Address );
 
     GenerateProc( procDecl, func );
 }
@@ -777,7 +777,7 @@ void Compiler::GenerateLocalInit( LocalSize offset, Syntax* initializer )
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, initializer, "'let' binding takes a name or name and type" );
+        mRep.ThrowSemanticsError( initializer, "'let' binding takes a name or name and type" );
     }
 }
 
@@ -789,14 +789,14 @@ void Compiler::VisitLetStatement( LetStatement* letStmt )
 void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
-        mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
+        mRep.ThrowSemanticsError( valueElem, "Arrays must be initialized with array initializer" );
 
     auto        initList = (InitList*) valueElem;
     LocalSize   locIndex = offset;
     LocalSize   i = 0;
 
     if ( initList->Values.size() > size )
-        mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
+        mRep.ThrowSemanticsError( valueElem, "Array has too many initializers" );
 
     for ( auto& entry : initList->Values )
     {
@@ -986,7 +986,7 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, forStmt, "Expected symbol: to, downto, above, below" );
+        mRep.ThrowSemanticsError( forStmt, "Expected symbol: to, downto, above, below" );
     }
 
     PatchChain  bodyChain;
@@ -1123,7 +1123,7 @@ void Compiler::VisitWhileStatement( WhileStatement* whileStmt )
 void Compiler::GenerateBreak( BreakStatement* breakStmt, const GenConfig& config, GenStatus& status )
 {
     if ( config.breakChain == nullptr )
-        mRep.ThrowError( CERR_SEMANTICS, breakStmt, "Cannot use break outside of a loop" );
+        mRep.ThrowSemanticsError( breakStmt, "Cannot use break outside of a loop" );
 
     EmitBranch( OP_B, config.breakChain );
 
@@ -1138,7 +1138,7 @@ void Compiler::VisitBreakStatement( BreakStatement* breakStmt )
 void Compiler::GenerateNext( NextStatement* nextStmt, const GenConfig& config, GenStatus& status )
 {
     if ( config.nextChain == nullptr )
-        mRep.ThrowError( CERR_SEMANTICS, nextStmt, "Cannot use next outside of a loop" );
+        mRep.ThrowSemanticsError( nextStmt, "Cannot use next outside of a loop" );
 
     EmitBranch( OP_B, config.nextChain );
 
@@ -1481,7 +1481,7 @@ void Compiler::Patch( PatchChain* chain, int32_t targetIndex )
         ptrdiff_t diff = target - (link->Ref + BranchInst::Size);
 
         if ( diff < BranchInst::OffsetMin || diff > BranchInst::OffsetMax )
-            mRep.ThrowError( CERR_UNSUPPORTED, nullptr, "Branch target is too far." );
+            mRep.ThrowError( CompilerErr::UNSUPPORTED, nullptr, "Branch target is too far." );
 
         BranchInst::StoreOffset( &mCodeBin[link->Ref + 1], static_cast<BranchInst::TOffset>(diff) );
     }
@@ -1584,7 +1584,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
             break;
 
         default:
-            mRep.ThrowError( CERR_SEMANTICS, node, "'aref' supports only globals and locals" );
+            mRep.ThrowSemanticsError( node, "'aref' supports only globals and locals" );
         }
     }
 }
@@ -1737,7 +1737,7 @@ void Compiler::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, initializer, "'defvar' takes a name or name and type" );
+        mRep.ThrowSemanticsError( initializer, "'defvar' takes a name or name and type" );
     }
 }
 
@@ -1770,14 +1770,14 @@ void Compiler::AddGlobalData( GlobalSize offset, Syntax* valueElem )
 void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
-        mRep.ThrowError( CERR_SEMANTICS, valueElem, "Arrays must be initialized with array initializer" );
+        mRep.ThrowSemanticsError( valueElem, "Arrays must be initialized with array initializer" );
 
     auto        initList = (InitList*) valueElem;
     GlobalSize  i = 0;
     GlobalSize  globalIndex = offset;
 
     if ( initList->Values.size() > size )
-        mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
+        mRep.ThrowSemanticsError( valueElem, "Array has too many initializers" );
 
     for ( auto& entry : initList->Values )
     {
@@ -1957,15 +1957,15 @@ I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
         return optValue.value();
 
     if ( message != nullptr )
-        mRep.ThrowError( CERR_SEMANTICS, node, message );
+        mRep.ThrowSemanticsError( node, message );
     else
-        mRep.ThrowError( CERR_SEMANTICS, node, "Expected a constant value" );
+        mRep.ThrowSemanticsError( node, "Expected a constant value" );
 }
 
 void Compiler::IncreaseExprDepth()
 {
     if ( mCurExprDepth == LocalSizeMax )
-        mRep.ThrowError( CERR_SEMANTICS, NULL, "Expression is too deep" );
+        mRep.ThrowSemanticsError( NULL, "Expression is too deep" );
 
     mCurExprDepth++;
 
@@ -2095,7 +2095,7 @@ void Compiler::CalculateStackDepth( Function* func )
 size_t Compiler::ReserveProgram( size_t size )
 {
     if ( size > (CodeSizeMax - mCodeBin.size()) )
-        mRep.ThrowError( CERR_SEMANTICS, NULL, "Generated code is too big. Max=%u", CodeSizeMax );
+        mRep.ThrowSemanticsError( NULL, "Generated code is too big. Max=%u", CodeSizeMax );
 
     size_t curIndex = mCodeBin.size();
     mCodeBin.resize( mCodeBin.size() + size );
@@ -2211,15 +2211,23 @@ void Reporter::ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* 
 
 void Reporter::ThrowError( CompilerErr exceptionCode, const char* fileName, int line, int col, const char* format, va_list args )
 {
-    Log( LOG_ERROR, fileName, line, col, format, args );
+    Log( LogCategory::ERROR, fileName, line, col, format, args );
     throw CompilerException( exceptionCode );
+}
+
+void Reporter::ThrowSemanticsError( Syntax* node, const char* format, ... )
+{
+    va_list args;
+    va_start( args, format );
+    ThrowError( CompilerErr::SEMANTICS, node, format, args );
+    // No need to run va_end( args ), since an exception was thrown
 }
 
 void Reporter::ThrowInternalError( const char* fileName, int line, const char* format, ... )
 {
     va_list args;
     va_start( args, format );
-    ThrowError( CERR_INTERNAL, fileName, line, 1, format, args );
+    ThrowError( CompilerErr::INTERNAL, fileName, line, 1, format, args );
     // No need to run va_end( args ), since an exception was thrown
 }
 
@@ -2232,7 +2240,7 @@ void Reporter::LogWarning( const char* fileName, int line, int col, const char* 
 {
     va_list args;
     va_start( args, format );
-    Log( LOG_WARNING, fileName, line, col, format, args );
+    Log( LogCategory::WARNING, fileName, line, col, format, args );
     va_end( args );
 }
 

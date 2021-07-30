@@ -134,7 +134,7 @@ bool CompilerEnv::AddExternal( const std::string& name, ExternalKind kind, int a
     mFuncMap.insert( FuncMap::value_type( name, func ) );
 
     // A real CompilerEnv is free to declare native procs here.
-    assert( kind == External_Bytecode );
+    assert( kind == ExternalKind::Bytecode );
 
     MachineFunc macFunc;
     macFunc.Kind = kind;
@@ -165,7 +165,7 @@ bool CompilerEnv::FindByteCode( U32 id, ByteCode* byteCode )
     if ( it == mIdMap.end() )
         return false;
 
-    if ( it->second.Kind != External_Bytecode )
+    if ( it->second.Kind != ExternalKind::Bytecode )
         return false;
 
     *byteCode = it->second.ByteCode;
@@ -363,7 +363,7 @@ void TestCompileAndRun(
 
         maxStack = std::max( maxStack, stats.Static.MaxStackUsage );
 
-        REQUIRE( compilerErr == CERR_OK );
+        REQUIRE( compilerErr == CompilerErr::OK );
 
         if ( compiler1.GetDataSize() > 0 )
         {

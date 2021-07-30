@@ -1769,7 +1769,7 @@ void AlgolyParser::ThrowSyntaxError( const char* format, ... )
 {
     va_list args;
     va_start( args, format );
-    mRep.ThrowError( CERR_SYNTAX, mUnitFileName, mTokLine, mTokCol, format, args );
+    mRep.ThrowError( CompilerErr::SYNTAX, mUnitFileName, mTokLine, mTokCol, format, args );
     // No need to run va_end( args ), since an exception was thrown
 }
 

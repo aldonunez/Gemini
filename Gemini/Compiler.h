@@ -20,10 +20,10 @@ enum OpCode : uint8_t;
 namespace Gemini
 {
 
-enum ExternalKind
+enum class ExternalKind
 {
-    External_Bytecode,
-    External_Native,
+    Bytecode,
+    Native,
 };
 
 

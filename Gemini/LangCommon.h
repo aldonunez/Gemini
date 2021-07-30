@@ -13,20 +13,20 @@ namespace Gemini
 class Syntax;
 
 
-enum CompilerErr
+enum class CompilerErr
 {
-    CERR_OK,
-    CERR_INTERNAL,
-    CERR_UNSUPPORTED,
-    CERR_SYNTAX,
-    CERR_SEMANTICS,
+    OK,
+    INTERNAL,
+    UNSUPPORTED,
+    SYNTAX,
+    SEMANTICS,
 };
 
 
-enum LogCategory
+enum class LogCategory
 {
-    LOG_ERROR,
-    LOG_WARNING,
+    ERROR,
+    WARNING,
 };
 
 
@@ -51,6 +51,7 @@ public:
 
     [[noreturn]] void ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* format, ... );
     [[noreturn]] void ThrowError( CompilerErr exceptionCode, const char* fileName, int line, int col, const char* format, va_list args );
+    [[noreturn]] void ThrowSemanticsError( Syntax* node, const char* format, ... );
     [[noreturn]] void ThrowInternalError( const char* fileName, int line, const char* format, ... );
 };
 

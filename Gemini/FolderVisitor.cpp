@@ -72,14 +72,14 @@ void FolderVisitor::VisitBinaryExpr( BinaryExpr* binary )
         else if ( binary->Op == "/" )
         {
             if ( right == 0 )
-                mRep.ThrowError( CERR_SEMANTICS, binary->Right.get(), "Division by 0" );
+                mRep.ThrowSemanticsError( binary->Right.get(), "Division by 0" );
 
             result = left / right;
         }
         else if ( binary->Op == "%" )
         {
             if ( right == 0 )
-                mRep.ThrowError( CERR_SEMANTICS, binary->Right.get(), "Division by 0" );
+                mRep.ThrowSemanticsError( binary->Right.get(), "Division by 0" );
 
             result = left % right;
         }
@@ -283,7 +283,7 @@ void FolderVisitor::VisitNumberExpr( NumberExpr* numberExpr )
     assert( numberExpr->Value >= INT32_MIN );
 
     if ( numberExpr->Value > INT32_MAX )
-        mRep.ThrowError( CERR_SEMANTICS, numberExpr, "Number out of range" );
+        mRep.ThrowSemanticsError( numberExpr, "Number out of range" );
 
     mLastValue = (int32_t) numberExpr->Value;
 }

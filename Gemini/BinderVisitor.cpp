@@ -207,7 +207,7 @@ void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
     if ( !innerType || !IsAddressableType( innerType->GetKind() )
         || decl == nullptr || !IsAddressableDeclaration( decl->Kind ) )
     {
-        mRep.ThrowError( CERR_SEMANTICS, addrOf->Inner.get(), "Expected a function" );
+        mRep.ThrowSemanticsError( addrOf->Inner.get(), "Expected a function" );
     }
 
     addrOf->Type = Make<PointerType>( innerType );
@@ -233,12 +233,12 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
     int32_t rawSize = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
 
     if ( rawSize <= 0 )
-        mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Array size must be positive" );
+        mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Array size must be positive" );
 
     DataSize size = CheckArraySize( static_cast<size_t>(rawSize), elemType.get(), typeRef->SizeExpr.get() );
 
     if ( !IsStorageType( elemType->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, typeRef->SizeExpr.get(), "Element type is not allowed" );
+        mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Element type is not allowed" );
 
     typeRef->Type = mTypeType;
     typeRef->ReferentType = Make<ArrayType>( size, elemType );
@@ -250,7 +250,7 @@ void BinderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
     Visit( assignment->Right );
 
     if ( !IsLValue( *assignment->Left ) )
-        mRep.ThrowError( CERR_SEMANTICS, assignment->Left.get(), "Left side cannot be assigned" );
+        mRep.ThrowSemanticsError( assignment->Left.get(), "Left side cannot be assigned" );
 
     CheckType( assignment->Left->Type, assignment->Right->Type, assignment );
 
@@ -267,7 +267,7 @@ void BinderVisitor::VisitBinaryExpr( BinaryExpr* binary )
         if ( !IsEquatable( binary->Left->Type->GetKind() )
             || !IsEquatable( binary->Right->Type->GetKind() ) )
         {
-            mRep.ThrowError( CERR_SEMANTICS, binary, "Equality expressions only support scalars" );
+            mRep.ThrowSemanticsError( binary, "Equality expressions only support scalars" );
         }
 
         CheckType( binary->Left->Type, binary->Right->Type, binary );
@@ -279,7 +279,7 @@ void BinderVisitor::VisitBinaryExpr( BinaryExpr* binary )
         if ( binary->Left->Type->GetKind() != TypeKind::Int
             || binary->Right->Type->GetKind() != TypeKind::Int )
         {
-            mRep.ThrowError( CERR_SEMANTICS, binary, "Binary expressions only support integers" );
+            mRep.ThrowSemanticsError( binary, "Binary expressions only support integers" );
         }
 
         binary->Type = binary->Left->Type;
@@ -305,7 +305,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
             || type->GetKind() != TypeKind::Pointer
             || ((PointerType*) type)->TargetType->GetKind() != TypeKind::Func )
         {
-            mRep.ThrowError( CERR_SEMANTICS, call->Head.get(), "Expected a function pointer" );
+            mRep.ThrowSemanticsError( call->Head.get(), "Expected a function pointer" );
         }
 
         funcType = std::static_pointer_cast<FuncType>( ((PointerType*) type)->TargetType );
@@ -313,13 +313,13 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
     else
     {
         if ( call->Head->Type->GetKind() != TypeKind::Func )
-            mRep.ThrowError( CERR_SEMANTICS, call->Head.get(), "Expected a function" );
+            mRep.ThrowSemanticsError( call->Head.get(), "Expected a function" );
 
         funcType = std::static_pointer_cast<FuncType>( call->Head->Type );
     }
 
     if ( call->Arguments.size() != funcType->ParamTypes.size() )
-        mRep.ThrowError( CERR_SEMANTICS, call, "Function does not take %u arguments", call->Arguments.size() );
+        mRep.ThrowSemanticsError( call, "Function does not take %u arguments", call->Arguments.size() );
 
     ParamSize i = 0;
 
@@ -345,7 +345,7 @@ void BinderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
         auto funcType = (FuncType*) decl->Type.get();
 
         if ( funcType->ParamTypes.size() > 0 )
-            mRep.ThrowError( CERR_SEMANTICS, callOrSymbol, "Too few arguments" );
+            mRep.ThrowSemanticsError( callOrSymbol, "Too few arguments" );
 
         callOrSymbol->Type = funcType->ReturnType;
     }
@@ -360,7 +360,7 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
     Visit( caseExpr->TestKey );
 
     if ( caseExpr->TestKey->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowError( CERR_SEMANTICS, caseExpr->TestKey.get(), "Case only supports integers" );
+        mRep.ThrowSemanticsError( caseExpr->TestKey.get(), "Case only supports integers" );
 
     auto decl = caseExpr->TestKey->GetDecl();
 
@@ -380,7 +380,7 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
             Visit( key );
 
             if ( key->Type->GetKind() != TypeKind::Int )
-                mRep.ThrowError( CERR_SEMANTICS, key.get(), "Case key only supports integers" );
+                mRep.ThrowSemanticsError( key.get(), "Case key only supports integers" );
         }
 
         clause->Body.Accept( this );
@@ -398,7 +398,7 @@ void BinderVisitor::VisitCaseExpr( CaseExpr* caseExpr )
     {
         if ( bodyType->GetKind() != TypeKind::Int
             && bodyType->GetKind() != TypeKind::Xfer )
-            mRep.ThrowError( CERR_SEMANTICS, caseExpr, "Case without else must yield integers or nothing" );
+            mRep.ThrowSemanticsError( caseExpr, "Case without else must yield integers or nothing" );
     }
     else
     {
@@ -444,7 +444,7 @@ void BinderVisitor::VisitCondExpr( CondExpr* condExpr )
         Visit( clause->Condition );
 
         if ( !IsBoolean( clause->Condition->Type->GetKind() ) )
-            mRep.ThrowError( CERR_SEMANTICS, clause->Condition.get(), "Expected scalar type" );
+            mRep.ThrowSemanticsError( clause->Condition.get(), "Expected scalar type" );
 
         clause->Body.Accept( this );
 
@@ -467,7 +467,7 @@ void BinderVisitor::VisitCondExpr( CondExpr* condExpr )
             if ( bodyType->GetKind() != TypeKind::Int
                 && bodyType->GetKind() != TypeKind::Xfer )
             {
-                mRep.ThrowError( CERR_SEMANTICS, condExpr, "If without else must yield integers or nothing" );
+                mRep.ThrowSemanticsError( condExpr, "If without else must yield integers or nothing" );
             }
         }
     }
@@ -520,7 +520,7 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, constDecl, "Only integer constants are supported" );
+        mRep.ThrowSemanticsError( constDecl, "Only integer constants are supported" );
     }
 }
 
@@ -529,7 +529,7 @@ void BinderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
     Visit( countofExpr->Expr );
 
     if ( countofExpr->Expr->Type->GetKind() != TypeKind::Array )
-        mRep.ThrowError( CERR_SEMANTICS, countofExpr->Expr.get(), "Countof applies to arrays" );
+        mRep.ThrowSemanticsError( countofExpr->Expr.get(), "Countof applies to arrays" );
 
     countofExpr->Type = mIntType;
 }
@@ -549,14 +549,14 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
         auto it = modDecl->Table.find( dotExpr->Member );
 
         if ( it == modDecl->Table.end() )
-            mRep.ThrowError( CERR_SEMANTICS, dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
+            mRep.ThrowSemanticsError( dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
 
         dotExpr->Decl = it->second;
         dotExpr->Type = dotExpr->Decl->Type;
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, dotExpr->Head.get(), "Can only access members of a module" );
+        mRep.ThrowSemanticsError( dotExpr->Head.get(), "Can only access members of a module" );
     }
 }
 
@@ -577,15 +577,15 @@ void BinderVisitor::VisitForStatement( ForStatement* forStmt )
     forStmt->Body.Accept( this );
 
     if ( forStmt->First->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowError( CERR_SEMANTICS, forStmt->First.get(), "For bounds only support integers" );
+        mRep.ThrowSemanticsError( forStmt->First.get(), "For bounds only support integers" );
 
     if ( forStmt->Last->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowError( CERR_SEMANTICS, forStmt->Last.get(), "For bounds only support integers" );
+        mRep.ThrowSemanticsError( forStmt->Last.get(), "For bounds only support integers" );
 
     if ( forStmt->Step )
     {
         if ( forStmt->Step->Type->GetKind() != TypeKind::Int )
-            mRep.ThrowError( CERR_SEMANTICS, forStmt->Step.get(), "For step only supports integers" );
+            mRep.ThrowSemanticsError( forStmt->Step.get(), "For step only supports integers" );
     }
 
     forStmt->Type = mIntType;
@@ -601,7 +601,7 @@ void BinderVisitor::VisitImportDecl( ImportDecl* importDecl )
     auto it = mModuleTable.find( importDecl->OriginalName );
 
     if ( it == mModuleTable.end() )
-        mRep.ThrowError( CERR_SEMANTICS, importDecl, "Module not found" );
+        mRep.ThrowSemanticsError( importDecl, "Module not found" );
 
     AddModule( importDecl->Name, std::static_pointer_cast<ModuleDeclaration>( it->second ) );
 }
@@ -612,10 +612,10 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
     Visit( indexExpr->Index );
 
     if ( indexExpr->Head->Type->GetKind() != TypeKind::Array )
-        mRep.ThrowError( CERR_SEMANTICS, indexExpr->Head.get(), "Only arrays can be indexed" );
+        mRep.ThrowSemanticsError( indexExpr->Head.get(), "Only arrays can be indexed" );
 
     if ( indexExpr->Index->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowError( CERR_SEMANTICS, indexExpr->Index.get(), "Index only supports integers" );
+        mRep.ThrowSemanticsError( indexExpr->Index.get(), "Index only supports integers" );
 
     auto arrayType = (ArrayType*) indexExpr->Head->Type.get();
 
@@ -626,7 +626,7 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
         if ( optIndexVal.has_value() )
         {
             if ( optIndexVal.value() < 0 || optIndexVal.value() >= arrayType->Count )
-                mRep.ThrowError( CERR_SEMANTICS, indexExpr->Index.get(), "Index must be within bounds of array" );
+                mRep.ThrowSemanticsError( indexExpr->Index.get(), "Index must be within bounds of array" );
         }
     }
 
@@ -638,7 +638,7 @@ void BinderVisitor::VisitInitList( InitList* initList )
     std::shared_ptr<Type> elemType;
 
     if ( initList->Values.size() > DataSizeMax )
-        mRep.ThrowError( CERR_SEMANTICS, initList, "Array initializer is too long" );
+        mRep.ThrowSemanticsError( initList, "Array initializer is too long" );
 
     for ( auto& value : initList->Values )
     {
@@ -749,7 +749,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
     }
 
     if ( !IsStorageType( type->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, varDecl, "Variables cannot take this type" );
+        mRep.ThrowSemanticsError( varDecl, "Variables cannot take this type" );
 
     DataSize size = type->GetSize();
 
@@ -767,7 +767,7 @@ void BinderVisitor::CheckInitializer(
     if ( initializer->Kind == SyntaxKind::ArrayInitializer )
     {
         if ( type->GetKind() != TypeKind::Array )
-            mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Array initializer is invalid here" );
+            mRep.ThrowSemanticsError( initializer.get(), "Array initializer is invalid here" );
 
         auto& arrayInit = (InitList&) *initializer;
         auto& arrayType = (ArrayType&) *type;
@@ -776,7 +776,7 @@ void BinderVisitor::CheckInitializer(
 
         if ( (size_t) arrayType.Count < arrayInit.Values.size() )
         {
-            mRep.ThrowError( CERR_SEMANTICS, initializer.get(), "Wrong number of array elements" );
+            mRep.ThrowSemanticsError( initializer.get(), "Wrong number of array elements" );
         }
 
         for ( auto& value : arrayInit.Values )
@@ -787,15 +787,15 @@ void BinderVisitor::CheckInitializer(
         if ( arrayInit.Fill == ArrayFill::Repeat )
         {
             if ( arrayInit.Values.size() < 1 )
-                mRep.ThrowError( CERR_SEMANTICS, &arrayInit, "Element repetition requires at least one element" );
+                mRep.ThrowSemanticsError( &arrayInit, "Element repetition requires at least one element" );
         }
         else if ( arrayInit.Fill == ArrayFill::Extrapolate )
         {
             if ( arrayInit.Values.size() < 2 )
-                mRep.ThrowError( CERR_SEMANTICS, &arrayInit, "Element extrapolation requires at least two elements" );
+                mRep.ThrowSemanticsError( &arrayInit, "Element extrapolation requires at least two elements" );
 
             if ( !IsIntegralType( elemType->GetKind() ) )
-                mRep.ThrowError( CERR_SEMANTICS, &arrayInit, "Elements must be integral to extrapolate them" );
+                mRep.ThrowSemanticsError( &arrayInit, "Elements must be integral to extrapolate them" );
         }
         else
         {
@@ -823,21 +823,21 @@ void BinderVisitor::CheckAllDescendantsHaveDefault( Type* type, Syntax* node )
     }
     else if ( type->GetKind() == TypeKind::Pointer )
     {
-        mRep.ThrowError( CERR_SEMANTICS, node, "Pointers must be initialized" );
+        mRep.ThrowSemanticsError( node, "Pointers must be initialized" );
     }
 }
 
 DataSize BinderVisitor::CheckArraySize( size_t rawSize, Type* elemType, Syntax* node )
 {
     if ( rawSize > DataSizeMax )
-        mRep.ThrowError( CERR_SEMANTICS, node, "Size is too big" );
+        mRep.ThrowSemanticsError( node, "Size is too big" );
 
     DataSize size = static_cast<DataSize>(rawSize);
 
     auto fullSize = static_cast<uint_fast64_t>(size) * elemType->GetSize();
 
     if ( fullSize > DataSizeMax )
-        mRep.ThrowError( CERR_SEMANTICS, node, "Size is too big" );
+        mRep.ThrowSemanticsError( node, "Size is too big" );
 
     return size;
 }
@@ -851,7 +851,7 @@ void BinderVisitor::VisitLoopStatement( LoopStatement* loopStmt )
         Visit( loopStmt->Condition );
 
         if ( !IsBoolean( loopStmt->Condition->Type->GetKind() ) )
-            mRep.ThrowError( CERR_SEMANTICS, loopStmt->Condition.get(), "Loop condition only supports integers" );
+            mRep.ThrowSemanticsError( loopStmt->Condition.get(), "Loop condition only supports integers" );
     }
 
     loopStmt->Type = mIntType;
@@ -870,7 +870,7 @@ void BinderVisitor::VisitNameExpr( NameExpr* nameExpr )
     }
     else
     {
-        mRep.ThrowError( CERR_SEMANTICS, nameExpr, "symbol not found '%s'", nameExpr->String.c_str() );
+        mRep.ThrowSemanticsError( nameExpr, "symbol not found '%s'", nameExpr->String.c_str() );
     }
 
     nameExpr->Type = nameExpr->Decl->Type;
@@ -883,7 +883,7 @@ void BinderVisitor::VisitNameTypeRef( NameTypeRef* nameTypeRef )
     auto decl = nameTypeRef->QualifiedName->GetDecl();
 
     if ( decl->Kind != DeclKind::Type )
-        mRep.ThrowError( CERR_SEMANTICS, nameTypeRef, "Expected a type name" );
+        mRep.ThrowSemanticsError( nameTypeRef, "Expected a type name" );
 
     nameTypeRef->Type = mTypeType;
     nameTypeRef->ReferentType = ((TypeDeclaration*) decl)->ReferentType;
@@ -910,7 +910,7 @@ void BinderVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
             auto decl = nativeDecl->OptionalId->GetDecl();
 
             if ( decl->Kind != DeclKind::NativeFunc )
-                mRep.ThrowError( CERR_SEMANTICS, nativeDecl->OptionalId.get(), "Name of native expected" );
+                mRep.ThrowSemanticsError( nativeDecl->OptionalId.get(), "Name of native expected" );
 
             mPrevNativeId = ((NativeFunction*) decl)->Id;
         }
@@ -922,7 +922,7 @@ void BinderVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
     else
     {
         if ( mPrevNativeId == INT32_MAX )
-            mRep.ThrowError( CERR_SEMANTICS, nativeDecl, "ID of native is out of range" );
+            mRep.ThrowSemanticsError( nativeDecl, "ID of native is out of range" );
 
         mPrevNativeId++;
     }
@@ -941,7 +941,7 @@ void BinderVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
     else
     {
         if ( !typeIt->second->IsEqual( native->Type.get() ) )
-            mRep.ThrowError( CERR_SEMANTICS, nativeDecl, "Native ID is assigned a different type: %" PRId32, native->Id );
+            mRep.ThrowSemanticsError( nativeDecl, "Native ID is assigned a different type: %" PRId32, native->Id );
     }
 
     mGlobalTable.insert( SymTable::value_type( nativeDecl->Name, native ) );
@@ -975,7 +975,7 @@ std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef
         typeRef->Accept( this );
 
         if ( !IsAllowedParamType( typeRef->ReferentType->GetKind() ) )
-            mRep.ThrowError( CERR_SEMANTICS, typeRef.get(), "This type is not allowed for parameters" );
+            mRep.ThrowSemanticsError( typeRef.get(), "This type is not allowed for parameters" );
 
         type = typeRef->ReferentType;
     }
@@ -992,7 +992,7 @@ void BinderVisitor::VisitPointerTypeRef( PointerTypeRef* pointerTypeRef )
     pointerTypeRef->Target->Accept( this );
 
     if ( !IsAllowedPointerTarget( pointerTypeRef->Target->ReferentType->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, pointerTypeRef->Target.get(), "This type is not allowed for pointers" );
+        mRep.ThrowSemanticsError( pointerTypeRef->Target.get(), "This type is not allowed for pointers" );
 
     auto pointerType = Make<PointerType>( pointerTypeRef->Target->ReferentType );
 
@@ -1023,7 +1023,7 @@ void BinderVisitor::BindNamedProc( ProcDecl* procDecl )
     {
         if ( it->second->Kind != DeclKind::Func )
         {
-            mRep.ThrowError( CERR_SEMANTICS, procDecl, "The symbol '%s' is not a function", procDecl->Name.c_str() );
+            mRep.ThrowSemanticsError( procDecl, "The symbol '%s' is not a function", procDecl->Name.c_str() );
         }
     }
     else
@@ -1042,7 +1042,7 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
 
     if ( procDecl->Params.size() > ProcDecl::MaxParams )
     {
-        mRep.ThrowError( CERR_SEMANTICS, procDecl, "'%s' has too many parameters. Max is %d",
+        mRep.ThrowSemanticsError( procDecl, "'%s' has too many parameters. Max is %d",
             procDecl->Name.c_str(), ProcDecl::MaxParams );
     }
 
@@ -1062,7 +1062,7 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
 
     if ( mMaxLocalCount > ProcDecl::MaxLocals )
     {
-        mRep.ThrowError( CERR_SEMANTICS, procDecl, "'%s' has too many locals. Max is %d",
+        mRep.ThrowSemanticsError( procDecl, "'%s' has too many locals. Max is %d",
             procDecl->Name.c_str(), ProcDecl::MaxLocals );
     }
 
@@ -1109,13 +1109,13 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
     Visit( sliceExpr->LastIndex );
 
     if ( sliceExpr->Head->Type->GetKind() != TypeKind::Array )
-        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->Head.get(), "Only arrays can be sliced" );
+        mRep.ThrowSemanticsError( sliceExpr->Head.get(), "Only arrays can be sliced" );
 
     if ( sliceExpr->FirstIndex->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->FirstIndex.get(), "Range bounds must be integers" );
+        mRep.ThrowSemanticsError( sliceExpr->FirstIndex.get(), "Range bounds must be integers" );
 
     if ( sliceExpr->LastIndex->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->LastIndex.get(), "Range bounds must be integers" );
+        mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Range bounds must be integers" );
 
     auto arrayType = (ArrayType*) sliceExpr->Head->Type.get();
 
@@ -1123,15 +1123,15 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
     int32_t lastVal = Evaluate( sliceExpr->LastIndex.get() );
 
     if ( firstVal >= lastVal )
-        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->LastIndex.get(), "Range is not in increasing order" );
+        mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Range is not in increasing order" );
 
     if ( firstVal < 0 )
-        mRep.ThrowError( CERR_SEMANTICS, sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
+        mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
 
     if ( arrayType->Count > 0 )
     {
         if ( lastVal > arrayType->Count )
-            mRep.ThrowError( CERR_SEMANTICS, sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
+            mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
     }
 
     int32_t rawSize = lastVal - firstVal;
@@ -1187,7 +1187,7 @@ void BinderVisitor::VisitUnaryExpr( UnaryExpr* unary )
     Visit( unary->Inner );
 
     if ( unary->Inner->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowError( CERR_SEMANTICS, unary->Inner.get(), "Unary expression only supports integers" );
+        mRep.ThrowSemanticsError( unary->Inner.get(), "Unary expression only supports integers" );
 
     unary->Type = unary->Inner->Type;
 }
@@ -1216,7 +1216,7 @@ void BinderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
     Visit( whileStmt->Condition );
 
     if ( !IsBoolean( whileStmt->Condition->Type->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, whileStmt->Condition.get(), "While condition only supports integers" );
+        mRep.ThrowSemanticsError( whileStmt->Condition.get(), "While condition only supports integers" );
 
     whileStmt->Body.Accept( this );
 
@@ -1253,14 +1253,14 @@ void BinderVisitor::CheckType(
         && type->GetKind() != TypeKind::Xfer
         && !site->IsAssignableFrom( type ) )
     {
-        mRep.ThrowError( CERR_SEMANTICS, node, "Incompatible assignment" );
+        mRep.ThrowSemanticsError( node, "Incompatible assignment" );
     }
 }
 
 void BinderVisitor::CheckStatementType( Syntax* node )
 {
     if ( !IsStatementType( node->Type->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, node, "Expected scalar type" );
+        mRep.ThrowSemanticsError( node, "Expected scalar type" );
 }
 
 void BinderVisitor::CheckAndConsolidateClauseType( StatementList& clause, std::shared_ptr<Type>& bodyType )
@@ -1288,9 +1288,9 @@ int32_t BinderVisitor::Evaluate( Syntax* node, const char* message )
         return optValue.value();
 
     if ( message != nullptr )
-        mRep.ThrowError( CERR_SEMANTICS, node, message );
+        mRep.ThrowSemanticsError( node, message );
     else
-        mRep.ThrowError( CERR_SEMANTICS, node, "Expected a constant value" );
+        mRep.ThrowSemanticsError( node, "Expected a constant value" );
 }
 
 std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
@@ -1331,7 +1331,7 @@ std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( const std::string& name, 
     assert( size >= 1 );
 
     if ( size > static_cast<size_t>( LocalSizeMax - mCurLocalCount ) )
-        mRep.ThrowError( CERR_SEMANTICS, 0, 0, "Local exceeds capacity: %s", name.c_str() );
+        mRep.ThrowSemanticsError( nullptr, "Local exceeds capacity: %s", name.c_str() );
 
     std::shared_ptr<LocalStorage> local( new LocalStorage() );
     local->Offset = static_cast<LocalSize>( mCurLocalCount + size - 1 );
@@ -1352,7 +1352,7 @@ std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name
     CheckDuplicateGlobalSymbol( name );
 
     if ( size > static_cast<size_t>( GlobalSizeMax - mGlobalSize ) )
-        mRep.ThrowError( CERR_SEMANTICS, 0, 0, "Global exceeds capacity: %s", name.c_str() );
+        mRep.ThrowSemanticsError( nullptr, "Global exceeds capacity: %s", name.c_str() );
 
     std::shared_ptr<GlobalStorage> global( new GlobalStorage() );
     global->Offset = mGlobalSize;
@@ -1440,7 +1440,7 @@ void BinderVisitor::AddModule( const std::string& name, std::shared_ptr<ModuleDe
 void BinderVisitor::CheckDuplicateGlobalSymbol( const std::string& name )
 {
     if ( mGlobalTable.find( name ) != mGlobalTable.end() )
-        mRep.ThrowError( CERR_SEMANTICS, nullptr, "Duplicate symbol: %s", name.c_str() );
+        mRep.ThrowSemanticsError( nullptr, "Duplicate symbol: %s", name.c_str() );
 }
 
 void BinderVisitor::MakeStdEnv()
@@ -1508,7 +1508,7 @@ std::shared_ptr<Type> BinderVisitor::VisitFuncReturnType( Unique<TypeRef>& typeR
         typeRef->Accept( this );
 
         if ( !IsScalarType( typeRef->ReferentType->GetKind() ) )
-            mRep.ThrowError( CERR_SEMANTICS, typeRef.get(), "Only scalar types can be returned" );
+            mRep.ThrowSemanticsError( typeRef.get(), "Only scalar types can be returned" );
 
         return typeRef->ReferentType;
     }
