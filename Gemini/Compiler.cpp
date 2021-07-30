@@ -495,7 +495,7 @@ void Compiler::EmitCountofArray( Syntax* arrayNode )
         CalcAddress( arrayNode, decl, offset );
 
         if ( decl->Kind != DeclKind::Param )
-            mRep.ThrowInternalError();
+            THROW_INTERNAL_ERROR( "" );
 
         // Only ref params are allowed to take open array types
         // Because of this, the address calculation above won't spill
