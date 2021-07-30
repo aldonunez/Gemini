@@ -303,7 +303,7 @@ void WhileStatement::Accept( Visitor* visitor )
 }
 
 
-std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node )
+std::optional<int32_t> GetFinalOptionalSyntaxValue( Syntax* node )
 {
     if ( node->Kind == SyntaxKind::Number )
     {

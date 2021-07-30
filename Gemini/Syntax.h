@@ -490,7 +490,7 @@ public:
 };
 
 
-std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
+std::optional<int32_t> GetFinalOptionalSyntaxValue( Syntax* node );
 
 void CopyBaseSyntax( Syntax& dest, const Syntax& source );
 

@@ -274,8 +274,8 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
     switch ( decl->Kind )
     {
     case DeclKind::Global:
-        assert( offset >= 0 && offset <= GlobalSizeMax );
-        assert( offset <= (GlobalSizeMax - ((GlobalStorage*) decl)->Offset) );
+        assert( offset >= 0 && offset < GlobalSizeMax );
+        assert( offset < (GlobalSizeMax - ((GlobalStorage*) decl)->Offset) );
 
         EmitModAccess(
             OP_LDMOD,
@@ -285,7 +285,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Local:
-        assert( offset >= 0 && offset <= LocalSizeMax );
+        assert( offset >= 0 && offset < LocalSizeMax );
         assert( offset <= ((LocalStorage*) decl)->Offset );
 
         EmitU8( OP_LDLOC, static_cast<uint8_t>(((LocalStorage*) decl)->Offset - offset) );
@@ -293,8 +293,8 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Param:
-        assert( offset >= 0 && offset <= ParamSizeMax );
-        assert( offset <= (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+        assert( offset >= 0 && offset < ParamSizeMax );
+        assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
 
         EmitU8( OP_LDARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
         IncreaseExprDepth();
@@ -310,7 +310,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::LoadedAddress:
-        assert( offset >= 0 && offset <= DataSizeMax );
+        assert( offset >= 0 && offset < DataSizeMax );
 
         if ( offset > 0 )
             EmitSpilledAddrOffset( offset );
@@ -466,7 +466,7 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
 
         auto clause = condExpr->Clauses[i].get();
 
-        auto optVal = GetOptionalSyntaxValue( clause->Condition.get() );
+        auto optVal = GetFinalOptionalSyntaxValue( clause->Condition.get() );
 
         bool isConstantTrue = optVal.has_value() && optVal.value() != 0;
 
@@ -592,8 +592,8 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
     switch ( decl->Kind )
     {
     case DeclKind::Global:
-        assert( offset >= 0 && offset <= GlobalSizeMax );
-        assert( offset <= (GlobalSizeMax - ((GlobalStorage*) decl)->Offset) );
+        assert( offset >= 0 && offset < GlobalSizeMax );
+        assert( offset < (GlobalSizeMax - ((GlobalStorage*) decl)->Offset) );
 
         EmitModAccess(
             OP_STMOD,
@@ -602,15 +602,15 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     case DeclKind::Local:
-        assert( offset >= 0 && offset <= LocalSizeMax );
+        assert( offset >= 0 && offset < LocalSizeMax );
         assert( offset <= ((LocalStorage*) decl)->Offset );
 
         EmitU8( OP_STLOC, static_cast<uint8_t>(((LocalStorage*) decl)->Offset - offset) );
         break;
 
     case DeclKind::Param:
-        assert( offset >= 0 && offset <= ParamSizeMax );
-        assert( offset <= (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+        assert( offset >= 0 && offset < ParamSizeMax );
+        assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
 
         EmitU8( OP_STARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
         break;
@@ -625,7 +625,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     case DeclKind::LoadedAddress:
-        assert( offset >= 0 && offset <= DataSizeMax );
+        assert( offset >= 0 && offset < DataSizeMax );
 
         if ( offset > 0 )
             EmitSpilledAddrOffset( offset );
@@ -786,8 +786,6 @@ void Compiler::VisitLetStatement( LetStatement* letStmt )
     GenerateLet( letStmt, Config(), Status() );
 }
 
-// TODO: try to merge this with AddGlobalDataArray. Separate the array processing from the code generation
-
 void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size )
 {
     if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
@@ -797,11 +795,11 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
     LocalSize   locIndex = offset;
     LocalSize   i = 0;
 
+    if ( initList->Values.size() > size )
+        mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
+
     for ( auto& entry : initList->Values )
     {
-        if ( i == size )
-            mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
-
         assert( locIndex+1 >= entry->Type->GetSize() );
 
         GenerateLocalInit( locIndex, entry.get() );
@@ -819,7 +817,7 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
 
         if ( initList->Values.size() > 1 )
         {
-            auto prevValue2 = GetOptionalSyntaxValue( initList->Values[count - 2].get() );
+            auto prevValue2 = GetFinalOptionalSyntaxValue( initList->Values[count - 2].get() );
             if ( prevValue2.has_value() )
                 step = prevValue - prevValue2.value();
         }
@@ -1236,6 +1234,10 @@ void Compiler::VisitUnaryExpr( UnaryExpr* unary )
     {
         GenerateUnaryPrimitive( unary->Inner.get(), Config(), Status() );
     }
+    else
+    {
+        THROW_INTERNAL_ERROR( "" );
+    }
 }
 
 void Compiler::GenerateComparison( BinaryExpr* binary, const GenConfig& config, GenStatus& status )
@@ -1556,8 +1558,8 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
         switch ( baseDecl->Kind )
         {
         case DeclKind::Global:
-            assert( offset >= 0 && offset <= GlobalSizeMax );
-            assert( offset <= (GlobalSizeMax - ((GlobalStorage*) baseDecl)->Offset) );
+            assert( offset >= 0 && offset < GlobalSizeMax );
+            assert( offset < (GlobalSizeMax - ((GlobalStorage*) baseDecl)->Offset) );
 
             addrWord = CodeAddr::Build(
                 ((GlobalStorage*) baseDecl)->Offset + offset,
@@ -1567,7 +1569,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
             break;
 
         case DeclKind::Local:
-            assert( offset >= 0 && offset <= LocalSizeMax );
+            assert( offset >= 0 && offset < LocalSizeMax );
             assert( offset <= ((LocalStorage*) baseDecl)->Offset );
 
             EmitU8( OP_LDLOCA, static_cast<uint8_t>(((LocalStorage*) baseDecl)->Offset - offset) );
@@ -1575,7 +1577,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
             break;
 
         case DeclKind::LoadedAddress:
-            assert( offset >= 0 && offset <= DataSizeMax );
+            assert( offset >= 0 && offset < DataSizeMax );
 
             if ( offset > 0 )
                 EmitSpilledAddrOffset( offset );
@@ -1597,7 +1599,7 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     std::optional<int32_t> optIndexVal;
 
-    optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+    optIndexVal = GetFinalOptionalSyntaxValue( indexExpr->Index.get() );
 
     if ( optIndexVal.has_value() )
     {
@@ -1626,7 +1628,7 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     Generate( indexExpr->Index.get() );
 
-    if ( arrayType.ElemType->GetSize() > 255 )
+    if ( arrayType.ElemType->GetSize() > UINT8_MAX )
     {
         EmitU32( OP_INDEX, arrayType.ElemType->GetSize() );
     }
@@ -1774,11 +1776,11 @@ void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t 
     GlobalSize  i = 0;
     GlobalSize  globalIndex = offset;
 
+    if ( initList->Values.size() > size )
+        mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
+
     for ( auto& entry : initList->Values )
     {
-        if ( i == size )
-            mRep.ThrowError( CERR_SEMANTICS, valueElem, "Array has too many initializers" );
-
         GenerateGlobalInit( globalIndex, entry.get() );
         i++;
         globalIndex += entry->Type->GetSize();
@@ -1949,7 +1951,7 @@ void Compiler::GenerateSentinel()
 
 I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
 {
-    auto optValue = GetOptionalSyntaxValue( node );
+    auto optValue = GetFinalOptionalSyntaxValue( node );
 
     if ( optValue.has_value() )
         return optValue.value();

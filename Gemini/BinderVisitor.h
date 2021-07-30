@@ -120,7 +120,6 @@ private:
         Type* type,
         Syntax* node );
     void CheckStatementType( Syntax* node );
-    void CheckAssignableType( Syntax* node );
     void CheckAndConsolidateClauseType( StatementList& clause, std::shared_ptr<Type>& bodyType );
     void CheckAndConsolidateClauseType( Syntax* clause, std::shared_ptr<Type>& bodyType );
     void CheckInitializer(

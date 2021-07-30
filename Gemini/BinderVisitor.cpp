@@ -252,10 +252,6 @@ void BinderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
     if ( !IsLValue( *assignment->Left ) )
         mRep.ThrowError( CERR_SEMANTICS, assignment->Left.get(), "Left side cannot be assigned" );
 
-    CheckAssignableType( assignment->Left.get() );
-
-    // An indexing expression would have checked itself already
-
     CheckType( assignment->Left->Type, assignment->Right->Type, assignment );
 
     assignment->Type = assignment->Left->Type;
@@ -325,7 +321,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
     if ( call->Arguments.size() != funcType->ParamTypes.size() )
         mRep.ThrowError( CERR_SEMANTICS, call, "Function does not take %u arguments", call->Arguments.size() );
 
-    int i = 0;
+    ParamSize i = 0;
 
     for ( auto& arg : call->Arguments )
     {
@@ -419,6 +415,10 @@ void BinderVisitor::RewriteCaseWithComplexKey( CaseExpr* caseExpr )
     varDecl->Initializer = std::move( caseExpr->TestKey );
 
     Unique<NameExpr> nameExpr{ new NameExpr( "$testKey" ) };
+
+    // Logically, we put the original case inside a new Let block.
+    // But the original node is still owned up the tree.
+    // So, make a copy of the case expression node.
 
     Unique<CaseExpr> newCase{ new CaseExpr };
     newCase->Clauses.swap( caseExpr->Clauses );
@@ -754,9 +754,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
     DataSize size = type->GetSize();
 
     if ( size == 0 )
-    {
         THROW_INTERNAL_ERROR( "Bad type" );
-    }
 
     varDecl->Decl = AddStorage( varDecl->Name, type, size, declKind );
     varDecl->Type = type;
@@ -1262,12 +1260,6 @@ void BinderVisitor::CheckType(
 void BinderVisitor::CheckStatementType( Syntax* node )
 {
     if ( !IsStatementType( node->Type->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, node, "Expected scalar type" );
-}
-
-void BinderVisitor::CheckAssignableType( Syntax* node )
-{
-    if ( !IsAssignableType( node->Type->GetKind() ) )
         mRep.ThrowError( CERR_SEMANTICS, node, "Expected scalar type" );
 }
 
