@@ -279,10 +279,10 @@ void BinderVisitor::VisitAsExpr( AsExpr* asExpr )
     auto dstType = asExpr->TargetTypeRef->ReferentType;
 
     if ( !IsIntegralType( srcType->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, asExpr->Inner.get(), "Type is not integral" );
+        mRep.ThrowSemanticsError( asExpr->Inner.get(), "Type is not integral" );
 
     if ( !IsIntegralType( dstType->GetKind() ) )
-        mRep.ThrowError( CERR_SEMANTICS, asExpr->TargetTypeRef.get(), "Type is not integral" );
+        mRep.ThrowSemanticsError( asExpr->TargetTypeRef.get(), "Type is not integral" );
 
     asExpr->Type = dstType;
 }
@@ -603,7 +603,7 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
         if ( decl == nullptr || decl->Kind != DeclKind::Type
             || ((TypeDeclaration*) decl)->ReferentType->GetKind() != TypeKind::Enum )
         {
-            mRep.ThrowError( CERR_SEMANTICS, dotExpr->Head.get(), "Expected a named type" );
+            mRep.ThrowSemanticsError( dotExpr->Head.get(), "Expected a named type" );
         }
 
         auto enumType = (EnumType*) ((TypeDeclaration*) decl)->ReferentType.get();
@@ -611,7 +611,7 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
         auto it = enumType->MembersByName.find( dotExpr->Member );
 
         if ( it == enumType->MembersByName.end() )
-            mRep.ThrowError( CERR_SEMANTICS, dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
+            mRep.ThrowSemanticsError( dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
 
         dotExpr->Decl = it->second;
         dotExpr->Type = dotExpr->Decl->GetType();
@@ -644,7 +644,7 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
         else
         {
             if ( value == INT32_MAX )
-                mRep.ThrowError( CERR_SEMANTICS, memberDef.get(), "Enum member is out of range" );
+                mRep.ThrowSemanticsError( memberDef.get(), "Enum member is out of range" );
 
             value++;
         }
