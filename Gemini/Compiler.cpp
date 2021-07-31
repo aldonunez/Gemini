@@ -332,10 +332,10 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
 
             auto constant = (Constant*) decl;
 
-            if ( constant->Value.GetKind() == ValueKind::Integer )
-                EmitLoadConstant( constant->Value.GetInteger() );
+            if ( Is( constant->Value, ValueKind::Integer ) )
+                EmitLoadConstant( Get<ValueKind::Integer>( constant->Value ) );
             else
-                EmitLoadFuncAddress( constant->Value.GetFunction().get() );
+                EmitLoadFuncAddress( Get<ValueKind::Function>( constant->Value ).get() );
         }
         break;
 
