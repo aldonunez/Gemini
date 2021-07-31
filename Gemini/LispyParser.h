@@ -120,6 +120,7 @@ private:
     Unique<ProcDecl> ParseProc( bool hasName );
     Unique<DataDecl> ParseDefvar();
     Unique<DataDecl> ParseDefconstant();
+    Unique<DataDecl> ParseNameDecl();
     Unique<Syntax> ParseGlobalError();
 
     void ParseImplicitProgn( StatementList& container );

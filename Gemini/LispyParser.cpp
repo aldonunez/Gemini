@@ -780,6 +780,15 @@ Unique<DataDecl> LispyParser::ParseDefconstant()
     return ParseLetBinding( Make<ConstDecl>() );
 }
 
+Unique<DataDecl> LispyParser::ParseNameDecl()
+{
+    auto varDecl = Make<VarDecl>();
+
+    varDecl->Name = ScanSymbol();
+
+    return varDecl;
+}
+
 Unique<Syntax> LispyParser::ParseAref()
 {
     auto indexExpr = Make<IndexExpr>();
@@ -890,7 +899,7 @@ Unique<Syntax> LispyParser::ParseLoopFor()
 
     ScanToken();
 
-    forStmt->IndexName = ScanSymbol();
+    forStmt->Index = ParseNameDecl();
 
     ScanSymbol( "from" );
 

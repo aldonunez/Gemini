@@ -151,6 +151,7 @@ private:
     void ParseGlobalVars( Unit* unit );
     Unique<DataDecl> ParseVar( Unique<DataDecl>&& newVarDecl, std::optional<TokenCode> assignToken );
     Unique<DataDecl> ParseVarDecl();
+    Unique<DataDecl> ParseNameDecl();
     Unique<DataDecl> ParseConstDecl();
     Unique<DeclSyntax> ParseTypeDecl();
     void ParseTypeDecls( Unit* unit );
@@ -162,6 +163,7 @@ private:
     Unique<TypeRef> ParseArrayTypeRef();
     Unique<Syntax> ParseArrayInitializer();
     Unique<Syntax> ParseInitExpr();
+
     Unique<Syntax> ParseReturn();
     Unique<Syntax> ParseIf();
     Unique<CondClause> ParseIfClause();

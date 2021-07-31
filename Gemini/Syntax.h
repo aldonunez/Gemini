@@ -207,6 +207,7 @@ class VarDecl : public DataDecl
 {
 public:
     VarDecl();
+    VarDecl( std::string_view name );
 
     virtual void Accept( Visitor* visitor ) override;
 };
@@ -405,8 +406,8 @@ enum class ForComparison
 class ForStatement : public Syntax
 {
 public:
-    std::string IndexName;
-    ForComparison Comparison;
+    ForComparison Comparison = ForComparison::Above;
+    Unique<DataDecl> Index;
     Unique<Syntax> First;
     Unique<Syntax> Last;
     Unique<Syntax> Step;

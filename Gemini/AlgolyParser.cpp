@@ -1269,6 +1269,15 @@ Unique<DataDecl> AlgolyParser::ParseConstDecl()
     return ParseVar( Make<ConstDecl>(), TokenCode::EQ );
 }
 
+Unique<DataDecl> AlgolyParser::ParseNameDecl()
+{
+    auto varDecl = Make<VarDecl>();
+
+    varDecl->Name = ParseRawSymbol();
+
+    return varDecl;
+}
+
 Unique<DeclSyntax> AlgolyParser::ParseTypeDecl()
 {
     auto typeDecl = Make<TypeDecl>();
@@ -1533,7 +1542,7 @@ Unique<Syntax> AlgolyParser::ParseFor()
 
     ScanToken();
 
-    forStmt->IndexName = ParseRawSymbol();
+    forStmt->Index = ParseNameDecl();
 
     ScanToken( TokenCode::Assign );
 

@@ -71,6 +71,12 @@ VarDecl::VarDecl()
     Kind = SyntaxKind::VarDecl;
 }
 
+VarDecl::VarDecl( std::string_view name ) :
+    VarDecl()
+{
+    Name = name;
+}
+
 AddrOfExpr::AddrOfExpr()
 {
     Kind = SyntaxKind::AddrOfExpr;

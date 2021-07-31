@@ -511,9 +511,9 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
         std::shared_ptr<Constant> constant;
 
         if ( scopeKind == ScopeKind::Global )
-            constant = AddConst( constDecl->Name, type, value, true );
+            constant = AddConst( constDecl, type, value, true );
         else
-            constant = AddConst( constDecl->Name, type, value, *mSymStack.back() );
+            constant = AddConst( constDecl, type, value, *mSymStack.back() );
 
         constDecl->Decl = constant;
     }
@@ -563,7 +563,7 @@ void BinderVisitor::VisitForStatement( ForStatement* forStmt )
 {
     LocalScope localScope( *this );
 
-    auto local = AddLocal( forStmt->IndexName, mIntType, 1 );
+    auto local = AddLocal( forStmt->Index.get(), mIntType, 1 );
 
     forStmt->IndexDecl = local;
 
@@ -602,7 +602,7 @@ void BinderVisitor::VisitImportDecl( ImportDecl* importDecl )
     if ( it == mModuleTable.end() )
         mRep.ThrowSemanticsError( importDecl, "Module not found" );
 
-    AddModule( importDecl->Name, std::static_pointer_cast<ModuleDeclaration>( it->second ) );
+    AddModule( importDecl, std::static_pointer_cast<ModuleDeclaration>( it->second ) );
 }
 
 void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
@@ -671,12 +671,15 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
 
     auto pointerType = Make<PointerType>( funcType );
 
-    std::shared_ptr<Function> func = AddFunc( name, false );
+    // Set the name up front, so the proc can be passed to AddFunc
+
+    lambdaExpr->Proc->Name = name;
+
+    std::shared_ptr<Function> func = AddFunc( lambdaExpr->Proc.get(), false );
 
     func->Type = funcType;
     func->IsLambda = true;
 
-    lambdaExpr->Proc->Name = name;
     lambdaExpr->Proc->Decl = func;
 
     mLambdas.push_back( std::move( lambdaExpr->Proc ) );
@@ -756,7 +759,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
     if ( size == 0 )
         THROW_INTERNAL_ERROR( "Bad type" );
 
-    varDecl->Decl = AddStorage( varDecl->Name, type, size, declKind );
+    varDecl->Decl = AddStorage( varDecl, type, size, declKind );
     varDecl->Type = type;
 }
 
@@ -963,7 +966,7 @@ void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
     auto type = VisitParamTypeRef( paramDecl->TypeRef );
 
-    paramDecl->Decl = AddParam( paramDecl->Name, type );
+    paramDecl->Decl = AddParam( paramDecl, type );
 }
 
 std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef )
@@ -1007,7 +1010,7 @@ void BinderVisitor::VisitProcDecl( ProcDecl* procDecl )
 
     mGlobalTable.erase( procDecl->Name );
 
-    auto func = AddFunc( procDecl->Name, true );
+    auto func = AddFunc( procDecl, true );
 
     func->Type = MakeFuncType( procDecl );
 
@@ -1179,7 +1182,7 @@ void BinderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
 
     typeDecl->TypeRef->Accept( this );
 
-    AddType( typeDecl->Name, typeDecl->TypeRef->ReferentType, true );
+    AddType( typeDecl, typeDecl->TypeRef->ReferentType, true );
 }
 
 void BinderVisitor::VisitUnaryExpr( UnaryExpr* unary )
@@ -1315,30 +1318,34 @@ std::shared_ptr<Declaration> BinderVisitor::FindSymbol( const std::string& symbo
     return nullptr;
 }
 
-std::shared_ptr<ParamStorage> BinderVisitor::AddParam( const std::string& name, std::shared_ptr<Type> type )
+std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type )
 {
     auto& table = *mSymStack.back();
 
-    CheckDuplicateSymbol( name, table );
+    CheckDuplicateSymbol( declNode, table );
 
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
     param->Offset = static_cast<ParamSize>( table.size() );
     param->Type = type;
-    table.insert( SymTable::value_type( name, param ) );
+    table.insert( SymTable::value_type( declNode->Name, param ) );
     return param;
 }
 
-std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( const std::string& name, std::shared_ptr<Type> type, size_t size )
+std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size )
 {
     assert( size >= 1 );
 
+    auto& table = *mSymStack.back();
+
+    CheckDuplicateSymbol( declNode, table );
+
     if ( size > static_cast<size_t>( LocalSizeMax - mCurLocalCount ) )
-        mRep.ThrowSemanticsError( nullptr, "Local exceeds capacity: %s", name.c_str() );
+        mRep.ThrowSemanticsError( declNode, "Local exceeds capacity" );
 
     std::shared_ptr<LocalStorage> local( new LocalStorage() );
     local->Offset = static_cast<LocalSize>( mCurLocalCount + size - 1 );
     local->Type = type;
-    mSymStack.back()->insert( SymTable::value_type( name, local ) );
+    mSymStack.back()->insert( SymTable::value_type( declNode->Name, local ) );
 
     mCurLocalCount += static_cast<LocalSize>( size );
     mCurLevelLocalCount += static_cast<LocalSize>( size );
@@ -1349,105 +1356,105 @@ std::shared_ptr<LocalStorage> BinderVisitor::AddLocal( const std::string& name, 
     return local;
 }
 
-std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( const std::string& name, std::shared_ptr<Type> type, size_t size )
+std::shared_ptr<GlobalStorage> BinderVisitor::AddGlobal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size )
 {
-    CheckDuplicateGlobalSymbol( name );
+    CheckDuplicateGlobalSymbol( declNode );
 
     if ( size > static_cast<size_t>( GlobalSizeMax - mGlobalSize ) )
-        mRep.ThrowSemanticsError( nullptr, "Global exceeds capacity: %s", name.c_str() );
+        mRep.ThrowSemanticsError( declNode, "Global exceeds capacity" );
 
     std::shared_ptr<GlobalStorage> global( new GlobalStorage() );
     global->Offset = mGlobalSize;
     global->ModIndex = mModIndex;
     global->Type = type;
-    mGlobalTable.insert( SymTable::value_type( name, global ) );
+    mGlobalTable.insert( SymTable::value_type( declNode->Name, global ) );
 
     mGlobalSize += static_cast<GlobalSize>( size );
 
-    mPublicTable.insert( SymTable::value_type( name, global ) );
+    mPublicTable.insert( SymTable::value_type( declNode->Name, global ) );
 
     return global;
 }
 
-std::shared_ptr<Declaration> BinderVisitor::AddStorage( const std::string& name, std::shared_ptr<Type> type, size_t size, DeclKind declKind )
+std::shared_ptr<Declaration> BinderVisitor::AddStorage( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size, DeclKind declKind )
 {
     switch ( declKind )
     {
-    case DeclKind::Global:  return AddGlobal( name, type, size );
-    case DeclKind::Local:   return AddLocal( name, type, size );
+    case DeclKind::Global:  return AddGlobal( declNode, type, size );
+    case DeclKind::Local:   return AddLocal( declNode, type, size );
     default:
         THROW_INTERNAL_ERROR( "" );
     }
 }
 
-std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, SymTable& table )
+std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, SymTable& table )
 {
-    CheckDuplicateSymbol( name, table );
+    CheckDuplicateSymbol( declNode, table );
 
     std::shared_ptr<Constant> constant( new Constant() );
     constant->Type = type;
     constant->Value = value;
-    table.insert( SymTable::value_type( name, constant ) );
+    table.insert( SymTable::value_type( declNode->Name, constant ) );
     return constant;
 }
 
-std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, bool isPublic )
+std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::shared_ptr<Type> type, int32_t value, bool isPublic )
 {
-    auto constant = AddConst( name, type, value, mGlobalTable );
+    auto constant = AddConst( declNode, type, value, mGlobalTable );
 
     if ( isPublic )
-        mPublicTable.insert( SymTable::value_type( name, constant ) );
+        mPublicTable.insert( SymTable::value_type( declNode->Name, constant ) );
 
     return constant;
 }
 
-std::shared_ptr<Function> BinderVisitor::AddFunc( const std::string& name, bool isPublic )
+std::shared_ptr<Function> BinderVisitor::AddFunc( DeclSyntax* declNode, bool isPublic )
 {
-    CheckDuplicateGlobalSymbol( name );
+    CheckDuplicateGlobalSymbol( declNode );
 
     std::shared_ptr<Function> func( new Function() );
-    func->Name = name;
+    func->Name = declNode->Name;
     func->Address = UndefinedAddr;
     func->ModIndex = mModIndex;
-    mGlobalTable.insert( SymTable::value_type( name, func ) );
+    mGlobalTable.insert( SymTable::value_type( declNode->Name, func ) );
 
     if ( isPublic )
-        mPublicTable.insert( SymTable::value_type( name, func ) );
+        mPublicTable.insert( SymTable::value_type( declNode->Name, func ) );
 
     return func;
 }
 
-std::shared_ptr<TypeDeclaration> BinderVisitor::AddType( const std::string& name, std::shared_ptr<Type> type, bool isPublic )
+std::shared_ptr<TypeDeclaration> BinderVisitor::AddType( DeclSyntax* declNode, std::shared_ptr<Type> type, bool isPublic )
 {
-    CheckDuplicateGlobalSymbol( name );
+    CheckDuplicateGlobalSymbol( declNode );
 
     std::shared_ptr<TypeDeclaration> typeDecl( new TypeDeclaration() );
     typeDecl->Type = mTypeType;
     typeDecl->ReferentType = type;
-    mGlobalTable.insert( SymTable::value_type( name, typeDecl ) );
+    mGlobalTable.insert( SymTable::value_type( declNode->Name, typeDecl ) );
 
     if ( isPublic )
-        mPublicTable.insert( SymTable::value_type( name, typeDecl ) );
+        mPublicTable.insert( SymTable::value_type( declNode->Name, typeDecl ) );
 
     return typeDecl;
 }
 
-void BinderVisitor::AddModule( const std::string& name, std::shared_ptr<ModuleDeclaration> moduleDecl )
+void BinderVisitor::AddModule( DeclSyntax* declNode, std::shared_ptr<ModuleDeclaration> moduleDecl )
 {
-    CheckDuplicateGlobalSymbol( name );
+    CheckDuplicateGlobalSymbol( declNode );
 
-    mGlobalTable.insert( SymTable::value_type( name, moduleDecl ) );
+    mGlobalTable.insert( SymTable::value_type( declNode->Name, moduleDecl ) );
 }
 
-void BinderVisitor::CheckDuplicateGlobalSymbol( const std::string& name )
+void BinderVisitor::CheckDuplicateGlobalSymbol( DeclSyntax* declNode )
 {
-    CheckDuplicateSymbol( name, mGlobalTable );
+    CheckDuplicateSymbol( declNode, mGlobalTable );
 }
 
-void BinderVisitor::CheckDuplicateSymbol( const std::string& name, const SymTable& table )
+void BinderVisitor::CheckDuplicateSymbol( DeclSyntax* declNode, const SymTable& table )
 {
-    if ( table.find( name ) != table.end() )
-        mRep.ThrowSemanticsError( nullptr, "Duplicate symbol: %s", name.c_str() );
+    if ( table.find( declNode->Name ) != table.end() )
+        mRep.ThrowSemanticsError( declNode, "Duplicate symbol: %s", declNode->Name.c_str() );
 }
 
 void BinderVisitor::MakeStdEnv()
@@ -1457,9 +1464,13 @@ void BinderVisitor::MakeStdEnv()
     mXferType.reset( new XferType() );
     mIntType.reset( new IntType() );
 
-    AddType( "int", mIntType, false );
-    AddConst( "false", mIntType, 0, false );
-    AddConst( "true", mIntType, 1, false );
+    VarDecl intDecl( "int" );
+    VarDecl falseDecl( "false" );
+    VarDecl trueDecl( "true" );
+
+    AddType( &intDecl, mIntType, false );
+    AddConst( &falseDecl, mIntType, 0, false );
+    AddConst( &trueDecl, mIntType, 1, false );
 }
 
 void BinderVisitor::BindProcs( Unit* program )
@@ -1472,7 +1483,7 @@ void BinderVisitor::BindProcs( Unit* program )
 
 void BinderVisitor::DeclareNode( DeclSyntax* node )
 {
-    CheckDuplicateGlobalSymbol( node->Name );
+    CheckDuplicateGlobalSymbol( node );
 
     std::shared_ptr<UndefinedDeclaration> undef( new UndefinedDeclaration() );
     undef->Node = node;
