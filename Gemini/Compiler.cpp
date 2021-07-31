@@ -60,6 +60,9 @@ void Compiler::AddModule( std::shared_ptr<ModuleDeclaration> moduleDecl )
 
 CompilerErr Compiler::Compile()
 {
+    if ( mStatus != CompilerErr::NONE )
+        return mStatus;
+
     try
     {
         BindAttributes();
@@ -67,20 +70,20 @@ CompilerErr Compiler::Compile()
         GenerateCode();
 
         GenerateSentinel();
+
+        mStatus = CompilerErr::OK;
     }
     catch ( CompilerException& ex )
     {
-        return ex.GetError();
+        mStatus = ex.GetError();
     }
 
-    mCompiled = true;
-
-    return CompilerErr::OK;
+    return mStatus;
 }
 
 void Compiler::GetStats( CompilerStats& stats )
 {
-    if ( mCompiled && !mCalculatedStats )
+    if ( mStatus == CompilerErr::OK && !mCalculatedStats )
     {
         mStats.CodeBytesWritten = static_cast<CodeSize>( mCodeBin.size() );
 

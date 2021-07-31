@@ -15,6 +15,7 @@ class Syntax;
 
 enum class CompilerErr
 {
+    NONE,
     OK,
     INTERNAL,
     UNSUPPORTED,

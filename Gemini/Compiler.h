@@ -284,7 +284,7 @@ private:
 
     std::vector<GenParams> mGenStack;
 
-    bool            mCompiled = false;
+    CompilerErr     mStatus = CompilerErr::NONE;
     bool            mCalculatedStats = false;
     CompilerStats   mStats = {};
     UnitVec         mUnits;
