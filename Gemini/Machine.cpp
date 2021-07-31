@@ -213,7 +213,7 @@ int Machine::Run()
 
     while ( true )
     {
-        mPC = codePtr - mMod->CodeBase;
+        mPC = static_cast<U32>( codePtr - mMod->CodeBase );
 
         const U8 op = *codePtr;
         codePtr++;

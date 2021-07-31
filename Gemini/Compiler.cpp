@@ -474,7 +474,7 @@ void Compiler::GenerateCond( CondExpr* condExpr, const GenConfig& config, GenSta
     PatchChain  leaveChain;
     bool        foundCatchAll = false;
     LocalSize   exprDepth = mCurExprDepth;
-    int32_t     startLoc = mCodeBin.size();
+    int32_t     startLoc = static_cast<int32_t>( mCodeBin.size() );
 
     GenConfig statementConfig = GenConfig::Statement( config.discard )
         .WithLoop( config.breakChain, config.nextChain );
@@ -1030,7 +1030,7 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
 
     EmitBranch( OP_B, &testChain );
 
-    int32_t bodyLoc = mCodeBin.size();
+    int32_t bodyLoc = static_cast<int32_t>( mCodeBin.size() );
 
     // Body
     GenerateStatements( &forStmt->Body, config.WithLoop( &breakChain, &nextChain ), status );
@@ -1078,7 +1078,7 @@ void Compiler::GenerateSimpleLoop( LoopStatement* loopStmt, const GenConfig& con
     PatchChain  breakChain;
     PatchChain  nextChain;
 
-    int32_t     bodyLoc = mCodeBin.size();
+    int32_t     bodyLoc = static_cast<int32_t>(mCodeBin.size());
 
     // Body
     GenerateStatements( &loopStmt->Body, config.WithLoop( &breakChain, &nextChain ), status );
@@ -1118,7 +1118,7 @@ void Compiler::GenerateDo( WhileStatement* whileStmt, const GenConfig& config, G
     PatchChain  nextChain;
     PatchChain  trueChain;
 
-    int32_t testLoc = mCodeBin.size();
+    int32_t testLoc = static_cast<int32_t>(mCodeBin.size());
 
     // Test expression
     Generate( whileStmt->Condition.get(), GenConfig::Expr( &trueChain, &breakChain, false ) );
@@ -1407,7 +1407,7 @@ U8 Compiler::InvertJump( U8 opCode )
 
 void Compiler::PushPatch( PatchChain* chain )
 {
-    PushPatch( chain, mCodeBin.size() );
+    PushPatch( chain, static_cast<int32_t>(mCodeBin.size()) );
 }
 
 void Compiler::PushPatch( PatchChain* chain, int32_t patchLoc )
@@ -1458,7 +1458,7 @@ void Compiler::ElideTrue( PatchChain* trueChain, PatchChain* falseChain )
         || falseChain->First == nullptr )
         return;
 
-    int32_t target = mCodeBin.size();
+    int32_t target = static_cast<int32_t>(mCodeBin.size());
     size_t diff = target - (trueChain->First->Ref + BranchInst::Size);
 
     if ( diff == BranchInst::Size
@@ -1482,7 +1482,7 @@ void Compiler::ElideFalse( PatchChain* trueChain, PatchChain* falseChain )
     if ( falseChain->First == nullptr )
         return;
 
-    int32_t target = mCodeBin.size();
+    int32_t target = static_cast<int32_t>(mCodeBin.size());
     size_t diff = target - (falseChain->First->Ref + BranchInst::Size);
 
     if ( diff == 0 )
@@ -1496,7 +1496,7 @@ void Compiler::ElideFalse( PatchChain* trueChain, PatchChain* falseChain )
 
 void Compiler::Patch( PatchChain* chain, int32_t targetIndex )
 {
-    int32_t target = (targetIndex >= 0) ? targetIndex : mCodeBin.size();
+    int32_t target = (targetIndex >= 0) ? targetIndex : static_cast<int32_t>(mCodeBin.size());
 
     for ( InstPatch* link = chain->First; link != nullptr; link = link->Next )
     {
@@ -1845,7 +1845,7 @@ void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
 
     constexpr uint8_t PushInstSize = 2;
 
-    int32_t bodyLoc = mCodeBin.size();
+    int32_t bodyLoc = static_cast<int32_t>(mCodeBin.size());
 
     // Assume that there are local variables
     EmitU8( OP_PUSH, 0 );
