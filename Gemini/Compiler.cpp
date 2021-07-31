@@ -28,7 +28,7 @@ Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
     if ( log == nullptr )
         throw std::invalid_argument( "log" );
 
-    if ( modIndex < 0 || modIndex > ModSizeMax )
+    if ( modIndex > ModSizeMax )
         throw std::invalid_argument( "modIndex" );
 
     mLoadedAddrDecl.reset( new LoadedAddressDeclaration() );

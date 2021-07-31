@@ -208,7 +208,7 @@ class CompilerLog : public ICompilerLog
 public:
     virtual void Add( LogCategory category, const char* fileName, int line, int column, const char* message )
     {
-        printf( "<%d>  ", category );
+        printf( "<%d>  ", static_cast<int>(category) );
         printf( "%s %4d %3d  ", (fileName != nullptr ? fileName : ""), line, column );
         printf( "%s\n", message );
     }
