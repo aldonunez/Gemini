@@ -45,10 +45,10 @@ using ParamSize     = uint_least8_t;
 using DataSize      = GlobalSize;
 using ModSize       = uint_least8_t;
 
-constexpr CodeSize      CodeSizeMax = 16777214;
-constexpr GlobalSize    GlobalSizeMax = 65534;
-constexpr LocalSize     LocalSizeMax = 126;
-constexpr ParamSize     ParamSizeMax = 126;
+constexpr CodeSize      CodeSizeMax = 16777215;
+constexpr GlobalSize    GlobalSizeMax = 65535;
+constexpr LocalSize     LocalSizeMax = 255;
+constexpr ParamSize     ParamSizeMax = 127;
 constexpr DataSize      DataSizeMax = GlobalSizeMax;
 constexpr ModSize       ModSizeMax = 126;
 
@@ -451,8 +451,8 @@ public:
 class ProcDeclBase : public DeclSyntax
 {
 public:
-    constexpr static int16_t MaxParams = ParamSizeMax + 1;
-    constexpr static int16_t MaxLocals = LocalSizeMax + 1;
+    constexpr static int16_t MaxParams = ParamSizeMax;
+    constexpr static int16_t MaxLocals = LocalSizeMax;
 
     std::vector<Unique<DataDecl>>   Params;
     Unique<TypeRef>                 ReturnTypeRef;
@@ -585,6 +585,9 @@ using SymTable = std::map<std::string, std::shared_ptr<Declaration>>;
 
 struct UndefinedDeclaration : public Declaration
 {
+    // It would be safer if here we kept a weak_ptr to a Syntax node.
+    // But that would mean changing all Unique<Syntax> to Shared<Syntax>.
+
     Syntax*     Node = nullptr;
 
     UndefinedDeclaration();
