@@ -19,7 +19,7 @@
 TEST_CASE( "Algoly: little number", "[algoly]" )
 {
     const char code[] =
-        "def a 33 end"
+        "def a 33 end\n"
         ;
 
     TestCompileAndRunAlgoly( code, sizeof code, 33 );

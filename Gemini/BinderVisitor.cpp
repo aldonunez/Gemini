@@ -1319,6 +1319,8 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( const std::string& name, 
 {
     auto& table = *mSymStack.back();
 
+    CheckDuplicateSymbol( name, table );
+
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
     param->Offset = static_cast<ParamSize>( table.size() );
     param->Type = type;
@@ -1380,6 +1382,8 @@ std::shared_ptr<Declaration> BinderVisitor::AddStorage( const std::string& name,
 
 std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, SymTable& table )
 {
+    CheckDuplicateSymbol( name, table );
+
     std::shared_ptr<Constant> constant( new Constant() );
     constant->Type = type;
     constant->Value = value;
@@ -1389,8 +1393,6 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std:
 
 std::shared_ptr<Constant> BinderVisitor::AddConst( const std::string& name, std::shared_ptr<Type> type, int32_t value, bool isPublic )
 {
-    CheckDuplicateGlobalSymbol( name );
-
     auto constant = AddConst( name, type, value, mGlobalTable );
 
     if ( isPublic )
@@ -1439,7 +1441,12 @@ void BinderVisitor::AddModule( const std::string& name, std::shared_ptr<ModuleDe
 
 void BinderVisitor::CheckDuplicateGlobalSymbol( const std::string& name )
 {
-    if ( mGlobalTable.find( name ) != mGlobalTable.end() )
+    CheckDuplicateSymbol( name, mGlobalTable );
+}
+
+void BinderVisitor::CheckDuplicateSymbol( const std::string& name, const SymTable& table )
+{
+    if ( table.find( name ) != table.end() )
         mRep.ThrowSemanticsError( nullptr, "Duplicate symbol: %s", name.c_str() );
 }
 

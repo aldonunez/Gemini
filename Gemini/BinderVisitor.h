@@ -140,6 +140,7 @@ private:
     std::shared_ptr<TypeDeclaration> AddType( const std::string& name, std::shared_ptr<Type> type, bool isPublic );
     void AddModule( const std::string& name, std::shared_ptr<ModuleDeclaration> moduleDecl );
     void CheckDuplicateGlobalSymbol( const std::string& name );
+    void CheckDuplicateSymbol( const std::string& name, const SymTable& table );
 
     void MakeStdEnv();
     void BindProcs( Unit* program );

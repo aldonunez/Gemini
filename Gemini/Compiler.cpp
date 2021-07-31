@@ -50,12 +50,12 @@ void Compiler::AddModule( std::shared_ptr<ModuleDeclaration> moduleDecl )
     auto modTabResult = mModuleTable.insert( SymTable::value_type( moduleDecl->Name, moduleDecl ) );
 
     if ( !modTabResult.second )
-        mRep.ThrowSemanticsError( NULL, "Module name already used: %u %s", moduleDecl->Index, moduleDecl->Name.c_str() );
+        throw std::invalid_argument( "Module name already used" );
 
     auto modIdResult = mModulesById.insert( ModIdMap::value_type( moduleDecl->Index, moduleDecl ) );
 
     if ( !modIdResult.second )
-        mRep.ThrowSemanticsError( NULL, "Module index already used: %u %s", moduleDecl->Index, moduleDecl->Name.c_str() );
+        throw std::invalid_argument( "Module index already used" );
 }
 
 CompilerErr Compiler::Compile()
@@ -1500,7 +1500,7 @@ void Compiler::Patch( PatchChain* chain, int32_t targetIndex )
         ptrdiff_t diff = target - (link->Ref + BranchInst::Size);
 
         if ( diff < BranchInst::OffsetMin || diff > BranchInst::OffsetMax )
-            mRep.ThrowError( CompilerErr::UNSUPPORTED, nullptr, "Branch target is too far." );
+            mRep.ThrowSemanticsError( nullptr, "Branch target is too far." );
 
         BranchInst::StoreOffset( &mCodeBin[link->Ref + 1], static_cast<BranchInst::TOffset>(diff) );
     }
@@ -2211,10 +2211,8 @@ ICompilerLog* Reporter::GetLog()
     return mLog;
 }
 
-void Reporter::ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* format, ... )
+void Reporter::ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* format, va_list args )
 {
-    va_list args;
-    va_start( args, format );
     const char* fileName = nullptr;
     int line = 0;
     int column = 0;
@@ -2225,7 +2223,6 @@ void Reporter::ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* 
         column = elem->Column;
     }
     ThrowError( exceptionCode, fileName, line, column, format, args );
-    // No need to run va_end( args ), since an exception was thrown
 }
 
 void Reporter::ThrowError( CompilerErr exceptionCode, const char* fileName, int line, int col, const char* format, va_list args )

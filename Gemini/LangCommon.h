@@ -49,7 +49,7 @@ public:
     void Log( LogCategory category, const char* fileName, int line, int col, const char* format, va_list args );
     void LogWarning( const char* fileName, int line, int col, const char* format, ... );
 
-    [[noreturn]] void ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* format, ... );
+    [[noreturn]] void ThrowError( CompilerErr exceptionCode, Syntax* elem, const char* format, va_list args );
     [[noreturn]] void ThrowError( CompilerErr exceptionCode, const char* fileName, int line, int col, const char* format, va_list args );
     [[noreturn]] void ThrowSemanticsError( Syntax* node, const char* format, ... );
     [[noreturn]] void ThrowInternalError( const char* fileName, int line, const char* format, ... );
