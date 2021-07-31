@@ -32,6 +32,7 @@ class AlgolyParser
         RArrow,
         Dot,
         Ampersand,
+        At,
         LBracket,
         RBracket,
         Assign,

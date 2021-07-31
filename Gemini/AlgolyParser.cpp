@@ -26,6 +26,7 @@ static const char* gTokenNames[] =
     "->",
     ".",
     "&",
+    "@",
     "[",
     "]",
     ":=",
@@ -226,6 +227,11 @@ AlgolyParser::TokenCode AlgolyParser::ScanToken()
     case '&':
         NextChar();
         mCurToken = TokenCode::Ampersand;
+        break;
+
+    case '@':
+        NextChar();
+        mCurToken = TokenCode::At;
         break;
 
     case '[':
@@ -941,7 +947,8 @@ Unique<Syntax> AlgolyParser::ParseUnary()
 
         return unary;
     }
-    else if ( mCurToken == TokenCode::Ampersand )
+    else if ( mCurToken == TokenCode::Ampersand
+        || mCurToken == TokenCode::At )
     {
         auto addrOf = Make<AddrOfExpr>();
 
@@ -1331,6 +1338,7 @@ Unique<TypeRef> AlgolyParser::ParseTypeRef()
     switch ( mCurToken )
     {
     case TokenCode::LBracket:   return ParseArrayTypeRef();
+    case TokenCode::At:
     case TokenCode::Ampersand:  return ParsePtrFuncTypeRef();
     case TokenCode::Symbol:     return ParseNameTypeRef();
     default:
@@ -1351,7 +1359,7 @@ Unique<TypeRef> AlgolyParser::ParsePtrFuncTypeRef()
 {
     auto procTypeRef = Make<ProcTypeRef>();
 
-    ScanToken( TokenCode::Ampersand );
+    ScanToken();
     ScanToken( TokenCode::Proc );
 
     if ( mCurToken == TokenCode::LParen )
