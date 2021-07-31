@@ -1674,7 +1674,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     {
         int32_t iValue = Evaluate( node, "Expected constant value" );
 
-        value.SetInteger( iValue );
+        value = iValue;
     }
     else if ( type->GetKind() == TypeKind::Pointer )
     {
@@ -1686,7 +1686,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 
             std::shared_ptr<Function> func = visitor.Evaluate( node );
 
-            value.SetFunction( func );
+            value = func;
         }
         else
         {
