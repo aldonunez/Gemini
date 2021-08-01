@@ -296,14 +296,7 @@ void Compiler::GenerateValue( Syntax* node, Declaration* decl, const GenConfig& 
     }
     else
     {
-        auto&   type = node->Type;
-        int32_t offset = 0;
-
-        EmitLoadConstant( type->GetSize() );
-
-        CalcAddress( node, decl, offset );
-
-        EmitLoadAddress( node, decl, offset );
+        EmitLoadAggregateCopySource( node );
     }
 }
 
@@ -371,6 +364,23 @@ void Compiler::EmitSpilledAddrOffset( int32_t offset )
     EmitU8( OP_INDEX_S, 1 );
 
     DecreaseExprDepth();
+}
+
+void Compiler::EmitLoadAggregateCopySource( Syntax* node )
+{
+    EmitLoadAggregateCopySource( node, node->Type.get() );
+}
+
+void Compiler::EmitLoadAggregateCopySource( Syntax* node, Type* type )
+{
+    int32_t         offset = 0;
+    Declaration*    decl = nullptr;
+
+    EmitLoadConstant( type->GetSize() );
+
+    CalcAddress( node, decl, offset );
+
+    EmitLoadAddress( node, decl, offset );
 }
 
 void Compiler::GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status )
@@ -1754,11 +1764,7 @@ void Compiler::GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenS
     }
     else
     {
-        EmitLoadConstant( elemType.GetSize() );
-
-        CalcAddress( indexExpr, baseDecl, offset );
-
-        EmitLoadAddress( indexExpr, baseDecl, offset );
+        EmitLoadAggregateCopySource( indexExpr, &elemType );
     }
 }
 
@@ -1804,15 +1810,7 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
         return;
     }
 
-    auto&           type = sliceExpr->Type;
-    int32_t         offset = 0;
-    Declaration*    decl = nullptr;
-
-    EmitLoadConstant( type->GetSize() );
-
-    CalcAddress( sliceExpr, decl, offset );
-
-    EmitLoadAddress( sliceExpr, decl, offset );
+    EmitLoadAggregateCopySource( sliceExpr );
 }
 
 void Compiler::VisitDotExpr( DotExpr* dotExpr )
