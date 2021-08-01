@@ -1625,7 +1625,7 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     if ( optIndexVal.has_value() )
     {
-        assert( optIndexVal.value() <= DataSizeMax );
+        assert( optIndexVal.value() < DataSizeMax );
 
         status.offset += static_cast<DataSize>(optIndexVal.value()) * arrayType.ElemType->GetSize();
         return;
@@ -1719,7 +1719,7 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
 
         int32_t indexVal = GetSyntaxValue( sliceExpr->FirstIndex.get(), "" );
 
-        assert( indexVal <= DataSizeMax );
+        assert( indexVal < DataSizeMax );
 
         status.offset += static_cast<DataSize>(indexVal) * arrayType.ElemType->GetSize();
         return;
