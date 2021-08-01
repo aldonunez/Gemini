@@ -1464,13 +1464,15 @@ void BinderVisitor::MakeStdEnv()
     mXferType.reset( new XferType() );
     mIntType.reset( new IntType() );
 
-    VarDecl intDecl( "int" );
-    VarDecl falseDecl( "false" );
-    VarDecl trueDecl( "true" );
+    // Dummy syntax nodes to conform to the Add-declaration API's
 
-    AddType( &intDecl, mIntType, false );
-    AddConst( &falseDecl, mIntType, 0, false );
-    AddConst( &trueDecl, mIntType, 1, false );
+    VarDecl intSyntax( "int" );
+    VarDecl falseSyntax( "false" );
+    VarDecl trueSyntax( "true" );
+
+    AddType( &intSyntax, mIntType, false );
+    AddConst( &falseSyntax, mIntType, 0, false );
+    AddConst( &trueSyntax, mIntType, 1, false );
 }
 
 void BinderVisitor::BindProcs( Unit* program )

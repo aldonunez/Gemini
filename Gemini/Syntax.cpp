@@ -151,6 +151,7 @@ void CallOrSymbolExpr::Accept( Visitor* visitor )
 void CaseElse::Accept( Visitor* visitor )
 {
     // There's no entry in Visitor for this node
+    assert( false );
 }
 
 void CaseExpr::Accept( Visitor* visitor )
@@ -161,11 +162,13 @@ void CaseExpr::Accept( Visitor* visitor )
 void CaseWhen::Accept( Visitor* visitor )
 {
     // There's no entry in Visitor for this node
+    assert( false );
 }
 
 void CondClause::Accept( Visitor* visitor )
 {
     // There's no entry in Visitor for this node
+    assert( false );
 }
 
 void CondExpr::Accept( Visitor* visitor )
