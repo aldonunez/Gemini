@@ -7,7 +7,6 @@
 #include "pch.h"
 #include "Machine.h"
 #include "OpCodes.h"
-#include <memory>
 
 
 /*
@@ -664,7 +663,7 @@ int Machine::Run()
                 if ( err1 != ERR_NONE )
                     return err1;
 
-                memmove( pDst, pSrc, size * sizeof( CELL ) );
+                std::copy_n( pSrc, size, pDst );
             }
             break;
 
@@ -898,7 +897,7 @@ bool Machine::IsCodeInBounds( U32 address ) const
     return address < (mMod->CodeSize - SENTINEL_SIZE);
 }
 
-std::pair<int, void*> Machine::GetSizedDataPtr( CELL addrWord, CELL size )
+std::pair<int, CELL*> Machine::GetSizedDataPtr( CELL addrWord, CELL size )
 {
     U8  iMod = CodeAddr::GetModule( addrWord );
     U32 offs = CodeAddr::GetAddress( addrWord );
@@ -913,7 +912,7 @@ std::pair<int, void*> Machine::GetSizedDataPtr( CELL addrWord, CELL size )
     if ( offs >= mod->DataSize || size > mod->DataSize - static_cast<U16>(offs) )
         return std::pair( ERR_BAD_ADDRESS, nullptr );
 
-    return std::pair( 0, mod->DataBase + offs );
+    return std::pair( ERR_NONE, mod->DataBase + offs );
 }
 
 std::pair<int, const Module*> Machine::GetDataModule( U8 index )
