@@ -151,8 +151,8 @@ enum class ParamMode
 
 struct ParamSpecRef
 {
-    Unique<TypeRef> TypeRef;
-    ParamMode       Mode = ParamMode::Value;
+    Unique<Gemini::TypeRef> TypeRef;
+    ParamMode               Mode = ParamMode::Value;
 
     ParamSpecRef()
     {
@@ -793,9 +793,9 @@ public:
 
 struct ParamSpec
 {
-    std::shared_ptr<Type>   Type;
-    ParamMode               Mode = ParamMode::Value;
-    ParamSize               Size = 0;
+    std::shared_ptr<Gemini::Type>   Type;
+    ParamMode                       Mode = ParamMode::Value;
+    ParamSize                       Size = 0;
 };
 
 class FuncType : public Type
