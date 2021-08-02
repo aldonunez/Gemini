@@ -960,9 +960,13 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
         Generate( &node, config, status );
 
         if ( !status.spilledAddr )
+        {
             EmitLoadAddress( &node, status.baseDecl, status.offset );
+        }
         else if ( status.offset > 0 )
+        {
             EmitSpilledAddrOffset( status.offset );
+        }
         break;
     }
 }
@@ -974,14 +978,13 @@ void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus&
 
 ParamSize Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType )
 {
+    assert( arguments.size() == funcType->Params.size() );
+
     ParamSize argCount = 0;
 
     for ( auto i = static_cast<ptrdiff_t>(arguments.size()) - 1; i >= 0; i-- )
     {
         GenerateArg( *arguments[i], funcType->Params[i] );
-
-        if ( funcType->Params[i].Size > (ParamSizeMax - argCount) )
-            mRep.ThrowSemanticsError( arguments[i].get(), "Too many arguments" );
 
         argCount += funcType->Params[i].Size;
     }

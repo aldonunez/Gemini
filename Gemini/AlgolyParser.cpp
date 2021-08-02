@@ -1261,7 +1261,9 @@ Unique<DataDecl> AlgolyParser::ParseVar( Unique<DataDecl>&& varDecl, std::option
     {
         ScanToken();
 
-        varDecl->TypeRef = ParseTypeRef( varDecl->Kind == SyntaxKind::ParamDecl );
+        bool allowOpenArray = (varDecl->Kind == SyntaxKind::ParamDecl);
+
+        varDecl->TypeRef = ParseTypeRef( allowOpenArray );
     }
 
     if ( assignToken.has_value() )
@@ -1387,7 +1389,7 @@ Unique<TypeRef> AlgolyParser::ParsePtrFuncTypeRef()
 
             first = false;
 
-            procTypeRef->Params.push_back( ParseBareParameter() );
+            procTypeRef->Params.push_back( ParseAnonymousParameter() );
 
             SkipLineEndings();
         }
@@ -1409,7 +1411,7 @@ Unique<TypeRef> AlgolyParser::ParsePtrFuncTypeRef()
     return pointerTypeRef;
 }
 
-ParamSpecRef AlgolyParser::ParseBareParameter()
+ParamSpecRef AlgolyParser::ParseAnonymousParameter()
 {
     ParamSpecRef param;
 

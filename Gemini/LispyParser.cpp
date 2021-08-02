@@ -709,7 +709,7 @@ Unique<TypeRef> LispyParser::ParsePtrFuncTypeRef()
 
     do
     {
-        procTypeRef->Params.push_back( ParseBareParameter() );
+        procTypeRef->Params.push_back( ParseAnonymousParameter() );
 
     } while ( mCurToken != TokenCode::RParen );
 
@@ -722,7 +722,7 @@ Unique<TypeRef> LispyParser::ParsePtrFuncTypeRef()
     return pointerTypeRef;
 }
 
-ParamSpecRef LispyParser::ParseBareParameter()
+ParamSpecRef LispyParser::ParseAnonymousParameter()
 {
     ParamSpecRef param;
 
