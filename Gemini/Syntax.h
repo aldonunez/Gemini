@@ -615,7 +615,7 @@ protected:
 
 struct CommonDeclaration : public Declaration
 {
-    std::shared_ptr<Type>   Type;
+    std::shared_ptr<Gemini::Type>   Type;
 
     CommonDeclaration( DeclKind kind );
 
@@ -646,7 +646,7 @@ struct Constant : public Declaration
 
 struct SimpleConstant : public Constant
 {
-    std::shared_ptr<Type>   Type;
+    std::shared_ptr<Gemini::Type>   Type;
 
     virtual std::shared_ptr<Gemini::Type> GetType() const override
     {

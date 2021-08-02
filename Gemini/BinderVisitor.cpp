@@ -47,8 +47,8 @@ class BorrowedScope
 
 public:
     explicit BorrowedScope( BinderVisitor& binder, SymTable& table ) :
-        mBinder( binder ),
-        mTable( table )
+        mTable( table ),
+        mBinder( binder )
     {
         mBinder.mSymStack.push_back( &mTable );
     }
