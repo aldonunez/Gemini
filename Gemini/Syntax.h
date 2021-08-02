@@ -740,7 +740,12 @@ class EnumType;
 
 struct EnumMember : public Constant
 {
-    std::weak_ptr<EnumType> ParentType;
+    // Use a weak reference to avoid a circular reference.
+    // But the parent type must always be available.
+    // This is easy to guarantee since, in the language,
+    // these only show up in the context of the parent.
+
+    const std::weak_ptr<EnumType> ParentType;
 
     EnumMember( int32_t value, std::shared_ptr<EnumType> parentType ) :
         ParentType( parentType )
@@ -750,7 +755,14 @@ struct EnumMember : public Constant
 
     virtual std::shared_ptr<Type> GetType() const override
     {
-        return std::static_pointer_cast<Type>( ParentType.lock() );
+        auto parentType = ParentType.lock();
+
+        // A weak pointer is used only to avoid a circular reference.
+        // The parent type must be available.
+
+        assert( parentType );
+
+        return std::static_pointer_cast<Type>( std::move( parentType ) );
     }
 };
 
