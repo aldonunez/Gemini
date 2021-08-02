@@ -747,23 +747,9 @@ struct EnumMember : public Constant
 
     const std::weak_ptr<EnumType> ParentType;
 
-    EnumMember( int32_t value, std::shared_ptr<EnumType> parentType ) :
-        ParentType( parentType )
-    {
-        Value = value;
-    }
+    EnumMember( int32_t value, std::shared_ptr<EnumType> parentType );
 
-    virtual std::shared_ptr<Type> GetType() const override
-    {
-        auto parentType = ParentType.lock();
-
-        // A weak pointer is used only to avoid a circular reference.
-        // The parent type must be available.
-
-        assert( parentType );
-
-        return std::static_pointer_cast<Type>( std::move( parentType ) );
-    }
+    virtual std::shared_ptr<Type> GetType() const override;
 };
 
 

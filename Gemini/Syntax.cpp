@@ -574,6 +574,24 @@ LoadedAddressDeclaration::LoadedAddressDeclaration() :
 {
 }
 
+EnumMember::EnumMember( int32_t value, std::shared_ptr<EnumType> parentType ) :
+    ParentType( parentType )
+{
+    Value = value;
+}
+
+std::shared_ptr<Type> EnumMember::GetType() const
+{
+    auto parentType = ParentType.lock();
+
+    // A weak pointer is used only to avoid a circular reference.
+    // The parent type must be available.
+
+    assert( parentType );
+
+    return std::static_pointer_cast<Type>( std::move( parentType ) );
+}
+
 
 //----------------------------------------------------------------------------
 //  Types
