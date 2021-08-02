@@ -7,6 +7,7 @@
 #include "pch.h"
 #include "Machine.h"
 #include "OpCodes.h"
+#include <algorithm>
 
 
 /*

@@ -9,6 +9,7 @@
 #include "BinderVisitor.h"
 #include "FolderVisitor.h"
 #include "OpCodes.h"
+#include <algorithm>
 #include <stdarg.h>
 #include <string.h>
 #include <stdexcept>
