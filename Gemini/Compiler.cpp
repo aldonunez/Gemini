@@ -1089,7 +1089,7 @@ ParamSize Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, Fu
 
 void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status )
 {
-    auto funcType = (FuncType*) decl->Type.get();
+    auto funcType = (FuncType*) decl->GetType().get();
 
     ParamSize argCount = GenerateCallArgs( arguments, funcType );
 

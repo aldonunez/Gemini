@@ -751,7 +751,7 @@ struct ParamStorage : public CommonDeclaration
     ParamStorage();
 };
 
-struct FieldStorage : public Declaration
+struct FieldStorage : public CommonDeclaration
 {
     DataSize    Offset = 0;
 

@@ -638,7 +638,7 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
             mRep.ThrowSemanticsError( dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
 
         dotExpr->Decl = it->second;
-        dotExpr->Type = dotExpr->Decl->Type;
+        dotExpr->Type = dotExpr->Decl->GetType();
     }
     else
     {
@@ -972,7 +972,7 @@ void BinderVisitor::CheckInitializer(
 
             auto fieldDecl = it->second;
 
-            CheckInitializer( fieldDecl->Type, fieldInit->Initializer );
+            CheckInitializer( fieldDecl->GetType(), fieldInit->Initializer );
 
             fieldInit->Decl = fieldDecl;
 
@@ -982,7 +982,7 @@ void BinderVisitor::CheckInitializer(
 
         for ( auto& [_, decl] : notInit )
         {
-            CheckAllDescendantsHaveDefault( decl->Type.get(), initializer.get() );
+            CheckAllDescendantsHaveDefault( decl->GetType().get(), initializer.get() );
         }
 
         initializer->Type = type;
@@ -1009,7 +1009,7 @@ void BinderVisitor::CheckAllDescendantsHaveDefault( Type* type, Syntax* node )
 
         for ( auto& [_, decl] : recordType->Fields )
         {
-            CheckAllDescendantsHaveDefault( decl->Type.get(), node );
+            CheckAllDescendantsHaveDefault( decl->GetType().get(), node );
         }
     }
     else if ( type->GetKind() == TypeKind::Pointer )

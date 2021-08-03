@@ -601,7 +601,7 @@ ParamStorage::ParamStorage() :
 }
 
 FieldStorage::FieldStorage() :
-    Declaration( DeclKind::Field )
+    CommonDeclaration( DeclKind::Field )
 {
 }
 
@@ -865,7 +865,7 @@ DataSize RecordType::GetSize() const
     {
         for ( auto& [_, field] : Fields )
         {
-            mSize += field->Type->GetSize();
+            mSize += field->GetType()->GetSize();
         }
     }
 
