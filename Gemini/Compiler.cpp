@@ -921,19 +921,19 @@ void Compiler::GenerateLocalInit( LocalSize offset, Syntax* initializer )
         EmitU8( OP_STLOC, offset );
         DecreaseExprDepth();
     }
-    else if ( type->GetKind() == TypeKind::Array )
+    else if ( initializer->Kind == SyntaxKind::ArrayInitializer )
     {
         auto arrayType = (ArrayType*) type;
 
-        AddLocalDataArray( offset, initializer, arrayType->Count );
+        EmitLocalArrayInitializer( offset, (InitList*) initializer, arrayType->Count );
     }
-    else if ( type->GetKind() == TypeKind::Record )
+    else if ( initializer->Kind == SyntaxKind::RecordInitializer )
     {
-        AddLocalDataRecord( offset, initializer );
+        EmitLocalRecordInitializer( offset, (RecordInitializer*) initializer );
     }
     else
     {
-        mRep.ThrowSemanticsError( initializer, "'let' binding takes a name or name and type" );
+        EmitLocalAggregateCopyBlock( offset, initializer );
     }
 }
 
@@ -942,26 +942,24 @@ void Compiler::VisitLetStatement( LetStatement* letStmt )
     GenerateLet( letStmt, Config(), Status() );
 }
 
-void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size )
+void Compiler::EmitLocalAggregateCopyBlock( LocalSize offset, Syntax* valueElem )
 {
-    if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
-    {
-        Generate( valueElem );
+    Generate( valueElem );
 
-        EmitU8( OP_LDLOCA, offset );
-        Emit( OP_COPYBLOCK );
+    EmitU8( OP_LDLOCA, offset );
+    Emit( OP_COPYBLOCK );
 
-        IncreaseExprDepth();
-        DecreaseExprDepth( 3 );
-        return;
-    }
+    IncreaseExprDepth();
+    DecreaseExprDepth( 3 );
+}
 
-    auto        initList = (InitList*) valueElem;
+void Compiler::EmitLocalArrayInitializer( LocalSize offset, InitList* initList, size_t size )
+{
     LocalSize   locIndex = offset;
     LocalSize   i = 0;
 
     if ( initList->Values.size() > size )
-        mRep.ThrowSemanticsError( valueElem, "Array has too many initializers" );
+        mRep.ThrowSemanticsError( initList, "Array has too many initializers" );
 
     for ( auto& entry : initList->Values )
     {
@@ -1013,10 +1011,8 @@ void Compiler::AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t si
     }
 }
 
-void Compiler::AddLocalDataRecord( LocalSize offset, Syntax* recordValue )
+void Compiler::EmitLocalRecordInitializer( LocalSize offset, RecordInitializer* recordInit )
 {
-    auto recordInit = (RecordInitializer*) recordValue;
-
     for ( auto& fieldInit : recordInit->Fields )
     {
         auto fieldDecl = (FieldStorage*) fieldInit->GetDecl();
@@ -1900,25 +1896,30 @@ void Compiler::GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenS
         return;
     }
 
-    Declaration* baseDecl = nullptr;
-    int32_t offset = 0;
+    auto& arrayType = (ArrayType&) *indexExpr->Head->Type;
+    auto& elemType = *arrayType.ElemType;
 
+    EmitCopyPartOfAggregate( indexExpr, &elemType );
+}
+
+void Compiler::EmitCopyPartOfAggregate( Syntax* partNode, Type* partType )
+{
     // Calculate address in each clause below instead of once here,
     // because it might spill. And in the case of array, the spilled address
     // must be right after the size.
 
-    auto& arrayType = (ArrayType&) *indexExpr->Head->Type;
-    auto& elemType = *arrayType.ElemType;
-
-    if ( IsScalarType( elemType.GetKind() ) )
+    if ( IsScalarType( partType->GetKind() ) )
     {
-        CalcAddress( indexExpr, baseDecl, offset );
+        Declaration* baseDecl = nullptr;
+        int32_t      offset = 0;
 
-        EmitLoadScalar( indexExpr, baseDecl, offset );
+        CalcAddress( partNode, baseDecl, offset );
+
+        EmitLoadScalar( partNode, baseDecl, offset );
     }
     else
     {
-        EmitLoadAggregateCopySource( indexExpr, &elemType );
+        EmitLoadAggregateCopySource( partNode, partType );
     }
 }
 
@@ -1984,12 +1985,10 @@ void Compiler::GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, G
         return;
     }
 
-    Declaration* baseDecl = nullptr;
-    int32_t offset = 0;
+    auto    field = (FieldStorage*) dotExpr->GetDecl();
+    auto&   fieldType = *field->GetType();
 
-    CalcAddress( dotExpr, baseDecl, offset );
-
-    EmitLoadScalar( dotExpr, baseDecl, offset );
+    EmitCopyPartOfAggregate( dotExpr, &fieldType );
 }
 
 void Compiler::VisitDotExpr( DotExpr* dotExpr )
@@ -2022,21 +2021,21 @@ void Compiler::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
 
     if ( IsScalarType( type->GetKind() ) )
     {
-        AddGlobalData( offset, initializer );
+        EmitGlobalScalar( offset, initializer );
     }
-    else if ( type->GetKind() == TypeKind::Array )
+    else if ( initializer->Kind == SyntaxKind::ArrayInitializer )
     {
         auto arrayType = (ArrayType*) type;
 
-        AddGlobalDataArray( offset, initializer, arrayType->Count );
+        EmitGlobalArrayInitializer( offset, (InitList*) initializer, arrayType->Count );
     }
-    else if ( type->GetKind() == TypeKind::Record )
+    else if ( initializer->Kind == SyntaxKind::RecordInitializer )
     {
-        AddGlobalDataRecord( offset, initializer );
+        EmitGlobalRecordInitializer( offset, (RecordInitializer*) initializer );
     }
     else
     {
-        mRep.ThrowSemanticsError( initializer, "'defvar' takes a name or name and type" );
+        EmitGlobalAggregateCopyBlock( offset, initializer );
     }
 }
 
@@ -2045,7 +2044,7 @@ void Compiler::VisitVarDecl( VarDecl* varDecl )
     GenerateDefvar( varDecl, Config(), Status() );
 }
 
-void Compiler::AddGlobalData( GlobalSize offset, Syntax* valueElem )
+void Compiler::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
 {
     if ( valueElem->Type->GetKind() == TypeKind::Pointer )
     {
@@ -2066,32 +2065,30 @@ void Compiler::AddGlobalData( GlobalSize offset, Syntax* valueElem )
     }
 }
 
-void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t size )
+void Compiler::EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem )
 {
-    if ( valueElem->Kind != SyntaxKind::ArrayInitializer )
-    {
-        // Defer these globals until all function addresses are known and put in source blocks
+    // Defer these globals until all function addresses are known and put in source blocks
 
-        Declaration* baseDecl = nullptr;
-        int32_t      srcOffset = 0;
-        MemTransfer  transfer;
+    Declaration* baseDecl = nullptr;
+    int32_t      srcOffset = 0;
+    MemTransfer  transfer;
 
-        CalcAddress( valueElem, baseDecl, srcOffset );
+    CalcAddress( valueElem, baseDecl, srcOffset );
 
-        transfer.Src = srcOffset;
-        transfer.Dst = offset;
-        transfer.Size = valueElem->Type->GetSize();
+    transfer.Src = srcOffset;
+    transfer.Dst = offset;
+    transfer.Size = valueElem->Type->GetSize();
 
-        mDeferredGlobals.push_back( transfer );
-        return;
-    }
+    mDeferredGlobals.push_back( transfer );
+}
 
-    auto        initList = (InitList*) valueElem;
+void Compiler::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size )
+{
     GlobalSize  i = 0;
     GlobalSize  globalIndex = offset;
 
     if ( initList->Values.size() > size )
-        mRep.ThrowSemanticsError( valueElem, "Array has too many initializers" );
+        mRep.ThrowSemanticsError( initList, "Array has too many initializers" );
 
     for ( auto& entry : initList->Values )
     {
@@ -2130,13 +2127,8 @@ void Compiler::AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t 
     }
 }
 
-void Compiler::AddGlobalDataRecord( GlobalSize offset, Syntax* recordValue )
+void Compiler::EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit )
 {
-    if ( recordValue->Kind != SyntaxKind::RecordInitializer )
-        mRep.ThrowSemanticsError( recordValue, "Records must be initialized with record initializer" );
-
-    auto recordInit = (RecordInitializer*) recordValue;
-
     for ( auto& fieldInit : recordInit->Fields )
     {
         auto fieldDecl = (FieldStorage*) fieldInit->GetDecl();

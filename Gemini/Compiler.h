@@ -345,9 +345,10 @@ private:
 
     void CalcAddress( Syntax* dotExpr, Declaration*& baseDecl, int32_t& offset );
 
-    void AddGlobalData( GlobalSize offset, Syntax* valueElem );
-    void AddGlobalDataArray( GlobalSize offset, Syntax* valueElem, size_t size );
-    void AddGlobalDataRecord( GlobalSize offset, Syntax* recordValue );
+    void EmitGlobalScalar( GlobalSize offset, Syntax* valueElem );
+    void EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size );
+    void EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit );
+    void EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem );
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
@@ -358,6 +359,7 @@ private:
     void EmitSpilledAddrOffset( int32_t offset );
     void EmitLoadAggregateCopySource( Syntax* node );
     void EmitLoadAggregateCopySource( Syntax* node, Type* type );
+    void EmitCopyPartOfAggregate( Syntax* partNode, Type* partType );
     void EmitCountofArray( Syntax* arrayNode );
 
     // Level 3 - functions and special operators
@@ -374,8 +376,9 @@ private:
     void GenerateLet( LetStatement* letStmt, const GenConfig& config, GenStatus& status );
     void GenerateLetBinding( DataDecl* binding );
     void GenerateLocalInit( LocalSize offset, Syntax* initializer );
-    void AddLocalDataArray( LocalSize offset, Syntax* valueElem, size_t size );
-    void AddLocalDataRecord( LocalSize offset, Syntax* recordValue );
+    void EmitLocalArrayInitializer( LocalSize offset, InitList* initList, size_t size );
+    void EmitLocalRecordInitializer( LocalSize offset, RecordInitializer* recordInit );
+    void EmitLocalAggregateCopyBlock( LocalSize offset, Syntax* valueElem );
 
     void GenerateDopeVector( Syntax& node, ParamSpec& paramSpec );
     void GenerateArg( Syntax& node, ParamSpec& paramSpec );

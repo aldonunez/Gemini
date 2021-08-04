@@ -131,6 +131,7 @@ static bool IsAssignableType( TypeKind kind )
     return IsScalarType( kind )
         || kind == TypeKind::Xfer
         || kind == TypeKind::Array
+        || kind == TypeKind::Record
         ;
 }
 

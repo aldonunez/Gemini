@@ -731,3 +731,1331 @@ TEST_CASE( "Algoly: read local array of array of repeating record with fptr and 
 
     TestCompileAndRunAlgoly( code, sizeof code, 12, 0, 7+8 );
 }
+
+
+//----------------------------------------------------------------------------
+//  Assign record
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: assign record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r2: R := { x: 3, f: &B, y: 4 }\n"
+        "var r1: R := { x: 1, f: &C, y: 2 }\n"
+        "def a\n"
+        "  r1 := r2\n"
+        "  r1.x + r1.y + (r1.f)() + \n"
+        "  r2.x + r2.y + (r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+}
+
+TEST_CASE( "Algoly: assign record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r2: R := { x: 3, f: &B, y: 4 }\n"
+        "def a\n"
+        "  var r1: R := { x: 1, f: &C, y: 2 }\n"
+        "  r1 := r2\n"
+        "  r1.x + r1.y + (r1.f)() + \n"
+        "  r2.x + r2.y + (r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+}
+
+TEST_CASE( "Algoly: assign record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "def a\n"
+        "  var r2: R := { x: 3, f: &B, y: 4 }\n"
+        "  var r1: R := { x: 1, f: &C, y: 2 }\n"
+        "  r1 := r2\n"
+        "  r1.x + r1.y + (r1.f)() + \n"
+        "  r2.x + r2.y + (r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Init record with record
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: init record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r2: R := { x: 3, f: &B, y: 4 }\n"
+        "var r1: R := r2\n"
+        "def a\n"
+        "  r1.x + r1.y + (r1.f)() + \n"
+        "  r2.x + r2.y + (r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+}
+
+TEST_CASE( "Algoly: init record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r2: R := { x: 3, f: &B, y: 4 }\n"
+        "def a\n"
+        "  var r1: R := r2\n"
+        "  r1.x + r1.y + (r1.f)() + \n"
+        "  r2.x + r2.y + (r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+}
+
+TEST_CASE( "Algoly: init record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "def a\n"
+        "  var r2: R := { x: 3, f: &B, y: 4 }\n"
+        "  var r1: R := r2\n"
+        "  r1.x + r1.y + (r1.f)() + \n"
+        "  r2.x + r2.y + (r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Assign record inside record
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: assign record in record to record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "var r: R := { x: 5, f: &D, y: 6 }\n"
+        "def a\n"
+        "  r := q.r2\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in record to record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "def a\n"
+        "  var r: R := { x: 5, f: &D, y: 6 }\n"
+        "  r := q.r2\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in record to record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "def a\n"
+        "  var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "  var r: R := { x: 5, f: &D, y: 6 }\n"
+        "  r := q.r2\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record to record in record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 5, f: &D, y: 6 } }\n"
+        "def a\n"
+        "  q.r2 := r\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record to record in record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "def a\n"
+        "  var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 5, f: &D, y: 6 } }\n"
+        "  q.r2 := r\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record to record in record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "def a\n"
+        "  var r: R := { x: 3, f: &B, y: 4 }\n"
+        "  var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 5, f: &D, y: 6 } }\n"
+        "  q.r2 := r\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in record to record in record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var q2: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "var q1: Q := { r1: { x: 5, f: &D, y: 6 }, r2: { x: 7, f: &D, y: 8 } }\n"
+        "def a\n"
+        "  q1.r2 := q2.r2\n"
+        "  q1.r1.x + q1.r1.y + (q1.r1.f)() + q1.r2.x + q1.r2.y + (q1.r2.f)() + \n"
+        "  q2.r1.x + q2.r1.y + (q2.r1.f)() + q2.r2.x + q2.r2.y + (q2.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in record to record in record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var q2: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "def a\n"
+        "  var q1: Q := { r1: { x: 5, f: &D, y: 6 }, r2: { x: 7, f: &D, y: 8 } }\n"
+        "  q1.r2 := q2.r2\n"
+        "  q1.r1.x + q1.r1.y + (q1.r1.f)() + q1.r2.x + q1.r2.y + (q1.r2.f)() + \n"
+        "  q2.r1.x + q2.r1.y + (q2.r1.f)() + q2.r2.x + q2.r2.y + (q2.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in record to record in record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "def a\n"
+        "  var q2: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "  var q1: Q := { r1: { x: 5, f: &D, y: 6 }, r2: { x: 7, f: &D, y: 8 } }\n"
+        "  q1.r2 := q2.r2\n"
+        "  q1.r1.x + q1.r1.y + (q1.r1.f)() + q1.r2.x + q1.r2.y + (q1.r2.f)() + \n"
+        "  q2.r1.x + q2.r1.y + (q2.r1.f)() + q2.r2.x + q2.r2.y + (q2.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Init record inside record
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: init record in record to record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "var r: R := q.r2\n"
+        "def a\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record in record to record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "def a\n"
+        "  var r: R := q.r2\n"
+        "  r := q.r2\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record in record to record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "def a\n"
+        "  var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "  var r: R := q.r2\n"
+        "  r := q.r2\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record to record in record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: r }\n"
+        "def a\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record to record in record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "def a\n"
+        "  var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: r }\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record to record in record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "def a\n"
+        "  var r: R := { x: 3, f: &B, y: 4 }\n"
+        "  var q: Q := { r1: { x: 1, f: &C, y: 2 }, r2: r }\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  q.r1.x + q.r1.y + (q.r1.f)() + q.r2.x + q.r2.y + (q.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record in record to record in record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var q2: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "var q1: Q := { r1: { x: 5, f: &D, y: 6 }, r2: q2.r2 }\n"
+        "def a\n"
+        "  q1.r1.x + q1.r1.y + (q1.r1.f)() + q1.r2.x + q1.r2.y + (q1.r2.f)() + \n"
+        "  q2.r1.x + q2.r1.y + (q2.r1.f)() + q2.r2.x + q2.r2.y + (q2.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: init record in record to record in record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "var q2: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "def a\n"
+        "  var q1: Q := { r1: { x: 5, f: &D, y: 6 }, r2: q2.r2 }\n"
+        "  q1.r1.x + q1.r1.y + (q1.r1.f)() + q1.r2.x + q1.r2.y + (q1.r2.f)() + \n"
+        "  q2.r1.x + q2.r1.y + (q2.r1.f)() + q2.r2.x + q2.r2.y + (q2.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: init record in record to record in record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "type Q = record r1: R, r2: R end\n"
+        "def a\n"
+        "  var q2: Q := { r1: { x: 1, f: &C, y: 2 }, r2: { x: 3, f: &B, y: 4 } }\n"
+        "  var q1: Q := { r1: { x: 5, f: &D, y: 6 }, r2: q2.r2 }\n"
+        "  q1.r1.x + q1.r1.y + (q1.r1.f)() + q1.r2.x + q1.r2.y + (q1.r2.f)() + \n"
+        "  q2.r1.x + q2.r1.y + (q2.r1.f)() + q2.r2.x + q2.r2.y + (q2.r2.f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Assign record inside array
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: assign record in array to record, const indexes, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "var r: R := { x: 5, f: &D, y: 6 }\n"
+        "def a\n"
+        "  r := ar[1]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record, const indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "def a\n"
+        "  var r: R := { x: 5, f: &D, y: 6 }\n"
+        "  r := ar[1]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record, const indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "def a\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "  var r: R := { x: 5, f: &D, y: 6 }\n"
+        "  r := ar[1]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record, var indexes, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "var r: R := { x: 5, f: &D, y: 6 }\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  r := ar[one]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[zero].x + ar[zero].y + (ar[zero].f)() + ar[one].x + ar[one].y + (ar[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record, var indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var r: R := { x: 5, f: &D, y: 6 }\n"
+        "  r := ar[one]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[zero].x + ar[zero].y + (ar[zero].f)() + ar[one].x + ar[one].y + (ar[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record, var indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "  var r: R := { x: 5, f: &D, y: 6 }\n"
+        "  r := ar[one]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[zero].x + ar[zero].y + (ar[zero].f)() + ar[one].x + ar[one].y + (ar[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record to record in array, const indexes, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 5, f: &D, y: 6 } ]\n"
+        "def a\n"
+        "  ar[1] := r\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record to record in array, const indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "def a\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 5, f: &D, y: 6 } ]\n"
+        "  ar[1] := r\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record to record in array, const indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "def a\n"
+        "  var r: R := { x: 3, f: &B, y: 4 }\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 5, f: &D, y: 6 } ]\n"
+        "  ar[1] := r\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record to record in array, var indexes, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 5, f: &D, y: 6 } ]\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  ar[one] := r\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[zero].x + ar[zero].y + (ar[zero].f)() + ar[one].x + ar[one].y + (ar[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record to record in array, var indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 5, f: &D, y: 6 } ]\n"
+        "  ar[one] := r\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[zero].x + ar[zero].y + (ar[zero].f)() + ar[one].x + ar[one].y + (ar[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record to record in array, var indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var r: R := { x: 3, f: &B, y: 4 }\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 5, f: &D, y: 6 } ]\n"
+        "  ar[one] := r\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[zero].x + ar[zero].y + (ar[zero].f)() + ar[one].x + ar[one].y + (ar[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record in array, const indexes, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar2: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "var ar1: [2] of R := [ { x: 5, f: &D, y: 6 }, { x: 7, f: &D, y: 8 } ]\n"
+        "def a\n"
+        "  ar1[1] := ar2[1]\n"
+        "  ar1[0].x + ar1[0].y + (ar1[0].f)() + ar1[1].x + ar1[1].y + (ar1[1].f)() + \n"
+        "  ar2[0].x + ar2[0].y + (ar2[0].f)() + ar2[1].x + ar2[1].y + (ar2[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record in array, const indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar2: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "def a\n"
+        "  var ar1: [2] of R := [ { x: 5, f: &D, y: 6 }, { x: 7, f: &D, y: 8 } ]\n"
+        "  ar1[1] := ar2[1]\n"
+        "  ar1[0].x + ar1[0].y + (ar1[0].f)() + ar1[1].x + ar1[1].y + (ar1[1].f)() + \n"
+        "  ar2[0].x + ar2[0].y + (ar2[0].f)() + ar2[1].x + ar2[1].y + (ar2[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record in array, const indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "def a\n"
+        "  var ar2: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "  var ar1: [2] of R := [ { x: 5, f: &D, y: 6 }, { x: 7, f: &D, y: 8 } ]\n"
+        "  ar1[1] := ar2[1]\n"
+        "  ar1[0].x + ar1[0].y + (ar1[0].f)() + ar1[1].x + ar1[1].y + (ar1[1].f)() + \n"
+        "  ar2[0].x + ar2[0].y + (ar2[0].f)() + ar2[1].x + ar2[1].y + (ar2[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record in array, var indexes, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar2: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "var ar1: [2] of R := [ { x: 5, f: &D, y: 6 }, { x: 7, f: &D, y: 8 } ]\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  ar1[one] := ar2[one]\n"
+        "  ar1[zero].x + ar1[zero].y + (ar1[zero].f)() + ar1[one].x + ar1[one].y + (ar1[one].f)() + \n"
+        "  ar2[zero].x + ar2[zero].y + (ar2[zero].f)() + ar2[one].x + ar2[one].y + (ar2[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record in array, var indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar2: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var ar1: [2] of R := [ { x: 5, f: &D, y: 6 }, { x: 7, f: &D, y: 8 } ]\n"
+        "  ar1[one] := ar2[one]\n"
+        "  ar1[zero].x + ar1[zero].y + (ar1[zero].f)() + ar1[one].x + ar1[one].y + (ar1[one].f)() + \n"
+        "  ar2[zero].x + ar2[zero].y + (ar2[zero].f)() + ar2[one].x + ar2[one].y + (ar2[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: assign record in array to record in array, var indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var ar2: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "  var ar1: [2] of R := [ { x: 5, f: &D, y: 6 }, { x: 7, f: &D, y: 8 } ]\n"
+        "  ar1[one] := ar2[one]\n"
+        "  ar1[zero].x + ar1[zero].y + (ar1[zero].f)() + ar1[one].x + ar1[one].y + (ar1[one].f)() + \n"
+        "  ar2[zero].x + ar2[zero].y + (ar2[zero].f)() + ar2[one].x + ar2[one].y + (ar2[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Init record inside array
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: init record in array to record, const indexes, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "var r: R := ar[1]\n"
+        "def a\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record in array to record, const indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "def a\n"
+        "  var r: R := ar[1]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record in array to record, const indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "def a\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "  var r: R := ar[1]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record in array to record, var indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var r: R := ar[one]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[zero].x + ar[zero].y + (ar[zero].f)() + ar[one].x + ar[one].y + (ar[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record in array to record, var indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "  var r: R := ar[one]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[zero].x + ar[zero].y + (ar[zero].f)() + ar[one].x + ar[one].y + (ar[one].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record to record in array, const indexes, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, r ]\n"
+        "def a\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record to record in array, const indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var r: R := { x: 3, f: &B, y: 4 }\n"
+        "def a\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, r ]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record to record in array, const indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "def a\n"
+        "  var r: R := { x: 3, f: &B, y: 4 }\n"
+        "  var ar: [2] of R := [ { x: 1, f: &C, y: 2 }, r ]\n"
+        "  r.x + r.y + (r.f)() + \n"
+        "  ar[0].x + ar[0].y + (ar[0].f)() + ar[1].x + ar[1].y + (ar[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+}
+
+TEST_CASE( "Algoly: init record in array to record in array, const indexes, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar2: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "var ar1: [2] of R := [ { x: 5, f: &D, y: 6 }, ar2[1] ]\n"
+        "def a\n"
+        "  ar1[0].x + ar1[0].y + (ar1[0].f)() + ar1[1].x + ar1[1].y + (ar1[1].f)() + \n"
+        "  ar2[0].x + ar2[0].y + (ar2[0].f)() + ar2[1].x + ar2[1].y + (ar2[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: init record in array to record in array, const indexes, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "var ar2: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "def a\n"
+        "  var ar1: [2] of R := [ { x: 5, f: &D, y: 6 }, ar2[1] ]\n"
+        "  ar1[0].x + ar1[0].y + (ar1[0].f)() + ar1[1].x + ar1[1].y + (ar1[1].f)() + \n"
+        "  ar2[0].x + ar2[0].y + (ar2[0].f)() + ar2[1].x + ar2[1].y + (ar2[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+TEST_CASE( "Algoly: init record in array to record in array, const indexes, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, f: &proc, y: int end\n"
+        "def a\n"
+        "  var ar2: [2] of R := [ { x: 1, f: &C, y: 2 }, { x: 3, f: &B, y: 4 } ]\n"
+        "  var ar1: [2] of R := [ { x: 5, f: &D, y: 6 }, ar2[1] ]\n"
+        "  ar1[0].x + ar1[0].y + (ar1[0].f)() + ar1[1].x + ar1[1].y + (ar1[1].f)() + \n"
+        "  ar2[0].x + ar2[0].y + (ar2[0].f)() + ar2[1].x + ar2[1].y + (ar2[1].f)()\n"
+        "end\n"
+        "def B 100 end\n"
+        "def C 10 end\n"
+        "def D 1 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Assign array of int inside record
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: assign array of int in record to array, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "var ar: [2] := [ 5, 6 ]\n"
+        "def a\n"
+        "  ar := r.b\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: assign array of int in record to array, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "def a\n"
+        "  var ar: [2] := [ 5, 6 ]\n"
+        "  ar := r.b\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: assign array of int in record to array, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "def a\n"
+        "  var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "  var ar: [2] := [ 5, 6 ]\n"
+        "  ar := r.b\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: assign array to array of int in record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var ar: [2] := [ 3, 4 ]\n"
+        "var r: R := { a: [ 1, 2 ], b: [ 5, 6 ] }\n"
+        "def a\n"
+        "  r.b := ar\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: assign array to array of int in record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var ar: [2] := [ 3, 4 ]\n"
+        "def a\n"
+        "  var r: R := { a: [ 1, 2 ], b: [ 5, 6 ] }\n"
+        "  r.b := ar\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: assign array to array of int in record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "def a\n"
+        "  var ar: [2] := [ 3, 4 ]\n"
+        "  var r: R := { a: [ 1, 2 ], b: [ 5, 6 ] }\n"
+        "  r.b := ar\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: assign array in record to array of int in record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r2: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "var r1: R := { a: [ 5, 6 ], b: [ 7, 8 ] }\n"
+        "def a\n"
+        "  r1.b := r2.b\n"
+        "  r1.a[0] + r1.a[1] + r1.b[0] + r1.b[1] + \n"
+        "  r2.a[0] + r2.a[1] + r2.b[0] + r2.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+}
+
+TEST_CASE( "Algoly: assign array in record to array of int in record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r2: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "def a\n"
+        "  var r1: R := { a: [ 5, 6 ], b: [ 7, 8 ] }\n"
+        "  r1.b := r2.b\n"
+        "  r1.a[0] + r1.a[1] + r1.b[0] + r1.b[1] + \n"
+        "  r2.a[0] + r2.a[1] + r2.b[0] + r2.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+}
+
+TEST_CASE( "Algoly: assign array in record to array of int in record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "def a\n"
+        "  var r2: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "  var r1: R := { a: [ 5, 6 ], b: [ 7, 8 ] }\n"
+        "  r1.b := r2.b\n"
+        "  r1.a[0] + r1.a[1] + r1.b[0] + r1.b[1] + \n"
+        "  r2.a[0] + r2.a[1] + r2.b[0] + r2.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Init array of int inside record
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: init array of int in record to array, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "var ar: [2] := r.b\n"
+        "def a\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: init array of int in record to array, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "def a\n"
+        "  var ar: [2] := r.b\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: init array of int in record to array, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "def a\n"
+        "  var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "  var ar: [2] := r.b\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: init array to array of int in record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var ar: [2] := [ 3, 4 ]\n"
+        "var r: R := { a: [ 1, 2 ], b: ar }\n"
+        "def a\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: init array to array of int in record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var ar: [2] := [ 3, 4 ]\n"
+        "def a\n"
+        "  var r: R := { a: [ 1, 2 ], b: ar }\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: init array to array of int in record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "def a\n"
+        "  var ar: [2] := [ 3, 4 ]\n"
+        "  var r: R := { a: [ 1, 2 ], b: ar }\n"
+        "  ar[0] + ar[1] + \n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+}
+
+TEST_CASE( "Algoly: init array in record to array of int in record, global-global", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r2: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "var r1: R := { a: [ 5, 6 ], b: r2.b }\n"
+        "def a\n"
+        "  r1.a[0] + r1.a[1] + r1.b[0] + r1.b[1] + \n"
+        "  r2.a[0] + r2.a[1] + r2.b[0] + r2.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+}
+
+TEST_CASE( "Algoly: init array in record to array of int in record, global-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r2: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "def a\n"
+        "  var r1: R := { a: [ 5, 6 ], b: r2.b }\n"
+        "  r1.a[0] + r1.a[1] + r1.b[0] + r1.b[1] + \n"
+        "  r2.a[0] + r2.a[1] + r2.b[0] + r2.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+}
+
+TEST_CASE( "Algoly: init array in record to array of int in record, local-local", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "def a\n"
+        "  var r2: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "  var r1: R := { a: [ 5, 6 ], b: r2.b }\n"
+        "  r1.a[0] + r1.a[1] + r1.b[0] + r1.b[1] + \n"
+        "  r2.a[0] + r2.a[1] + r2.b[0] + r2.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+}
