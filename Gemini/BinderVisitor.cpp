@@ -153,7 +153,8 @@ static bool IsAllowedPointerTarget( TypeKind kind )
 
 static bool IsAllowedParamType( TypeKind kind, ParamMode mode )
 {
-    if ( kind == TypeKind::Array )
+    if ( kind == TypeKind::Array
+        || kind == TypeKind::Record )
         return mode == ParamMode::InOutRef;
 
     return IsScalarType( kind )

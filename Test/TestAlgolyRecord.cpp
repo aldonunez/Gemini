@@ -2059,3 +2059,356 @@ TEST_CASE( "Algoly: init array in record to array of int in record, local-local"
 
     TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
 }
+
+
+//----------------------------------------------------------------------------
+//  Pass record by reference
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: pass global record by ref", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "var r: R := { x: 1, y: 2 }\n"
+        "def a\n"
+        "  B( r )\n"
+        "  r.x + r.y\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.x := br.x + 10\n"
+        "  br.y := br.y + 20\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 33, 0 );
+}
+
+TEST_CASE( "Algoly: pass local record by ref", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "def a\n"
+        "  var r: R := { x: 1, y: 2 }\n"
+        "  B( r )\n"
+        "  r.x + r.y\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.x := br.x + 10\n"
+        "  br.y := br.y + 20\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 33, 0 );
+}
+
+TEST_CASE( "Algoly: pass global record by ref 2", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "var r: R := { x: 1, y: 2 }\n"
+        "def a\n"
+        "  B( r )\n"
+        "  r.x + r.y\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.x := br.x + 10\n"
+        "  br.y := br.y + 20\n"
+        "  C( br )\n"
+        "end\n"
+        "def C( var cr: R )\n"
+        "  cr.x := cr.x + 100\n"
+        "  cr.y := cr.y + 200\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 333, 0 );
+}
+
+TEST_CASE( "Algoly: pass local record by ref 2", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "def a\n"
+        "  var r: R := { x: 1, y: 2 }\n"
+        "  B( r )\n"
+        "  r.x + r.y\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.x := br.x + 10\n"
+        "  br.y := br.y + 20\n"
+        "  C( br )\n"
+        "end\n"
+        "def C( var cr: R )\n"
+        "  cr.x := cr.x + 100\n"
+        "  cr.y := cr.y + 200\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 333, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Pass record in record by reference
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: pass global record in record by ref", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "type Q = record a: R, b: R end\n"
+        "var q: Q := { a: { x: 1, y: 2 }, b: { x: 3, y: 4 } }\n"
+        "def a\n"
+        "  B( q.b )\n"
+        "  q.a.x + q.a.y + q.b.x + q.b.y\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.x := br.x + 10\n"
+        "  br.y := br.y + 20\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+}
+
+TEST_CASE( "Algoly: pass local record in record by ref", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "type Q = record a: R, b: R end\n"
+        "def a\n"
+        "  var q: Q := { a: { x: 1, y: 2 }, b: { x: 3, y: 4 } }\n"
+        "  B( q.b )\n"
+        "  q.a.x + q.a.y + q.b.x + q.b.y\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.x := br.x + 10\n"
+        "  br.y := br.y + 20\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+}
+
+TEST_CASE( "Algoly: pass global record in record by ref 2", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "type Q = record a, b: R end\n"
+        "var q: Q := { a: 2, b: { x: 1, y: 2 } }\n"
+        "def a\n"
+        "  B( q )\n"
+        "  q.a + q.b.x + q.b.y\n"
+        "end\n"
+        "def B( var bq: Q )\n"
+        "  bq.a := bq.a + 1\n"
+        "  bq.b.x := bq.b.x + 10\n"
+        "  bq.b.y := bq.b.y + 20\n"
+        "  C( bq.b )\n"
+        "end\n"
+        "def C( var cr: R )\n"
+        "  cr.x := cr.x + 100\n"
+        "  cr.y := cr.y + 200\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 336, 0 );
+}
+
+TEST_CASE( "Algoly: pass local record in record by ref 2", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "type Q = record a, b: R end\n"
+        "def a\n"
+        "  var q: Q := { a: 2, b: { x: 1, y: 2 } }\n"
+        "  B( q )\n"
+        "  q.a + q.b.x + q.b.y\n"
+        "end\n"
+        "def B( var bq: Q )\n"
+        "  bq.a := bq.a + 1\n"
+        "  bq.b.x := bq.b.x + 10\n"
+        "  bq.b.y := bq.b.y + 20\n"
+        "  C( bq.b )\n"
+        "end\n"
+        "def C( var cr: R )\n"
+        "  cr.x := cr.x + 100\n"
+        "  cr.y := cr.y + 200\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 336, 0 );
+}
+
+//----------------------------------------------------------------------------
+//  Pass record in array by reference
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: pass global record in array by ref", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "var ar: [2] of R := [ { x: 1, y: 2 }, { x: 3, y: 4 } ]\n"
+        "def a\n"
+        "  B( ar[1] )\n"
+        "  ar[0].x + ar[0].y + ar[1].x + ar[1].y\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.x := br.x + 10\n"
+        "  br.y := br.y + 20\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+}
+
+TEST_CASE( "Algoly: pass local record in array by ref", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "def a\n"
+        "  var ar: [2] of R := [ { x: 1, y: 2 }, { x: 3, y: 4 } ]\n"
+        "  B( ar[1] )\n"
+        "  ar[0].x + ar[0].y + ar[1].x + ar[1].y\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.x := br.x + 10\n"
+        "  br.y := br.y + 20\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+}
+
+TEST_CASE( "Algoly: pass global record in array by ref 2", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "var ar: [2] of R := [ { x: 3, y: 4 }, { x: 1, y: 2 } ]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[0].x + ar[0].y + ar[1].x + ar[1].y\n"
+        "end\n"
+        "def B( var bar: [2] of R )\n"
+        "  bar[1].x := bar[1].x + 10\n"
+        "  bar[1].y := bar[1].y + 20\n"
+        "  C( bar[1] )\n"
+        "end\n"
+        "def C( var cr: R )\n"
+        "  cr.x := cr.x + 100\n"
+        "  cr.y := cr.y + 200\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 333+7, 0 );
+}
+
+TEST_CASE( "Algoly: pass local record in array by ref 2", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record x, y end\n"
+        "def a\n"
+        "  var ar: [2] of R := [ { x: 3, y: 4 }, { x: 1, y: 2 } ]\n"
+        "  B( ar )\n"
+        "  ar[0].x + ar[0].y + ar[1].x + ar[1].y\n"
+        "end\n"
+        "def B( var bar: [2] of R )\n"
+        "  bar[1].x := bar[1].x + 10\n"
+        "  bar[1].y := bar[1].y + 20\n"
+        "  C( bar[1] )\n"
+        "end\n"
+        "def C( var cr: R )\n"
+        "  cr.x := cr.x + 100\n"
+        "  cr.y := cr.y + 200\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 333+7, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Pass array in record by reference
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: pass global array in record by ref", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "def a\n"
+        "  B( r.b )\n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        "def B( var bar: [2] )\n"
+        "  bar[0] := bar[0] + 10\n"
+        "  bar[1] := bar[1] + 20\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+}
+
+TEST_CASE( "Algoly: pass local array in record by ref", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "def a\n"
+        "  var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "  B( r.b )\n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        "def B( var bar: [2] )\n"
+        "  bar[0] := bar[0] + 10\n"
+        "  bar[1] := bar[1] + 20\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+}
+
+TEST_CASE( "Algoly: pass global array in record by ref 2", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "def a\n"
+        "  B( r )\n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.b[0] := br.b[0] + 10\n"
+        "  br.b[1] := br.b[1] + 20\n"
+        "  C( br.b )\n"
+        "end\n"
+        "def C( var car: [2] )\n"
+        "  car[0] := car[0] + 100\n"
+        "  car[1] := car[1] + 200\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 333 + 7, 0 );
+}
+
+TEST_CASE( "Algoly: pass local array in record by ref 2", "[algoly][record]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "def a\n"
+        "  var r: R := { a: [ 1, 2 ], b: [ 3, 4 ] }\n"
+        "  B( r )\n"
+        "  r.a[0] + r.a[1] + r.b[0] + r.b[1]\n"
+        "end\n"
+        "def B( var br: R )\n"
+        "  br.b[0] := br.b[0] + 10\n"
+        "  br.b[1] := br.b[1] + 20\n"
+        "  C( br.b )\n"
+        "end\n"
+        "def C( var car: [2] )\n"
+        "  car[0] := car[0] + 100\n"
+        "  car[1] := car[1] + 200\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 333 + 7, 0 );
+}
