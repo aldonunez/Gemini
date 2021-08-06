@@ -1806,6 +1806,7 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
             auto size = type->GetSize();
             if ( size > ParamSizeMax )
                 mRep.ThrowSemanticsError( NULL, "Parameter is too big" );
+
             return static_cast<ParamSize>(size);
         }
 

@@ -331,9 +331,9 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             if ( param->Mode == ParamMode::Value )
             {
                 assert( offset >= 0 && offset < ParamSizeMax );
-                assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+                assert( offset < (ParamSizeMax - param->Offset) );
 
-                EmitU8( OP_LDARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
+                EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + offset) );
                 IncreaseExprDepth();
             }
             else if ( param->Mode == ParamMode::InOutRef )
@@ -659,7 +659,7 @@ void Compiler::VisitAsExpr( AsExpr* asExpr )
     Generate( asExpr->Inner.get(), Config(), Status() );
 }
 
-void Compiler::GenerateSet( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status )
+void Compiler::GenerateSetScalar( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status )
 {
     // Value
     Generate( assignment->Right.get() );
@@ -710,9 +710,9 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
             if ( param->Mode == ParamMode::Value )
             {
                 assert( offset >= 0 && offset < ParamSizeMax );
-                assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+                assert( offset < (ParamSizeMax - param->Offset) );
 
-                EmitU8( OP_STARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
+                EmitU8( OP_STARG, static_cast<uint8_t>(param->Offset + offset) );
             }
             else if ( param->Mode == ParamMode::InOutRef )
             {
@@ -791,10 +791,8 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
 
 void Compiler::VisitAssignmentExpr( AssignmentExpr* assignment )
 {
-    // TODO: Rename GenerateSet GenerateSetScalar
-
     if ( IsScalarType( assignment->Left->Type->GetKind() ) )
-        GenerateSet( assignment, Config(), Status() );
+        GenerateSetScalar( assignment, Config(), Status() );
     else
         GenerateSetAggregate( assignment, Config(), Status() );
 }
@@ -1064,11 +1062,6 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
     }
 }
 
-void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status )
-{
-    GenerateCall( call->Head->GetDecl(), call->Arguments, config, status );
-}
-
 ParamSize Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, FuncType* funcType )
 {
     assert( arguments.size() == funcType->Params.size() );
@@ -1083,6 +1076,11 @@ ParamSize Compiler::GenerateCallArgs( std::vector<Unique<Syntax>>& arguments, Fu
     }
 
     return argCount;
+}
+
+void Compiler::GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status )
+{
+    GenerateCall( call->Head->GetDecl(), call->Arguments, config, status );
 }
 
 void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status )

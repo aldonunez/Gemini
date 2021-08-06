@@ -369,7 +369,7 @@ private:
     void GenerateOr( BinaryExpr* binary, const GenConfig& config, GenStatus& status );
     void GenerateReturn( ReturnStatement* retStmt, const GenConfig& config, GenStatus& status );
     void GenerateCond( CondExpr* condExpr, const GenConfig& config, GenStatus& status );
-    void GenerateSet( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status );
+    void GenerateSetScalar( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status );
     void GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status );
     void GenerateFunction( AddrOfExpr* addrOf, const GenConfig& config, GenStatus& status );
     void GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status );
