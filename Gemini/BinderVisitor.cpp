@@ -1703,6 +1703,7 @@ void BinderVisitor::CheckDuplicateSymbol( DeclSyntax* declNode, const SymTable& 
 
 void BinderVisitor::MakeStdEnv()
 {
+    mErrorType.reset( new ErrorType() );
     mTypeType.reset( new TypeType() );
     mModuleType.reset( new ModuleType() );
     mXferType.reset( new XferType() );
@@ -1733,6 +1734,7 @@ void BinderVisitor::DeclareNode( DeclSyntax* node )
 
     std::shared_ptr<UndefinedDeclaration> undef( new UndefinedDeclaration() );
     undef->Node = node;
+    undef->Type = mErrorType;
     mGlobalTable.insert( SymTable::value_type( node->Name, undef ) );
 }
 

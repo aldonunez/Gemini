@@ -684,6 +684,12 @@ DataSize Type::GetSize() const
 }
 
 
+ErrorType::ErrorType() :
+    Type( TypeKind::Error )
+{
+}
+
+
 TypeType::TypeType() :
     Type( TypeKind::Type )
 {

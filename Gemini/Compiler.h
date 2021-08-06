@@ -299,7 +299,10 @@ private:
     CompilerStats   mStats = {};
     UnitVec         mUnits;
 
-    std::shared_ptr<Declaration> mLoadedAddrDecl;
+    std::shared_ptr<ErrorType>      mErrorType{ new ErrorType() };
+    std::shared_ptr<ModuleType>     mModuleType{ new ModuleType() };
+
+    std::shared_ptr<LoadedAddressDeclaration>   mLoadedAddrDecl;
 
 public:
     Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex = 0 );

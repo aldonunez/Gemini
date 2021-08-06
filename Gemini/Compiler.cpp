@@ -33,6 +33,7 @@ Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
         throw std::invalid_argument( "modIndex" );
 
     mLoadedAddrDecl.reset( new LoadedAddressDeclaration() );
+    mLoadedAddrDecl->Type = mErrorType;
 }
 
 void Compiler::AddUnit( Unique<Unit>&& unit )
@@ -128,7 +129,7 @@ std::shared_ptr<ModuleDeclaration> Compiler::GetMetadata( const char* modName )
     modDecl->Name = modName;
     modDecl->Index = mModIndex;
     modDecl->Table = std::move( mPublicTable );
-    modDecl->Type = std::shared_ptr<ModuleType>( new ModuleType() );
+    modDecl->Type = mModuleType;
 
     return modDecl;
 }

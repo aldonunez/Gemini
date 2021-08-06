@@ -841,6 +841,7 @@ struct EnumMember : public Constant
 
 enum class TypeKind
 {
+    Error,
     Type,
     Module,
     Xfer,
@@ -867,6 +868,12 @@ public:
     virtual bool IsAssignableFrom( Type* other ) const;
     virtual bool IsPassableFrom( Type* other, ParamMode mode ) const;
     virtual DataSize GetSize() const;
+};
+
+class ErrorType : public Type
+{
+public:
+    ErrorType();
 };
 
 class TypeType : public Type

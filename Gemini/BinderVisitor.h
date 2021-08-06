@@ -41,6 +41,7 @@ class BinderVisitor final : public Visitor
     GlobalSize      mGlobalSize = 0;
     int32_t         mPrevNativeId = -1;
 
+    std::shared_ptr<ErrorType>  mErrorType;
     std::shared_ptr<TypeType>   mTypeType;
     std::shared_ptr<ModuleType> mModuleType;
     std::shared_ptr<XferType>   mXferType;
