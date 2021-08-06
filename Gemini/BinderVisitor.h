@@ -159,6 +159,7 @@ private:
     void BindNamedProc( ProcDecl* procDecl );
 
     void DeclareNode( DeclSyntax* node );
+    void PrepareToDefine( DeclSyntax* declNode );
     std::shared_ptr<Declaration> DefineNode( const std::string& name, UndefinedDeclaration* decl );
     std::shared_ptr<FuncType> MakeFuncType( ProcDeclBase* procDecl );
     std::shared_ptr<Type> VisitFuncReturnType( Unique<TypeRef>& typeRef );

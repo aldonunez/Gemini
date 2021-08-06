@@ -540,7 +540,7 @@ void BinderVisitor::VisitConstDecl( ConstDecl* constDecl )
     if ( constDecl->Decl )
         return;
 
-    mGlobalTable.erase( constDecl->Name );
+    PrepareToDefine( constDecl );
 
     VisitConstBinding( constDecl, ScopeKind::Global );
 }
@@ -738,7 +738,7 @@ void BinderVisitor::VisitImportDecl( ImportDecl* importDecl )
     if ( importDecl->Decl )
         return;
 
-    mGlobalTable.erase( importDecl->Name );
+    PrepareToDefine( importDecl );
 
     auto it = mModuleTable.find( importDecl->OriginalName );
 
@@ -1089,7 +1089,7 @@ void BinderVisitor::VisitNativeDecl( NativeDecl* nativeDecl )
     if ( nativeDecl->Decl )
         return;
 
-    mGlobalTable.erase( nativeDecl->Name );
+    PrepareToDefine( nativeDecl );
 
     if ( nativeDecl->OptionalId )
     {
@@ -1202,7 +1202,7 @@ void BinderVisitor::VisitProcDecl( ProcDecl* procDecl )
     if ( procDecl->Decl )
         return;
 
-    mGlobalTable.erase( procDecl->Name );
+    PrepareToDefine( procDecl );
 
     auto func = AddFunc( procDecl, true );
 
@@ -1403,7 +1403,7 @@ void BinderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
     if ( typeDecl->Decl )
         return;
 
-    mGlobalTable.erase( typeDecl->Name );
+    PrepareToDefine( typeDecl );
 
     typeDecl->TypeRef->Accept( this );
 
@@ -1434,7 +1434,7 @@ void BinderVisitor::VisitVarDecl( VarDecl* varDecl )
     if ( varDecl->Decl )
         return;
 
-    mGlobalTable.erase( varDecl->Name );
+    PrepareToDefine( varDecl );
 
     VisitStorage( varDecl, DeclKind::Global );
 }
@@ -1738,6 +1738,18 @@ void BinderVisitor::DeclareNode( DeclSyntax* node )
     undef->Node = node;
     undef->Type = mErrorType;
     mGlobalTable.insert( SymTable::value_type( node->Name, undef ) );
+}
+
+void BinderVisitor::PrepareToDefine( DeclSyntax* declNode )
+{
+    // The easiest way to fail if there are circular references is to delete the
+    // UndefinedDeclaration. But the error you get from a circular reference is
+    // only acceptable.
+
+    // For a little better diagnostic, you'd have to keep the UndefinedDeclaration,
+    // and check whether the definition is in progress.
+
+    mGlobalTable.erase( declNode->Name );
 }
 
 std::shared_ptr<Declaration> BinderVisitor::DefineNode( const std::string& name, UndefinedDeclaration* decl )
