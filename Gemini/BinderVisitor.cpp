@@ -1257,11 +1257,8 @@ void BinderVisitor::VisitProc( ProcDecl* procDecl )
 
     mCurFunc = nullptr;
 
-    if ( mMaxLocalCount > ProcDecl::MaxLocals )
-    {
-        mRep.ThrowSemanticsError( procDecl, "'%s' has too many locals. Max is %d",
-            procDecl->Name.c_str(), ProcDecl::MaxLocals );
-    }
+    // As locals are added and bound, we check that max count is not exceeded.
+    // So there's no need to check it here.
 
     func->LocalCount = mMaxLocalCount;
     func->ParamCount = mParamCount;
@@ -1563,6 +1560,9 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std
     auto& table = *mSymStack.back();
 
     CheckDuplicateSymbol( declNode, table );
+
+    if ( size > static_cast<size_t>(ParamSizeMax - mParamCount) )
+        mRep.ThrowSemanticsError( declNode, "Param exceeds capacity" );
 
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
     param->Offset = mParamCount;

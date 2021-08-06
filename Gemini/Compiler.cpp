@@ -325,13 +325,14 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Param:
-        assert( offset >= 0 && offset < ParamSizeMax );
-        assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
         {
             auto param = (ParamStorage*) decl;
 
             if ( param->Mode == ParamMode::Value )
             {
+                assert( offset >= 0 && offset < ParamSizeMax );
+                assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+
                 EmitU8( OP_LDARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
                 IncreaseExprDepth();
             }
@@ -703,13 +704,14 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     case DeclKind::Param:
-        assert( offset >= 0 && offset < ParamSizeMax );
-        assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
         {
             auto param = (ParamStorage*) decl;
 
             if ( param->Mode == ParamMode::Value )
             {
+                assert( offset >= 0 && offset < ParamSizeMax );
+                assert( offset < (ParamSizeMax - ((ParamStorage*) decl)->Offset) );
+
                 EmitU8( OP_STARG, static_cast<uint8_t>(((ParamStorage*) decl)->Offset + offset) );
             }
             else if ( param->Mode == ParamMode::InOutRef )
