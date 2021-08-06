@@ -658,6 +658,8 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 
     for ( auto& memberDef : enumTypeRef->Members )
     {
+        CheckDuplicateSymbol( memberDef.get(), enumType->MembersByName );
+
         if ( memberDef->Initializer )
         {
             Visit( memberDef->Initializer );
@@ -1300,6 +1302,8 @@ void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 
     for ( auto& fieldDef : recordTypeRef->Fields )
     {
+        CheckDuplicateSymbol( fieldDef.get(), recordType->Fields );
+
         fieldDef->Accept( this );
 
         if ( fieldDef->Type->GetSize() > (DataSizeMax - offset) )

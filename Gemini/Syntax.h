@@ -147,15 +147,6 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
-class EnumMemberDef : public Syntax
-{
-public:
-    std::string     Name;
-    Unique<Syntax>  Initializer;
-
-    virtual void Accept( Visitor* visitor ) override;
-};
-
 class ArrayTypeRef : public TypeRef
 {
 public:
@@ -289,6 +280,12 @@ public:
 
     ParamDecl();
 
+    virtual void Accept( Visitor* visitor ) override;
+};
+
+class EnumMemberDef : public DataDecl
+{
+public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
