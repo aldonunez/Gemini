@@ -746,6 +746,8 @@ void BinderVisitor::VisitImportDecl( ImportDecl* importDecl )
         mRep.ThrowSemanticsError( importDecl, "Module not found" );
 
     AddModule( importDecl, std::static_pointer_cast<ModuleDeclaration>( it->second ) );
+
+    importDecl->Decl = it->second;
 }
 
 void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
@@ -1405,7 +1407,7 @@ void BinderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
 
     typeDecl->TypeRef->Accept( this );
 
-    AddType( typeDecl, typeDecl->TypeRef->ReferentType, true );
+    typeDecl->Decl = AddType( typeDecl, typeDecl->TypeRef->ReferentType, true );
 }
 
 void BinderVisitor::VisitUnaryExpr( UnaryExpr* unary )
