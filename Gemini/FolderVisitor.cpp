@@ -68,16 +68,20 @@ void FolderVisitor::VisitBinaryExpr( BinaryExpr* binary )
         int32_t right = mLastValue.value();
         int32_t result = 0;
 
+        // Cast operands to unsigned for well defined overflow from arithmetic ops + - *
+
         if ( binary->Op == "+" )
-            result = left + right;
+            result = static_cast<uint32_t>(left) + static_cast<uint32_t>(right);
         else if ( binary->Op == "-" )
-            result = left - right;
+            result = static_cast<uint32_t>(left) - static_cast<uint32_t>(right);
         else if ( binary->Op == "*" )
-            result = left * right;
+            result = static_cast<uint32_t>(left) * static_cast<uint32_t>(right);
         else if ( binary->Op == "/" )
         {
             if ( right == 0 )
                 mRep.ThrowSemanticsError( binary->Right.get(), "Division by 0" );
+            if ( left == INT32_MIN && right == -1 )
+                right = 1;
 
             result = left / right;
         }
@@ -85,6 +89,8 @@ void FolderVisitor::VisitBinaryExpr( BinaryExpr* binary )
         {
             if ( right == 0 )
                 mRep.ThrowSemanticsError( binary->Right.get(), "Division by 0" );
+            if ( left == INT32_MIN && right == -1 )
+                right = 1;
 
             result = left % right;
         }

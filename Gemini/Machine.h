@@ -30,6 +30,7 @@ enum
 
 
 typedef I32 CELL;
+typedef U32 UCELL;
 typedef uintptr_t UserContext;
 
 struct Module

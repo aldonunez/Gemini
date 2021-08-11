@@ -82,7 +82,7 @@ class CallFlags
     enum
     {
         AutoPop     = 0x80,
-        CountMask   = 0x1F,
+        CountMask   = 0x7F,
     };
 
 public:

@@ -973,9 +973,11 @@ void Compiler::EmitLocalArrayInitializer( LocalSize offset, InitList* initList, 
 
     if ( initList->Fill == ArrayFill::Extrapolate && initList->Values.size() > 0 )
     {
+        // Use unsigned values for well defined overflow
+
         size_t count = initList->Values.size();
-        I32 prevValue = 0;
-        I32 step = 0;
+        U32 prevValue = 0;
+        U32 step = 0;
 
         prevValue = GetSyntaxValue( initList->Values.back().get(), "Array initializer extrapolation requires a constant" );
 
@@ -988,7 +990,7 @@ void Compiler::EmitLocalArrayInitializer( LocalSize offset, InitList* initList, 
 
         for ( ; i < size; i++ )
         {
-            I32 newValue = prevValue + step;
+            U32 newValue = prevValue + step;
 
             EmitLoadConstant( newValue );
             EmitU8( OP_STLOC, (U8) locIndex );
@@ -2100,8 +2102,10 @@ void Compiler::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList
 
     if ( initList->Fill == ArrayFill::Extrapolate && i >= 1 )
     {
-        I32 prevValue = mGlobals[offset + i - 1];
-        I32 step = 0;
+        // Use unsigned values for well defined overflow
+
+        U32 prevValue = mGlobals[offset + i - 1];
+        U32 step = 0;
 
         if ( i >= 2 )
         {
@@ -2110,7 +2114,7 @@ void Compiler::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList
 
         for ( ; i < size; i++ )
         {
-            I32 newValue = prevValue + step;
+            U32 newValue = prevValue + step;
 
             mGlobals[offset + i] = newValue;
             prevValue = newValue;

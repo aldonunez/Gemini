@@ -205,12 +205,22 @@ bool CompilerEnv::FindGlobal( const std::string& name, int& offset )
 
 class CompilerLog : public ICompilerLog
 {
+    bool    mSuppressOutput;
+
 public:
+    CompilerLog( bool suppressOutput ) :
+        mSuppressOutput( suppressOutput )
+    {
+    }
+
     virtual void Add( LogCategory category, const char* fileName, int line, int column, const char* message )
     {
-        printf( "<%d>  ", static_cast<int>(category) );
-        printf( "%s %4d %3d  ", (fileName != nullptr ? fileName : ""), line, column );
-        printf( "%s\n", message );
+        if ( !mSuppressOutput )
+        {
+            printf( "<%d>  ", static_cast<int>(category) );
+            printf( "%s %4d %3d  ", (fileName != nullptr ? fileName : ""), line, column );
+            printf( "%s\n", message );
+        }
     }
 };
 
@@ -233,28 +243,36 @@ void Disassemble( const uint8_t* program, int size )
 
 //-----------------------------------------
 
+static CELL gStack[1024];
+
+
 // TODO: get rid of codeLen parameters
 
-void TestCompileAndRun( Language lang, const char* code, int codeLen, int result, const std::initializer_list<int>& params, int expectedStack );
+void TestCompileAndRun( Language lang, const char* code, int codeLen, ResultVariant result, const std::initializer_list<int>& params, int expectedStack );
 
 
 void TestCompileAndRunAlgoly( const char* code, int codeLen, int result, int param, int expectedStack )
 {
-    TestCompileAndRun( Language::Gema, code, codeLen, result, { param }, expectedStack );
+    TestCompileAndRun( Language::Gema, code, codeLen, Emplace<ResultKind::Stack>( result ), { param }, expectedStack );
 }
 
 void TestCompileAndRunAlgoly( const char* code, int codeLen, int result, const std::initializer_list<int>& params, int expectedStack )
 {
-    TestCompileAndRun( Language::Gema, code, codeLen, result, params, expectedStack );
+    TestCompileAndRun( Language::Gema, code, codeLen, Emplace<ResultKind::Stack>( result ), params, expectedStack );
+}
+
+void TestCompileAndRunAlgoly( const char* code, int codeLen, CompilerErr result )
+{
+    TestCompileAndRun( Language::Gema, code, codeLen, Emplace<ResultKind::Compiler>( result ), {}, 0 );
 }
 
 void TestCompileAndRunLispy( const char* code, int codeLen, int result, int param, int expectedStack )
 {
-    TestCompileAndRun( Language::Geml, code, codeLen, result, { param }, expectedStack );
+    TestCompileAndRun( Language::Geml, code, codeLen, Emplace<ResultKind::Stack>( result ), { param }, expectedStack );
 }
 
 
-void TestCompileAndRun( Language lang, const char* code, int codeLen, int result, const std::initializer_list<int>& params, int expectedStack )
+void TestCompileAndRun( Language lang, const char* code, int codeLen, ResultVariant result, const std::initializer_list<int>& params, int expectedStack )
 {
     const char* sources[] =
     {
@@ -273,7 +291,6 @@ void TestCompileAndRun( Language lang, const char* code, int codeLen, int result
 
     TestCompileAndRun( lang, modSources, result, params, expectedStack );
 }
-
 
 void TestCompileAndRun(
     Language lang,
@@ -303,6 +320,25 @@ void TestCompileAndRun(
     NativePair* natives
 )
 {
+    TestCompileAndRun(
+        lang,
+        moduleSources,
+        Emplace<ResultKind::Stack>( expectedResult ),
+        params,
+        expectedStack,
+        natives );
+}
+
+
+void TestCompileAndRun(
+    Language lang,
+    const ModuleSource* moduleSources,
+    ResultVariant expectedResult,
+    const std::initializer_list<int>& params,
+    int expectedStack,
+    NativePair* natives
+)
+{
     std::vector<U8> bin1;
     size_t      binSize = 0;
     std::vector<CELL> data1;
@@ -310,7 +346,7 @@ void TestCompileAndRun(
     uint32_t    maxStack = 0;
 
     CompilerEnv env;
-    CompilerLog log;
+    CompilerLog log{ GetKind( expectedResult ) == ResultKind::Compiler };
 
     std::vector<std::shared_ptr<ModuleDeclaration>> modDecls;
 
@@ -347,11 +383,6 @@ void TestCompileAndRun(
 
         Module* curMod = env.AddModule();
 
-        //curMod->CodeBase = bin1 + binSize;
-        //curMod->CodeSize = sizeof bin1 - binSize;
-
-        //env.SetCurrentModule( &mods.back() );
-
         for ( const auto& modDecl : modDecls )
         {
             compiler1.AddModule( modDecl );
@@ -363,7 +394,15 @@ void TestCompileAndRun(
 
         maxStack = std::max( maxStack, stats.Static.MaxStackUsage );
 
-        REQUIRE( compilerErr == CompilerErr::OK );
+        if ( GetKind( expectedResult ) == ResultKind::Compiler )
+        {
+            REQUIRE( compilerErr == Get<ResultKind::Compiler>( expectedResult ) );
+            return;
+        }
+        else
+        {
+            REQUIRE( compilerErr == CompilerErr::OK );
+        }
 
         if ( compiler1.GetDataSize() > 0 )
         {
@@ -400,10 +439,9 @@ void TestCompileAndRun(
     if ( expectedStack > 0 )
         REQUIRE( (size_t) expectedStack == maxStack );
 
-    CELL stack[Machine::MIN_STACK * 8];
     Machine machine;
 
-    machine.Init( stack, static_cast<U16>( std::size( stack ) ), &env );
+    machine.Init( gStack, static_cast<U16>( std::size( gStack ) ), &env );
 
     binSize = 0;
     dataSize = 0;
@@ -441,12 +479,10 @@ void TestCompileAndRun(
     REQUIRE( b );
 
     CELL* args = machine.Start( (U8) (env.GetModuleCount() - 1), byteCode.Address, (U8) params.size() );
-    int index = 0;
 
-    for ( const auto& param : params )
-    {
-        args[index++] = param;
-    }
+    REQUIRE( args != nullptr );
+
+    std::copy( params.begin(), params.end(), args );
 
     int err = 0;
 
@@ -455,6 +491,16 @@ void TestCompileAndRun(
         err = machine.Run();
     } while ( err == ERR_YIELDED );
 
-    REQUIRE( err == 0 );
-    REQUIRE( stack[std::size( stack ) - 1] == expectedResult );
+    if ( GetKind( expectedResult ) == ResultKind::Vm )
+    {
+        REQUIRE( err == Get<ResultKind::Vm>( expectedResult ) );
+        return;
+    }
+    else
+    {
+        REQUIRE( err == 0 );
+    }
+
+    if ( GetKind( expectedResult ) == ResultKind::Stack )
+        REQUIRE( gStack[std::size( gStack ) - 1] == Get<ResultKind::Stack>( expectedResult ) );
 }

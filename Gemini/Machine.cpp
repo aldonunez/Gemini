@@ -762,23 +762,25 @@ int Machine::CallPrimitive( U8 func )
     CELL a = mSP[1];
     CELL b = mSP[0];
 
+    // Cast operands to unsigned for well defined overflow from arithmetic ops + - *
+
     switch ( func )
     {
     case PRIM_ADD:
         {
-            result = a + b;
+            result = static_cast<UCELL>(a) + static_cast<UCELL>(b);
         }
         break;
 
     case PRIM_SUB:
         {
-            result = a - b;
+            result = static_cast<UCELL>(a) - static_cast<UCELL>(b);
         }
         break;
 
     case PRIM_MUL:
         {
-            result = a * b;
+            result = static_cast<UCELL>(a) * static_cast<UCELL>(b);
         }
         break;
 
@@ -786,6 +788,9 @@ int Machine::CallPrimitive( U8 func )
         {
             if ( b == 0 )
                 return ERR_DIVIDE;
+            if ( a == INT32_MIN && b == -1 )
+                b = 1;
+
             result = a / b;
         }
         break;
@@ -794,6 +799,9 @@ int Machine::CallPrimitive( U8 func )
         {
             if ( b == 0 )
                 return ERR_DIVIDE;
+            if ( a == INT32_MIN && b == -1 )
+                b = 1;
+
             result = a % b;
         }
         break;

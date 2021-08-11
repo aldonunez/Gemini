@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "TestBase.h"
 
+
 /*
 * TODO: test:
 *   locals initialized to zero
@@ -1537,6 +1538,50 @@ TEST_CASE( "Algoly: native separate units", "[algoly]" )
     };
 
     TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gNatives );
+}
+
+int NatYielderContinuation( Machine* machine, U8 argc, CELL* args, UserContext context )
+{
+    if ( machine == nullptr || argc != 2 || args == nullptr )
+        return ERR_BAD_ARG;
+
+    machine->PushCell( args[0] + args[1] + static_cast<CELL>( context ) );
+    return ERR_NONE;
+}
+
+int NatYielder( Machine* machine, U8 argc, CELL* args, UserContext context )
+{
+    if ( machine == nullptr || argc != 2 || args == nullptr )
+        return ERR_BAD_ARG;
+
+    return machine->Yield( NatYielderContinuation, 100 );
+}
+
+static NativePair gYieldNatives[] =
+{
+    { 0, NatYielder },
+    { 0, nullptr }
+};
+
+TEST_CASE( "Algoly: native yield", "[algoly]" )
+{
+    const char* mainCode[] =
+    {
+        "def a\n"
+        "  Yielder(20, 30)\n"
+        "end\n"
+        "native Yielder(a, b)\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 150, 0, 0, gYieldNatives );
 }
 
 #if 0
