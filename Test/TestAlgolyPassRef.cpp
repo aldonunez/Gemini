@@ -1,5 +1,8 @@
 #include "pch.h"
 #include "TestBase.h"
+#include "../Gemini/LangCommon.h"
+
+using namespace Gemini;
 
 
 TEST_CASE( "Algoly: PassRef: global pass int by ref", "[algoly][pass-ref]" )
@@ -28,6 +31,94 @@ TEST_CASE( "Algoly: PassRef: local pass int by ref", "[algoly][pass-ref]" )
         ;
 
     TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 8 );
+}
+
+TEST_CASE( "Algoly: PassRef: local pass enum by ref", "[algoly][pass-ref][enum]" )
+{
+    const char code[] =
+        "type E = enum A=1, B, C end\n"
+        "def a -> E\n"
+        "  var x := E.B\n"
+        "  B(x)\n"
+        "  x\n"
+        "end\n"
+        "def B(var e: E) e := E.C; 0 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+}
+
+TEST_CASE( "Algoly: PassRef: global pass scalar record field by ref", "[algoly][pass-ref][record]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "var r: R := { a: 1, b: 2, c: 3 }\n"
+        "def a\n"
+        "  B(r.c)\n"
+        "  r.c\n"
+        "end\n"
+        "def B(var p) p := p + 30; 0 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+}
+
+TEST_CASE( "Algoly: PassRef: local pass scalar record field by ref", "[algoly][pass-ref][record]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "def a\n"
+        "  var r: R := { a: 1, b: 2, c: 3 }\n"
+        "  B(r.c)\n"
+        "  r.c\n"
+        "end\n"
+        "def B(var p) p := p + 30; 0 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+}
+
+//----
+
+TEST_CASE( "Algoly: PassRef: literal int by ref", "[algoly][pass-ref][negative]" )
+{
+    const char code[] =
+        "def a\n"
+        "  B(5)\n"
+        "end\n"
+        "def B(var p) 0 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: PassRef: pass ref param int by ref", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "def a\n"
+        "  var n := 5\n"
+        "  B(n)\n"
+        "  n\n"
+        "end\n"
+        "def B(var p) C(p); p end\n"
+        "def C(var q) q := 10; 3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 11 );
+}
+
+TEST_CASE( "Algoly: PassRef: pass value param int by ref", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "def a\n"
+        "  var n := 5\n"
+        "  B(n)\n"
+        "end\n"
+        "def B(p) C(p); p end\n"
+        "def C(var q) q := 10; 3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 11 );
 }
 
 TEST_CASE( "Algoly: PassRef: global pass &proc by ref", "[algoly][pass-ref]" )

@@ -81,7 +81,9 @@ static bool IsVarDeclaration( DeclKind kind )
 {
     return kind == DeclKind::Param
         || kind == DeclKind::Global
-        || kind == DeclKind::Local;
+        || kind == DeclKind::Local
+        || kind == DeclKind::Field
+        ;
 }
 
 static bool IsSimpleValueDeclaration( DeclKind kind )
@@ -384,7 +386,7 @@ void BinderVisitor::VisitCallExpr( CallExpr* call )
     {
         Visit( arg );
 
-        CheckParamType( funcType->Params[i].Mode, funcType->Params[i].Type, arg->Type, arg.get() );
+        CheckArgument( funcType->Params[i].Mode, funcType->Params[i].Type, arg.get() );
         i++;
     }
 
@@ -1495,17 +1497,28 @@ void BinderVisitor::CheckStatementType( Syntax* node )
         mRep.ThrowSemanticsError( node, "Expected scalar type" );
 }
 
-void BinderVisitor::CheckParamType(
+void BinderVisitor::CheckArgument(
     ParamMode mode,
     const std::shared_ptr<Type>& site,
-    const std::shared_ptr<Type>& type,
-    Syntax* node )
+    Syntax* argNode )
 {
+    const auto& type = argNode->Type;
+
     if ( site->GetKind() != TypeKind::Xfer
         && type->GetKind() != TypeKind::Xfer
         && !site->IsPassableFrom( type.get(), mode ) )
     {
-        mRep.ThrowSemanticsError( node, "Incompatible argument type" );
+        mRep.ThrowSemanticsError( argNode, "Incompatible argument type" );
+    }
+
+    if ( mode == ParamMode::InOutRef )
+    {
+        auto decl = argNode->GetDecl();
+
+        if ( argNode->Kind != SyntaxKind::Index
+            && argNode->Kind != SyntaxKind::Slice
+            && (decl == nullptr || !IsVarDeclaration( decl->Kind )) )
+            mRep.ThrowSemanticsError( argNode, "Expression can't be passed by reference" );
     }
 }
 

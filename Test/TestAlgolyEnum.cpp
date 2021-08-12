@@ -107,7 +107,10 @@ TEST_CASE( "Algoly: infer enum", "[algoly][enum]" )
     const char code[] =
         "type E = enum E1=1,  E2, E3 end\n"
         "type F = enum F1=10, F2, F3 end\n"
-        "def a->F F.F2 end\n"
+        "var t := F.F2\n"
+        "def a\n"
+        "  t as int\n"
+        "end\n"
         ;
 
     TestCompileAndRunAlgoly( code, sizeof code, 11, 0, 3 );

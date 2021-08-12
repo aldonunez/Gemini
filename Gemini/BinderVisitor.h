@@ -127,11 +127,10 @@ private:
         Type* type,
         Syntax* node );
     void CheckStatementType( Syntax* node );
-    void CheckParamType(
+    void CheckArgument(
         ParamMode mode,
         const std::shared_ptr<Type>& site,
-        const std::shared_ptr<Type>& type,
-        Syntax* node );
+        Syntax* argNode );
     void CheckAndConsolidateClauseType( StatementList& clause, std::shared_ptr<Type>& bodyType );
     void CheckAndConsolidateClauseType( Syntax* clause, std::shared_ptr<Type>& bodyType );
     void CheckInitializer(

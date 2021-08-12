@@ -113,6 +113,26 @@ TEST_CASE( "Algoy: 2 funcs, call postdefine", "[algoly]" )
     TestCompileAndRunAlgoly( code, sizeof code, 33 );
 }
 
+TEST_CASE( "Algoy: func with param", "[algoly]" )
+{
+    const char code[] =
+        "def a B(30) end\n"
+        "def B(n) n+3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+}
+
+TEST_CASE( "Algoy: func with param, assign to param", "[algoly]" )
+{
+    const char code[] =
+        "def a B(30) end\n"
+        "def B(n) n := 90; n+3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, 93 );
+}
+
 TEST_CASE( "Global array ref in binary expr", "[algoly]" )
 {
     const char code[] =

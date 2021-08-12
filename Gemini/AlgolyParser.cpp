@@ -748,13 +748,16 @@ Unique<DataDecl> AlgolyParser::ParseParameter()
 
 void AlgolyParser::ParseStatements( StatementList& container )
 {
-    container.Line = mTokLine;
-    container.Column = mTokCol;
-
     while ( !IsSeparatorKeyword( mCurToken ) )
     {
         container.Statements.push_back( ParseStatement() );
     }
+
+    // Use the token after the statement list as a reference point
+
+    container.Line = mTokLine;
+    container.Column = mTokCol;
+    container.FileName = mUnitFileName;
 }
 
 Unique<Syntax> AlgolyParser::ParseStatement()
