@@ -246,33 +246,31 @@ void Disassemble( const uint8_t* program, int size )
 static CELL gStack[1024];
 
 
-// TODO: get rid of codeLen parameters
-
-void TestCompileAndRun( Language lang, const char* code, int codeLen, ResultVariant result, const std::initializer_list<int>& params, int expectedStack );
+void TestCompileAndRun( Language lang, const char* code, ResultVariant result, const std::initializer_list<int>& params, int expectedStack );
 
 
-void TestCompileAndRunAlgoly( const char* code, int codeLen, int result, int param, int expectedStack )
+void TestCompileAndRunAlgoly( const char* code, int result, int param, int expectedStack )
 {
-    TestCompileAndRun( Language::Gema, code, codeLen, Emplace<ResultKind::Stack>( result ), { param }, expectedStack );
+    TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Stack>( result ), { param }, expectedStack );
 }
 
-void TestCompileAndRunAlgoly( const char* code, int codeLen, int result, const std::initializer_list<int>& params, int expectedStack )
+void TestCompileAndRunAlgoly( const char* code, int result, const std::initializer_list<int>& params, int expectedStack )
 {
-    TestCompileAndRun( Language::Gema, code, codeLen, Emplace<ResultKind::Stack>( result ), params, expectedStack );
+    TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Stack>( result ), params, expectedStack );
 }
 
-void TestCompileAndRunAlgoly( const char* code, int codeLen, CompilerErr result )
+void TestCompileAndRunAlgoly( const char* code, CompilerErr result )
 {
-    TestCompileAndRun( Language::Gema, code, codeLen, Emplace<ResultKind::Compiler>( result ), {}, 0 );
+    TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Compiler>( result ), {}, 0 );
 }
 
-void TestCompileAndRunLispy( const char* code, int codeLen, int result, int param, int expectedStack )
+void TestCompileAndRunLispy( const char* code, int result, int param, int expectedStack )
 {
-    TestCompileAndRun( Language::Geml, code, codeLen, Emplace<ResultKind::Stack>( result ), { param }, expectedStack );
+    TestCompileAndRun( Language::Geml, code, Emplace<ResultKind::Stack>( result ), { param }, expectedStack );
 }
 
 
-void TestCompileAndRun( Language lang, const char* code, int codeLen, ResultVariant result, const std::initializer_list<int>& params, int expectedStack )
+void TestCompileAndRun( Language lang, const char* code, ResultVariant result, const std::initializer_list<int>& params, int expectedStack )
 {
     const char* sources[] =
     {

@@ -23,7 +23,7 @@ TEST_CASE( "Algoly: little number", "[algoly]" )
         "def a 33 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+    TestCompileAndRunAlgoly( code, 33 );
 }
 
 TEST_CASE( "Algoly: infer number", "[algoly]" )
@@ -33,7 +33,7 @@ TEST_CASE( "Algoly: infer number", "[algoly]" )
         "def a x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+    TestCompileAndRunAlgoly( code, 33 );
 }
 
 TEST_CASE( "Algoly: infer fptr", "[algoly]" )
@@ -44,7 +44,7 @@ TEST_CASE( "Algoly: infer fptr", "[algoly]" )
         "def B 99 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 99 );
+    TestCompileAndRunAlgoly( code, 99 );
 }
 
 TEST_CASE( "Algoly: infer array", "[algoly]" )
@@ -54,7 +54,7 @@ TEST_CASE( "Algoly: infer array", "[algoly]" )
         "def a ar[0] + ar[1] + ar[2] + countof(ar) end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6 + 3 );
+    TestCompileAndRunAlgoly( code, 6 + 3 );
 }
 
 TEST_CASE( "Algoly: infer array repeat", "[algoly]" )
@@ -64,7 +64,7 @@ TEST_CASE( "Algoly: infer array repeat", "[algoly]" )
         "def a ar[0] + ar[1] + ar[2] + countof(ar) end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6 + 3 );
+    TestCompileAndRunAlgoly( code, 6 + 3 );
 }
 
 TEST_CASE( "Algoly: infer array of array", "[algoly]" )
@@ -77,7 +77,7 @@ TEST_CASE( "Algoly: infer array of array", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 21 + 3 + 20 );
+    TestCompileAndRunAlgoly( code, 21 + 3 + 20 );
 }
 
 TEST_CASE( "Algoly: infer array of array repeat", "[algoly]" )
@@ -90,7 +90,7 @@ TEST_CASE( "Algoly: infer array of array repeat", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 21 + 3 + 20 );
+    TestCompileAndRunAlgoly( code, 21 + 3 + 20 );
 }
 
 TEST_CASE( "Algoy: 2 funcs, call predefine", "[algoly]" )
@@ -100,7 +100,7 @@ TEST_CASE( "Algoy: 2 funcs, call predefine", "[algoly]" )
         "def a B() end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+    TestCompileAndRunAlgoly( code, 33 );
 }
 
 TEST_CASE( "Algoy: 2 funcs, call postdefine", "[algoly]" )
@@ -110,7 +110,7 @@ TEST_CASE( "Algoy: 2 funcs, call postdefine", "[algoly]" )
         "def B 33 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+    TestCompileAndRunAlgoly( code, 33 );
 }
 
 TEST_CASE( "Algoy: func with param", "[algoly]" )
@@ -120,7 +120,7 @@ TEST_CASE( "Algoy: func with param", "[algoly]" )
         "def B(n) n+3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+    TestCompileAndRunAlgoly( code, 33 );
 }
 
 TEST_CASE( "Algoy: func with param, assign to param", "[algoly]" )
@@ -130,7 +130,7 @@ TEST_CASE( "Algoy: func with param, assign to param", "[algoly]" )
         "def B(n) n := 90; n+3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 93 );
+    TestCompileAndRunAlgoly( code, 93 );
 }
 
 TEST_CASE( "Global array ref in binary expr", "[algoly]" )
@@ -142,7 +142,7 @@ TEST_CASE( "Global array ref in binary expr", "[algoly]" )
         "def a() 9; b + c + d[1] end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 25 );
+    TestCompileAndRunAlgoly( code, 25 );
 }
 
 TEST_CASE( "Global array implicit", "[algoly]" )
@@ -154,7 +154,7 @@ TEST_CASE( "Global array implicit", "[algoly]" )
         "def a() 9; b + c + d[1] end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 25 );
+    TestCompileAndRunAlgoly( code, 25 );
 }
 
 TEST_CASE( "Local array refs in binary exprs, init array with mixed calls and number", "[algoly]" )
@@ -168,7 +168,7 @@ TEST_CASE( "Local array refs in binary exprs, init array with mixed calls and nu
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6 );
+    TestCompileAndRunAlgoly( code, 6 );
 }
 
 TEST_CASE( "Binary expr with 2 local ints", "[algoly]" )
@@ -177,7 +177,7 @@ TEST_CASE( "Binary expr with 2 local ints", "[algoly]" )
         "def a var x := 3, y := 4; y - x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1 );
+    TestCompileAndRunAlgoly( code, 1 );
 }
 
 TEST_CASE( "Case, when 1 key, 2 keys, else", "[algoly]" )
@@ -188,27 +188,27 @@ TEST_CASE( "Case, when 1 key, 2 keys, else", "[algoly]" )
 
     SECTION( "First when" )
     {
-        TestCompileAndRunAlgoly( code, sizeof code, 10, 1 );
+        TestCompileAndRunAlgoly( code, 10, 1 );
     }
 
     SECTION( "Second when" )
     {
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 2 );
+        TestCompileAndRunAlgoly( code, 20, 2 );
     }
 
     SECTION( "Third when, first key" )
     {
-        TestCompileAndRunAlgoly( code, sizeof code, 99, 5 );
+        TestCompileAndRunAlgoly( code, 99, 5 );
     }
 
     SECTION( "Third when, second key" )
     {
-        TestCompileAndRunAlgoly( code, sizeof code, 99, 6 );
+        TestCompileAndRunAlgoly( code, 99, 6 );
     }
 
     SECTION( "Else" )
     {
-        TestCompileAndRunAlgoly( code, sizeof code, 40, 7 );
+        TestCompileAndRunAlgoly( code, 40, 7 );
     }
 }
 
@@ -219,7 +219,7 @@ TEST_CASE( "For-to, inside increment arg", "[algoly]" )
         "def B(x) for i := 1 to 3 do x := x + 1; next; x:=x+1 end x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4 );
+    TestCompileAndRunAlgoly( code, 4 );
 }
 
 TEST_CASE( "While, inside inc arg", "[algoly]" )
@@ -232,7 +232,7 @@ TEST_CASE( "While, inside inc arg", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2 );
+    TestCompileAndRunAlgoly( code, 2 );
 }
 
 TEST_CASE( "Loop, inside inc arg, break", "[algoly]" )
@@ -245,7 +245,7 @@ TEST_CASE( "Loop, inside inc arg, break", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2 );
+    TestCompileAndRunAlgoly( code, 2 );
 }
 
 TEST_CASE( "Loop-while, inside inc arg, break", "[algoly]" )
@@ -258,7 +258,7 @@ TEST_CASE( "Loop-while, inside inc arg, break", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2 );
+    TestCompileAndRunAlgoly( code, 2 );
 }
 
 TEST_CASE( "Loop, inside inc local, break", "[algoly]" )
@@ -267,7 +267,7 @@ TEST_CASE( "Loop, inside inc local, break", "[algoly]" )
         "def a() var x := 1; loop x := x + 1; if x >= 2 then break end end x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2 );
+    TestCompileAndRunAlgoly( code, 2 );
 }
 
 TEST_CASE( "For, if-then, break", "[algoly]" )
@@ -276,7 +276,7 @@ TEST_CASE( "For, if-then, break", "[algoly]" )
         "def a() for i := 1 to 3 do if i >= 2 then break end end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "For, if-elsif, break", "[algoly]" )
@@ -285,7 +285,7 @@ TEST_CASE( "For, if-elsif, break", "[algoly]" )
         "def a() for i := 1 to 3 do if i >= 3 then elsif i >= 2 then break end end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "For, if-else, break", "[algoly]" )
@@ -294,7 +294,7 @@ TEST_CASE( "For, if-else, break", "[algoly]" )
         "def a() for i := 1 to 3 do if i < 2 then elsif i >= 3 then else break end end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "For, case-when, break", "[algoly]" )
@@ -303,7 +303,7 @@ TEST_CASE( "For, case-when, break", "[algoly]" )
         "def a() for i := 1 to 3 do case 1 when 1 then break end end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "For, case-else, break", "[algoly]" )
@@ -313,10 +313,10 @@ TEST_CASE( "For, case-else, break", "[algoly]" )
         ;
 
     WHEN( "1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 0, 1 );
+        TestCompileAndRunAlgoly( code, 0, 1 );
 
     WHEN( "Else" )
-        TestCompileAndRunAlgoly( code, sizeof code, 0, 2 );
+        TestCompileAndRunAlgoly( code, 0, 2 );
 }
 
 // ptr->func, int
@@ -334,7 +334,7 @@ TEST_CASE( "Algoly: pfunc(int)->int", "[algoly]" )
         "def B(x) x * 11 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+    TestCompileAndRunAlgoly( code, 33 );
 }
 
 TEST_CASE( "Algoly: pfunc(int, int)->int", "[algoly]" )
@@ -349,7 +349,7 @@ TEST_CASE( "Algoly: pfunc(int, int)->int", "[algoly]" )
         "def C(x, y) x * y end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 15 );
+    TestCompileAndRunAlgoly( code, 15 );
 }
 
 TEST_CASE( "Algoly: pfunc(int, pfunc(int)->int)->int", "[algoly]" )
@@ -364,7 +364,7 @@ TEST_CASE( "Algoly: pfunc(int, pfunc(int)->int)->int", "[algoly]" )
         "def C(x) x * 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 7 );
+    TestCompileAndRunAlgoly( code, 7 );
 }
 
 TEST_CASE( "Algoly: pfunc(int, pfunc(int)->int)->int with lambda", "[algoly]" )
@@ -380,7 +380,7 @@ TEST_CASE( "Algoly: pfunc(int, pfunc(int)->int)->int with lambda", "[algoly]" )
         "def C(x) x * 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 13 );
+    TestCompileAndRunAlgoly( code, 13 );
 }
 
 TEST_CASE( "Algoly: pfunc(int)->int replace", "[algoly]" )
@@ -395,7 +395,7 @@ TEST_CASE( "Algoly: pfunc(int)->int replace", "[algoly]" )
         "def C 20 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 20 );
+    TestCompileAndRunAlgoly( code, 20 );
 }
 
 TEST_CASE( "Algoly: const local", "[algoly]" )
@@ -409,7 +409,7 @@ TEST_CASE( "Algoly: const local", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6 );
+    TestCompileAndRunAlgoly( code, 6 );
 }
 
 TEST_CASE( "Algoly: explicit int return type no params", "[algoly]" )
@@ -422,7 +422,7 @@ TEST_CASE( "Algoly: explicit int return type no params", "[algoly]" )
         "def B -> int 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: explicit int return type params", "[algoly]" )
@@ -435,7 +435,7 @@ TEST_CASE( "Algoly: explicit int return type params", "[algoly]" )
         "def B(x) -> int x + 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5 );
+    TestCompileAndRunAlgoly( code, 5 );
 }
 
 TEST_CASE( "Algoly: explicit fptr return type no params", "[algoly]" )
@@ -449,7 +449,7 @@ TEST_CASE( "Algoly: explicit fptr return type no params", "[algoly]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: explicit fptr return type params", "[algoly]" )
@@ -463,7 +463,7 @@ TEST_CASE( "Algoly: explicit fptr return type params", "[algoly]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: explicit fptr chain of 2 return types", "[algoly]" )
@@ -477,7 +477,7 @@ TEST_CASE( "Algoly: explicit fptr chain of 2 return types", "[algoly]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: global array of fptr", "[algoly]" )
@@ -490,7 +490,7 @@ TEST_CASE( "Algoly: global array of fptr", "[algoly]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5 );
+    TestCompileAndRunAlgoly( code, 5 );
 }
 
 TEST_CASE( "Algoly: local array of fptr", "[algoly]" )
@@ -503,7 +503,7 @@ TEST_CASE( "Algoly: local array of fptr", "[algoly]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5 );
+    TestCompileAndRunAlgoly( code, 5 );
 }
 
 TEST_CASE( "Algoly: fptr type alias", "[algoly]" )
@@ -515,7 +515,7 @@ TEST_CASE( "Algoly: fptr type alias", "[algoly]" )
         "def B( x ) x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: Named int type", "[algoly]" )
@@ -524,7 +524,7 @@ TEST_CASE( "Algoly: Named int type", "[algoly]" )
         "def a() var t: int := 2; t := t+1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 #endif
@@ -538,7 +538,7 @@ TEST_CASE( "Algoly: New line after param and arg", "[algoly]" )
         ") x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+    TestCompileAndRunAlgoly( code, 33 );
 }
 
 TEST_CASE( "Binary expr of lambda->call and addrOf->call", "[algoly]" )
@@ -548,7 +548,7 @@ TEST_CASE( "Binary expr of lambda->call and addrOf->call", "[algoly]" )
         "def B(x) x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 99 );
+    TestCompileAndRunAlgoly( code, 99 );
 }
 
 TEST_CASE( "If-Else, complex-condition with literals", "[algoly]" )
@@ -562,7 +562,7 @@ TEST_CASE( "If-Else, complex-condition with literals", "[algoly]" )
             "end\n"
             ;
 
-        TestCompileAndRunAlgoly( code, sizeof code, 3 );
+        TestCompileAndRunAlgoly( code, 3 );
     }
 
     WHEN( "false" )
@@ -574,7 +574,7 @@ TEST_CASE( "If-Else, complex-condition with literals", "[algoly]" )
             "end\n"
             ;
 
-        TestCompileAndRunAlgoly( code, sizeof code, 4 );
+        TestCompileAndRunAlgoly( code, 4 );
     }
 }
 
@@ -584,7 +584,7 @@ TEST_CASE( "Complex arithmetic", "[algoly]" )
         "def a; (1 + (32/4*2) - 2) end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 15 );
+    TestCompileAndRunAlgoly( code, 15 );
 }
 
 TEST_CASE( "Call without parens, 1 arg", "[algoly]" )
@@ -593,7 +593,7 @@ TEST_CASE( "Call without parens, 1 arg", "[algoly]" )
         "def a B 93 end\n def B(x) -x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, -93 );
+    TestCompileAndRunAlgoly( code, -93 );
 }
 
 TEST_CASE( "Call with parens, 1 arg", "[algoly]" )
@@ -602,7 +602,7 @@ TEST_CASE( "Call with parens, 1 arg", "[algoly]" )
         "def a B(97) end\n def B(x) -x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, -97 );
+    TestCompileAndRunAlgoly( code, -97 );
 }
 
 TEST_CASE( "If", "[algoly]" )
@@ -613,12 +613,12 @@ TEST_CASE( "If", "[algoly]" )
 
     WHEN( "true" )
     {
-        TestCompileAndRunAlgoly( code, sizeof code, 0, 1 );
+        TestCompileAndRunAlgoly( code, 0, 1 );
     }
 
     WHEN( "false" )
     {
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 0 );
+        TestCompileAndRunAlgoly( code, 20, 0 );
     }
 }
 
@@ -628,7 +628,7 @@ TEST_CASE( "Return, not last expr", "[algoly]" )
         "def a 9; 3; return 99; not false; end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 99 );
+    TestCompileAndRunAlgoly( code, 99 );
 }
 
 TEST_CASE( "Return, last expr", "[algoly]" )
@@ -637,7 +637,7 @@ TEST_CASE( "Return, last expr", "[algoly]" )
         "def a 9; 3; not false; return 99; end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 99 );
+    TestCompileAndRunAlgoly( code, 99 );
 }
 
 //-------------------------------
@@ -659,7 +659,7 @@ TEST_CASE( "Call, line breaks, 2 args", "[algoly][syntax]" )
         "def B(x, y) t := t + x + y end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 23 );
+    TestCompileAndRunAlgoly( code, 23 );
 }
 
 TEST_CASE( "Call, line breaks, 1 arg", "[algoly][syntax]" )
@@ -675,7 +675,7 @@ TEST_CASE( "Call, line breaks, 1 arg", "[algoly][syntax]" )
         "def B(x) t := t + x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8 );
+    TestCompileAndRunAlgoly( code, 8 );
 }
 
 TEST_CASE( "Call, line breaks, 0 args", "[algoly][syntax]" )
@@ -690,7 +690,7 @@ TEST_CASE( "Call, line breaks, 0 args", "[algoly][syntax]" )
         "def B() t := t + 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9 );
+    TestCompileAndRunAlgoly( code, 9 );
 }
 
 TEST_CASE( "Negative number", "[algoly][syntax]" )
@@ -699,7 +699,7 @@ TEST_CASE( "Negative number", "[algoly][syntax]" )
         "def a -3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, -3 );
+    TestCompileAndRunAlgoly( code, -3 );
 }
 
 TEST_CASE( "Const, multi, dependent", "[algoly]" )
@@ -712,7 +712,7 @@ TEST_CASE( "Const, multi, dependent", "[algoly]" )
         "def a C4 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 7 );
+    TestCompileAndRunAlgoly( code, 7 );
 }
 
 TEST_CASE( "Case-when-else, complex test", "[algoly]" )
@@ -725,12 +725,12 @@ TEST_CASE( "Case-when-else, complex test", "[algoly]" )
 
     WHEN( "Passed when" )
     {
-        TestCompileAndRunAlgoly( code, sizeof code, 10, 2 );
+        TestCompileAndRunAlgoly( code, 10, 2 );
     }
 
     WHEN( "Else" )
     {
-        TestCompileAndRunAlgoly( code, sizeof code, 15, 10 );
+        TestCompileAndRunAlgoly( code, 15, 10 );
     }
 }
 
@@ -742,7 +742,7 @@ TEST_CASE( "Case-when, no else", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "Case-when, complex const key", "[algoly]" )
@@ -753,7 +753,7 @@ TEST_CASE( "Case-when, complex const key", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10, 4 );
+    TestCompileAndRunAlgoly( code, 10, 4 );
 }
 
 TEST_CASE( "Case-when, complex var key", "[algoly]" )
@@ -765,7 +765,7 @@ TEST_CASE( "Case-when, complex var key", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10, 4 );
+    TestCompileAndRunAlgoly( code, 10, 4 );
 }
 
 TEST_CASE( "Algoly: Case-when, mod dotted key", "[algoly]" )
@@ -805,7 +805,7 @@ TEST_CASE( "For-to, last expr", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "Loop, while, break", "[algoly]" )
@@ -818,7 +818,7 @@ TEST_CASE( "Loop, while, break", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2 );
+    TestCompileAndRunAlgoly( code, 2 );
 }
 
 TEST_CASE( "Loop, while, complex exprs", "[algoly]" )
@@ -831,7 +831,7 @@ TEST_CASE( "Loop, while, complex exprs", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 101 );
+    TestCompileAndRunAlgoly( code, 101 );
 }
 
 TEST_CASE( "Algoly: Subtraction, no spaces", "[algoly]" )
@@ -840,7 +840,7 @@ TEST_CASE( "Algoly: Subtraction, no spaces", "[algoly]" )
         "def a 5-8 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, -3 );
+    TestCompileAndRunAlgoly( code, -3 );
 }
 
 TEST_CASE( "Algoly: For-to-step, complex bounds and step, call lambda with loop var", "[algoly]" )
@@ -856,7 +856,7 @@ TEST_CASE( "Algoly: For-to-step, complex bounds and step, call lambda with loop 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 350 );
+    TestCompileAndRunAlgoly( code, 350 );
 }
 
 TEST_CASE( "Algoly: Let, call, complex exprs", "[algoly]" )
@@ -867,7 +867,7 @@ TEST_CASE( "Algoly: Let, call, complex exprs", "[algoly]" )
         "def B(x) x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 120 );
+    TestCompileAndRunAlgoly( code, 120 );
 }
 
 TEST_CASE( "Algoly: Global array, complex elem with fptr elem and repeat init", "[algoly]" )
@@ -888,7 +888,7 @@ TEST_CASE( "Algoly: Global array, complex elem with fptr elem and repeat init", 
         "def C 4 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 12 );
+    TestCompileAndRunAlgoly( code, 12 );
 }
 
 TEST_CASE( "Algoly: Local array, complex elem with fptr elem and repeat init", "[algoly]" )
@@ -909,7 +909,7 @@ TEST_CASE( "Algoly: Local array, complex elem with fptr elem and repeat init", "
         "def C 4 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 12 );
+    TestCompileAndRunAlgoly( code, 12 );
 }
 
 TEST_CASE( "Algoly: Global array, fptr elem and repeat init", "[algoly]" )
@@ -926,7 +926,7 @@ TEST_CASE( "Algoly: Global array, fptr elem and repeat init", "[algoly]" )
         "def C 4 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 11 );
+    TestCompileAndRunAlgoly( code, 11 );
 }
 
 TEST_CASE( "Algoly: Local array, fptr elem and repeat init", "[algoly]" )
@@ -943,7 +943,7 @@ TEST_CASE( "Algoly: Local array, fptr elem and repeat init", "[algoly]" )
         "def C 4 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 11 );
+    TestCompileAndRunAlgoly( code, 11 );
 }
 
 TEST_CASE( "Algoly: Local array repeat init with call and binary", "[algoly]" )
@@ -957,7 +957,7 @@ TEST_CASE( "Algoly: Local array repeat init with call and binary", "[algoly]" )
         "def B(x) x*x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 44, 0, 11 );
+    TestCompileAndRunAlgoly( code, 44, 0, 11 );
 }
 
 TEST_CASE( "Algoly: Global array, int complex elem and repeat init, complex indexing", "[algoly]" )
@@ -969,7 +969,7 @@ TEST_CASE( "Algoly: Global array, int complex elem and repeat init, complex inde
         "  ar[3-3]+ar[bb/2]+ar[6/3] end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 13 );
+    TestCompileAndRunAlgoly( code, 13 );
 }
 
 TEST_CASE( "Algoly: Global array, int complex elem and extra init, complex indexing", "[algoly]" )
@@ -981,7 +981,7 @@ TEST_CASE( "Algoly: Global array, int complex elem and extra init, complex index
         "  ar[3-3]+ar[bb/2]+ar[6/3] end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 15 );
+    TestCompileAndRunAlgoly( code, 15 );
 }
 
 TEST_CASE( "Algoly: Local array, int complex elem and repeat init, complex indexing", "[algoly]" )
@@ -993,7 +993,7 @@ TEST_CASE( "Algoly: Local array, int complex elem and repeat init, complex index
         "  ar[3-3]+ar[bb/2]+ar[6/3] end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 13 );
+    TestCompileAndRunAlgoly( code, 13 );
 }
 
 TEST_CASE( "Algoly: Local array, int complex elem and extra init, complex indexing", "[algoly]" )
@@ -1005,7 +1005,7 @@ TEST_CASE( "Algoly: Local array, int complex elem and extra init, complex indexi
         "  ar[3-3]+ar[bb/2]+ar[6/3] end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 15 );
+    TestCompileAndRunAlgoly( code, 15 );
 }
 
 TEST_CASE( "Algoly: Assignment, chained", "[algoly]" )
@@ -1017,7 +1017,7 @@ TEST_CASE( "Algoly: Assignment, chained", "[algoly]" )
         "def B(x) x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 27 );
+    TestCompileAndRunAlgoly( code, 27 );
 }
 
 TEST_CASE( "Algoly: Local array, empty init, chained assignment", "[algoly]" )
@@ -1029,7 +1029,7 @@ TEST_CASE( "Algoly: Local array, empty init, chained assignment", "[algoly]" )
         "def B(x) x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 27 );
+    TestCompileAndRunAlgoly( code, 27 );
 }
 
 TEST_CASE( "Algoly: Lambda, call directly, local binding", "[algoly]" )
@@ -1040,7 +1040,7 @@ TEST_CASE( "Algoly: Lambda, call directly, local binding", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 7, 2 );
+    TestCompileAndRunAlgoly( code, 7, 2 );
 }
 
 TEST_CASE( "Algoly: Lambda, local binding", "[algoly]" )
@@ -1054,7 +1054,7 @@ TEST_CASE( "Algoly: Lambda, local binding", "[algoly]" )
         "def B(x, y) x+y end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2 );
+    TestCompileAndRunAlgoly( code, 2 );
 }
 
 TEST_CASE( "Globals, mixed", "[algoly]" )
@@ -1066,7 +1066,7 @@ TEST_CASE( "Globals, mixed", "[algoly]" )
         "def a() b + c + d[1] + e end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 27 );
+    TestCompileAndRunAlgoly( code, 27 );
 }
 
 TEST_CASE( "Global array, indexing", "[algoly]" )
@@ -1076,7 +1076,7 @@ TEST_CASE( "Global array, indexing", "[algoly]" )
         "def a if array[0] or (array[1] and array[2]) then 99 else 101 end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 99 );
+    TestCompileAndRunAlgoly( code, 99 );
 }
 
 
@@ -1090,7 +1090,7 @@ TEST_CASE( "Algoly: local const", "[algoly]" )
         "def a const C = 3, D = 2; C + D end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5 );
+    TestCompileAndRunAlgoly( code, 5 );
 }
 
 TEST_CASE( "Algoly: const with type denoter", "[algoly]" )
@@ -1100,7 +1100,7 @@ TEST_CASE( "Algoly: const with type denoter", "[algoly]" )
         "def a C + D end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5 );
+    TestCompileAndRunAlgoly( code, 5 );
 }
 
 TEST_CASE( "Algoly: func return with type denoter int", "[algoly]" )
@@ -1116,7 +1116,7 @@ TEST_CASE( "Algoly: func return with type denoter int", "[algoly]" )
         "def C -> int 2 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10 );
+    TestCompileAndRunAlgoly( code, 10 );
 }
 
 TEST_CASE( "Algoly: func return with type denoter proc->int", "[algoly]" )
@@ -1132,7 +1132,7 @@ TEST_CASE( "Algoly: func return with type denoter proc->int", "[algoly]" )
         "def X(x)->&proc if x then &C else &B end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10 );
+    TestCompileAndRunAlgoly( code, 10 );
 }
 
 TEST_CASE( "Algoly: func addrs in global", "[algoly]" )
@@ -1148,7 +1148,7 @@ TEST_CASE( "Algoly: func addrs in global", "[algoly]" )
         "def C -> int 2 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5 );
+    TestCompileAndRunAlgoly( code, 5 );
 }
 
 TEST_CASE( "Algoly: local fptr array", "[algoly]" )
@@ -1168,7 +1168,7 @@ TEST_CASE( "Algoly: local fptr array", "[algoly]" )
         "def D -> int 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 11 );
+    TestCompileAndRunAlgoly( code, 11 );
 }
 
 TEST_CASE( "Algoly: global fptr array", "[algoly]" )
@@ -1188,7 +1188,7 @@ TEST_CASE( "Algoly: global fptr array", "[algoly]" )
         "def D -> int 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 11 );
+    TestCompileAndRunAlgoly( code, 11 );
 }
 
 TEST_CASE( "Algoly: type alias int", "[algoly]" )
@@ -1202,7 +1202,7 @@ TEST_CASE( "Algoly: type alias int", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: type alias fptr", "[algoly]" )
@@ -1218,7 +1218,7 @@ TEST_CASE( "Algoly: type alias fptr", "[algoly]" )
         "def C(x) x + 2 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 23 );
+    TestCompileAndRunAlgoly( code, 23 );
 }
 
 TEST_CASE( "Algoly: type alias array", "[algoly]" )
@@ -1235,7 +1235,7 @@ TEST_CASE( "Algoly: type alias array", "[algoly]" )
         "def C 4 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10 );
+    TestCompileAndRunAlgoly( code, 10 );
 }
 
 TEST_CASE( "Algoly: multi type alias int", "[algoly]" )
@@ -1249,7 +1249,7 @@ TEST_CASE( "Algoly: multi type alias int", "[algoly]" )
         "def B 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4 );
+    TestCompileAndRunAlgoly( code, 4 );
 }
 
 TEST_CASE( "Algoly: elide branch before discarded catch all", "[algoly]" )
@@ -1265,7 +1265,7 @@ TEST_CASE( "Algoly: elide branch before discarded catch all", "[algoly]" )
         "def B end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 
@@ -1282,7 +1282,7 @@ TEST_CASE( "Algoly: countof", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: slice index literal", "[algoly]" )
@@ -1295,7 +1295,7 @@ TEST_CASE( "Algoly: slice index literal", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 30 );
+    TestCompileAndRunAlgoly( code, 30 );
 }
 
 TEST_CASE( "Algoly: slice index complex expr", "[algoly]" )
@@ -1309,7 +1309,7 @@ TEST_CASE( "Algoly: slice index complex expr", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 30 );
+    TestCompileAndRunAlgoly( code, 30 );
 }
 
 TEST_CASE( "Algoly: default array", "[algoly]" )
@@ -1321,7 +1321,7 @@ TEST_CASE( "Algoly: default array", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "Algoly: default array elements", "[algoly]" )
@@ -1333,7 +1333,7 @@ TEST_CASE( "Algoly: default array elements", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5 );
+    TestCompileAndRunAlgoly( code, 5 );
 }
 
 TEST_CASE( "Algoly: assign countof to const", "[algoly]" )
@@ -1347,7 +1347,7 @@ TEST_CASE( "Algoly: assign countof to const", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: big array 32768 extrapolate", "[algoly]" )
@@ -1363,7 +1363,7 @@ TEST_CASE( "Algoly: big array 32768 extrapolate", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 536887296 );
+    TestCompileAndRunAlgoly( code, 536887296 );
 }
 
 TEST_CASE( "Algoly: big array 65534 extrapolate", "[algoly]" )
@@ -1379,7 +1379,7 @@ TEST_CASE( "Algoly: big array 65534 extrapolate", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2147385345 );
+    TestCompileAndRunAlgoly( code, 2147385345 );
 }
 
 TEST_CASE( "Algoly: big array 63x1024 extrapolate repeat", "[algoly]" )
@@ -1397,7 +1397,7 @@ TEST_CASE( "Algoly: big array 63x1024 extrapolate repeat", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33062400 );
+    TestCompileAndRunAlgoly( code, 33062400 );
 }
 
 
@@ -2064,5 +2064,5 @@ TEST_CASE( "Algoly: mod array 1", "[algoly]" )
 //        "  total end\n"
 //        ;
 //
-//    TestCompileAndRunAlgoly( code, sizeof code, 36 );
+//    TestCompileAndRunAlgoly( code, 36 );
 //}

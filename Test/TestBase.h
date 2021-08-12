@@ -57,13 +57,11 @@ constexpr ResultVariant Emplace( T value )
 constexpr int32_t DefaultParam = INT32_MAX;
 
 
-// TODO: get rid of codeLen parameters
+void TestCompileAndRunAlgoly( const char* code, int result, int param = DefaultParam, int expectedStack = 0 );
+void TestCompileAndRunAlgoly( const char* code, int result, const std::initializer_list<int>& params, int expectedStack = 0 );
+void TestCompileAndRunAlgoly( const char* code, Gemini::CompilerErr result );
 
-void TestCompileAndRunAlgoly( const char* code, int codeLen, int result, int param = DefaultParam, int expectedStack = 0 );
-void TestCompileAndRunAlgoly( const char* code, int codeLen, int result, const std::initializer_list<int>& params, int expectedStack = 0 );
-void TestCompileAndRunAlgoly( const char* code, int codeLen, Gemini::CompilerErr result );
-
-void TestCompileAndRunLispy( const char* code, int codeLen, int result, int param = DefaultParam, int expectedStack = 0 );
+void TestCompileAndRunLispy( const char* code, int result, int param = DefaultParam, int expectedStack = 0 );
 
 void TestCompileAndRun(
     Language lang,

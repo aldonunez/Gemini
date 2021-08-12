@@ -16,7 +16,7 @@ TEST_CASE( "Lispy: ???", "[lispy]" )
         "(defun B () )"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 0 );
+    TestCompileAndRunLispy( code, 0 );
 }
 #endif
 
@@ -26,7 +26,7 @@ TEST_CASE( "Lispy: Negative number", "[lispy]" )
         "(defun a () (if 2 -3))"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, -3 );
+    TestCompileAndRunLispy( code, -3 );
 }
 
 TEST_CASE( "Lispy: Cond, literal condition, no implicit progn", "[lispy]" )
@@ -36,7 +36,7 @@ TEST_CASE( "Lispy: Cond, literal condition, no implicit progn", "[lispy]" )
         "(defun B () )"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 2 );
+    TestCompileAndRunLispy( code, 2 );
 }
 
 TEST_CASE( "Lispy: Cond, literal condition fallback", "[lispy]" )
@@ -46,7 +46,7 @@ TEST_CASE( "Lispy: Cond, literal condition fallback", "[lispy]" )
         "(defun B () 99)"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 99 );
+    TestCompileAndRunLispy( code, 99 );
 }
 
 TEST_CASE( "Lispy: Cond fallback to nil", "[lispy]" )
@@ -56,7 +56,7 @@ TEST_CASE( "Lispy: Cond fallback to nil", "[lispy]" )
         "(defun B () 99)"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 0 );
+    TestCompileAndRunLispy( code, 0 );
 }
 
 TEST_CASE( "Lispy: If-Else, progn", "[lispy]" )
@@ -67,7 +67,7 @@ TEST_CASE( "Lispy: If-Else, progn", "[lispy]" )
         "(defun C () 77)"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 99 );
+    TestCompileAndRunLispy( code, 99 );
 }
 
 // FAIL:
@@ -84,13 +84,13 @@ TEST_CASE( "Lispy: Case-else, func result from 2 clauses and else", "[lispy][syn
         ;
 
     WHEN( "1" )
-        TestCompileAndRunLispy( code, sizeof code, 10, 1 );
+        TestCompileAndRunLispy( code, 10, 1 );
 
     WHEN( "2" )
-        TestCompileAndRunLispy( code, sizeof code, 20, 2 );
+        TestCompileAndRunLispy( code, 20, 2 );
 
     WHEN( "Else" )
-        TestCompileAndRunLispy( code, sizeof code, 30, 3 );
+        TestCompileAndRunLispy( code, 30, 3 );
 }
 
 TEST_CASE( "Lispy: Cond, 1 clause non-lit cond with int result", "[lispy]" )
@@ -100,10 +100,10 @@ TEST_CASE( "Lispy: Cond, 1 clause non-lit cond with int result", "[lispy]" )
         ;
 
     WHEN( "5" )
-        TestCompileAndRunLispy( code, sizeof code, 0, 5 );
+        TestCompileAndRunLispy( code, 0, 5 );
 
     WHEN( "1" )
-        TestCompileAndRunLispy( code, sizeof code, 2, 1 );
+        TestCompileAndRunLispy( code, 2, 1 );
 }
 
 TEST_CASE( "Lispy: Cond-else, 1 clause non-lit cond with int result", "[lispy]" )
@@ -113,10 +113,10 @@ TEST_CASE( "Lispy: Cond-else, 1 clause non-lit cond with int result", "[lispy]" 
         ;
 
     WHEN( "5" )
-        TestCompileAndRunLispy( code, sizeof code, 3, 5 );
+        TestCompileAndRunLispy( code, 3, 5 );
 
     WHEN( "1" )
-        TestCompileAndRunLispy( code, sizeof code, 2, 1 );
+        TestCompileAndRunLispy( code, 2, 1 );
 }
 
 TEST_CASE( "Lispy: Cond-else, 1 clause non-lit cond with func result", "[lispy]" )
@@ -129,10 +129,10 @@ TEST_CASE( "Lispy: Cond-else, 1 clause non-lit cond with func result", "[lispy]"
         ;
 
     WHEN( "5" )
-        TestCompileAndRunLispy( code, sizeof code, 30, 5 );
+        TestCompileAndRunLispy( code, 30, 5 );
 
     WHEN( "1" )
-        TestCompileAndRunLispy( code, sizeof code, 20, 1 );
+        TestCompileAndRunLispy( code, 20, 1 );
 }
 
 TEST_CASE( "Lispy: Cond, empty", "[lispy]" )
@@ -141,7 +141,7 @@ TEST_CASE( "Lispy: Cond, empty", "[lispy]" )
         "(defun a () (+ (cond) 1) )"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 1 );
+    TestCompileAndRunLispy( code, 1 );
 }
 
 TEST_CASE( "Lispy: not, unary minus, call, if", "[lispy]" )
@@ -152,10 +152,10 @@ TEST_CASE( "Lispy: not, unary minus, call, if", "[lispy]" )
         ;
 
     WHEN( "0" )
-        TestCompileAndRunLispy( code, sizeof code, 1, 0 );
+        TestCompileAndRunLispy( code, 1, 0 );
 
     WHEN( "10" )
-        TestCompileAndRunLispy( code, sizeof code, 0, 10 );
+        TestCompileAndRunLispy( code, 0, 10 );
 }
 
 TEST_CASE( "Lispy: Call lambda directly", "[lispy]" )
@@ -164,7 +164,7 @@ TEST_CASE( "Lispy: Call lambda directly", "[lispy]" )
         "(defun a () (funcall (lambda () 5)) )\n"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 5 );
+    TestCompileAndRunLispy( code, 5 );
 }
 
 TEST_CASE( "Lispy: For-below-by, literal bounds, break, set", "[lispy]" )
@@ -177,7 +177,7 @@ TEST_CASE( "Lispy: For-below-by, literal bounds, break, set", "[lispy]" )
         ") p))\n"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 1 );
+    TestCompileAndRunLispy( code, 1 );
 }
 
 TEST_CASE( "Lispy: While, set", "[lispy]" )
@@ -187,7 +187,7 @@ TEST_CASE( "Lispy: While, set", "[lispy]" )
         ") p))\n"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 3 );
+    TestCompileAndRunLispy( code, 3 );
 }
 
 TEST_CASE( "Lispy: Case, int results", "[lispy]" )
@@ -197,16 +197,16 @@ TEST_CASE( "Lispy: Case, int results", "[lispy]" )
         ;
 
     WHEN( "1" )
-        TestCompileAndRunLispy( code, sizeof code, 10, 0 );
+        TestCompileAndRunLispy( code, 10, 0 );
 
     WHEN( "5" )
-        TestCompileAndRunLispy( code, sizeof code, 99, 4 );
+        TestCompileAndRunLispy( code, 99, 4 );
 
     WHEN( "6" )
-        TestCompileAndRunLispy( code, sizeof code, 99, 5 );
+        TestCompileAndRunLispy( code, 99, 5 );
 
     WHEN( "7" )
-        TestCompileAndRunLispy( code, sizeof code, 0, 7 );
+        TestCompileAndRunLispy( code, 0, 7 );
 }
 
 TEST_CASE( "Lispy: Global ints", "[lispy]" )
@@ -219,7 +219,7 @@ TEST_CASE( "Lispy: Global ints", "[lispy]" )
         "  (+ (+ b c) d) )"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 5 );
+    TestCompileAndRunLispy( code, 5 );
 }
 
 TEST_CASE( "Lispy: Global array", "[lispy]" )
@@ -232,7 +232,7 @@ TEST_CASE( "Lispy: Global array", "[lispy]" )
         "  (+ (+ b c) (aref d 1)) )"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 25 );
+    TestCompileAndRunLispy( code, 25 );
 }
 
 TEST_CASE( "Lispy: Global array implicit", "[lispy]" )
@@ -245,7 +245,7 @@ TEST_CASE( "Lispy: Global array implicit", "[lispy]" )
         "  (+ (+ b c) (aref d 1)) )"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 25 );
+    TestCompileAndRunLispy( code, 25 );
 }
 
 TEST_CASE( "Lispy: Local array refs in binary exprs, init array with mixed calls and number", "[lispy]" )
@@ -258,7 +258,7 @@ TEST_CASE( "Lispy: Local array refs in binary exprs, init array with mixed calls
         "   ))"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 6 );
+    TestCompileAndRunLispy( code, 6 );
 }
 
 TEST_CASE( "Lispy: pfunc(int)->int", "[lispy]" )
@@ -272,7 +272,7 @@ TEST_CASE( "Lispy: pfunc(int)->int", "[lispy]" )
         "(defun C (x y) (* x y))\n"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 15 );
+    TestCompileAndRunLispy( code, 15 );
 }
 
 TEST_CASE( "Lispy: pfunc(int)->pfunc->int", "[lispy]" )
@@ -285,7 +285,7 @@ TEST_CASE( "Lispy: pfunc(int)->pfunc->int", "[lispy]" )
         "(defun C (x) (* x 3))\n"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 7 );
+    TestCompileAndRunLispy( code, 7 );
 }
 
 
@@ -297,7 +297,7 @@ TEST_CASE( "abc_a", "[algoly]" )
         "def a 33 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33 );
+    TestCompileAndRunAlgoly( code, 33 );
 }
 
 TEST_CASE( "abc_l", "[lispy]" )
@@ -306,7 +306,7 @@ TEST_CASE( "abc_l", "[lispy]" )
         "(defun a () 33 )"
         ;
 
-    TestCompileAndRunLispy( code, sizeof code, 33 );
+    TestCompileAndRunLispy( code, 33 );
 }
 
 

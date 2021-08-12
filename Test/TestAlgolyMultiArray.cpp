@@ -29,7 +29,7 @@ TEST_CASE( "Algoly: Global multi array int 2x2 const indexing", "[algoly][multid
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10 );
+    TestCompileAndRunAlgoly( code, 10 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 2x2 const indexing", "[algoly][multidim]" )
@@ -45,7 +45,7 @@ TEST_CASE( "Algoly: Local multi array int 2x2 const indexing", "[algoly][multidi
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10 );
+    TestCompileAndRunAlgoly( code, 10 );
 }
 
 TEST_CASE( "Algoly: Global multi array fptr 2x2 var indexing", "[algoly][multidim]" )
@@ -71,7 +71,7 @@ TEST_CASE( "Algoly: Global multi array fptr 2x2 var indexing", "[algoly][multidi
         "def F4 4 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10 );
+    TestCompileAndRunAlgoly( code, 10 );
 }
 
 TEST_CASE( "Algoly: Local multi array fptr 2x2 const indexing", "[algoly][multidim]" )
@@ -97,7 +97,7 @@ TEST_CASE( "Algoly: Local multi array fptr 2x2 const indexing", "[algoly][multid
         "def F4 4 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10 );
+    TestCompileAndRunAlgoly( code, 10 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 3x3x3 var indexing", "[algoly][multidim]" )
@@ -122,7 +122,7 @@ TEST_CASE( "Algoly: Global multi array int 3x3x3 var indexing", "[algoly][multid
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 378 );
+    TestCompileAndRunAlgoly( code, 378 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 3x3x3 var indexing", "[algoly][multidim]" )
@@ -147,7 +147,7 @@ TEST_CASE( "Algoly: Local multi array int 3x3x3 var indexing", "[algoly][multidi
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 378 );
+    TestCompileAndRunAlgoly( code, 378 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 2x2 const indexing modify", "[algoly][multidim]" )
@@ -177,7 +177,7 @@ TEST_CASE( "Algoly: Global multi array int 2x2 const indexing modify", "[algoly]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 70 );
+    TestCompileAndRunAlgoly( code, 70 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 2x2 const indexing modify", "[algoly][multidim]" )
@@ -207,7 +207,7 @@ TEST_CASE( "Algoly: Local multi array int 2x2 const indexing modify", "[algoly][
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 70 );
+    TestCompileAndRunAlgoly( code, 70 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [1, 1]", "[algoly][multidim]" )
@@ -223,7 +223,7 @@ TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [1, 1]", "
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6 );
+    TestCompileAndRunAlgoly( code, 6 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [1, 1]", "[algoly][multidim]" )
@@ -239,7 +239,7 @@ TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [1, 1]", "[
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6 );
+    TestCompileAndRunAlgoly( code, 6 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [1, 0..2]", "[algoly][multidim]" )
@@ -255,7 +255,7 @@ TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [1, 0..2]"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [1, 0..2]", "[algoly][multidim]" )
@@ -271,7 +271,7 @@ TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [1, 0..2]",
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [1]", "[algoly][multidim]" )
@@ -286,7 +286,7 @@ TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [1]", "[al
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [1]", "[algoly][multidim]" )
@@ -301,7 +301,7 @@ TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [1]", "[alg
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3 );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 2x2 const indexing repeat [0]", "[algoly][multidim]" )
@@ -316,7 +316,7 @@ TEST_CASE( "Algoly: Global multi array int 2x2 const indexing repeat [0]", "[alg
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6 );
+    TestCompileAndRunAlgoly( code, 6 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 2x2 const indexing repeat [0]", "[algoly][multidim]" )
@@ -331,7 +331,7 @@ TEST_CASE( "Algoly: Local multi array int 2x2 const indexing repeat [0]", "[algo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6 );
+    TestCompileAndRunAlgoly( code, 6 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [0, 0..2] and [1]", "[algoly][multidim]" )
@@ -346,7 +346,7 @@ TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [0, 0..2] 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [0, 0..2] and [1]", "[algoly][multidim]" )
@@ -361,7 +361,7 @@ TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [0, 0..2] a
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [0]", "[algoly][multidim]" )
@@ -377,7 +377,7 @@ TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [0]", "[al
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 7 );
+    TestCompileAndRunAlgoly( code, 7 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [0]", "[algoly][multidim]" )
@@ -393,7 +393,7 @@ TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [0]", "[alg
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 7 );
+    TestCompileAndRunAlgoly( code, 7 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [0] and [1]", "[algoly][multidim]" )
@@ -407,7 +407,7 @@ TEST_CASE( "Algoly: Global multi array int 2x2 const indexing default [0] and [1
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [0] and [1]", "[algoly][multidim]" )
@@ -421,7 +421,7 @@ TEST_CASE( "Algoly: Local multi array int 2x2 const indexing default [0] and [1]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0 );
+    TestCompileAndRunAlgoly( code, 0 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 3x3x3 slice", "[algoly][multidim]" )
@@ -450,7 +450,7 @@ TEST_CASE( "Algoly: Global multi array int 3x3x3 slice", "[algoly][multidim]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 378-25-26-27+100+200+300 );
+    TestCompileAndRunAlgoly( code, 378-25-26-27+100+200+300 );
 }
 
 TEST_CASE( "Algoly: Local multi array int 3x3x3 slice", "[algoly][multidim]" )
@@ -479,7 +479,7 @@ TEST_CASE( "Algoly: Local multi array int 3x3x3 slice", "[algoly][multidim]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 378 - 25 - 26 - 27 + 100 + 200 + 300 );
+    TestCompileAndRunAlgoly( code, 378 - 25 - 26 - 27 + 100 + 200 + 300 );
 }
 
 TEST_CASE( "Algoly: Global multi array int 3x2x1 countof", "[algoly][multidim]" )
@@ -498,5 +498,5 @@ TEST_CASE( "Algoly: Global multi array int 3x2x1 countof", "[algoly][multidim]" 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 321 );
+    TestCompileAndRunAlgoly( code, 321 );
 }

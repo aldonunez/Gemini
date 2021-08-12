@@ -12,7 +12,7 @@ TEST_CASE( "Algoly: StackUse: default return", "[algoly][stack]" )
         "def a end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 3 );
+    TestCompileAndRunAlgoly( code, 0, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: little number", "[algoly][stack]" )
@@ -21,7 +21,7 @@ TEST_CASE( "Algoly: StackUse: little number", "[algoly][stack]" )
         "def a 33 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33, 0, 3 );
+    TestCompileAndRunAlgoly( code, 33, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: unary not", "[algoly][stack]" )
@@ -31,7 +31,7 @@ TEST_CASE( "Algoly: StackUse: unary not", "[algoly][stack]" )
         "def a not n end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 3 );
+    TestCompileAndRunAlgoly( code, 1, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: unary minus", "[algoly][stack]" )
@@ -42,7 +42,7 @@ TEST_CASE( "Algoly: StackUse: unary minus", "[algoly][stack]" )
         "def a -n end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, -1, 0, 4 );
+    TestCompileAndRunAlgoly( code, -1, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: binary multiply", "[algoly][stack]" )
@@ -52,7 +52,7 @@ TEST_CASE( "Algoly: StackUse: binary multiply", "[algoly][stack]" )
         "def a m*n end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6, 0, 4 );
+    TestCompileAndRunAlgoly( code, 6, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: binary multiply with discard", "[algoly][stack]" )
@@ -62,7 +62,7 @@ TEST_CASE( "Algoly: StackUse: binary multiply with discard", "[algoly][stack]" )
         "def a m*n; m*n end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6, 0, 4 );
+    TestCompileAndRunAlgoly( code, 6, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: binary multiply with discard deeper", "[algoly][stack]" )
@@ -72,7 +72,7 @@ TEST_CASE( "Algoly: StackUse: binary multiply with discard deeper", "[algoly][st
         "def a n-(m-(m-(m-n))); m*n end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6, 0, 4 );
+    TestCompileAndRunAlgoly( code, 6, 0, 4 );
 }
 
 TEST_CASE( "? Algoly: StackUse: binary comparison", "[algoly][stack]" )
@@ -82,7 +82,7 @@ TEST_CASE( "? Algoly: StackUse: binary comparison", "[algoly][stack]" )
         "def a m < n end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 4 );
+    TestCompileAndRunAlgoly( code, 1, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: atomized AND with comparisons", "[algoly][stack]" )
@@ -95,7 +95,7 @@ TEST_CASE( "Algoly: StackUse: atomized AND with comparisons", "[algoly][stack]" 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 4 );
+    TestCompileAndRunAlgoly( code, 1, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: atomized OR with comparisons", "[algoly][stack]" )
@@ -108,7 +108,7 @@ TEST_CASE( "Algoly: StackUse: atomized OR with comparisons", "[algoly][stack]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 4 );
+    TestCompileAndRunAlgoly( code, 1, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: NOT atomized AND with comparisons", "[algoly][stack]" )
@@ -121,7 +121,7 @@ TEST_CASE( "Algoly: StackUse: NOT atomized AND with comparisons", "[algoly][stac
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 4 );
+    TestCompileAndRunAlgoly( code, 0, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: NOT atomized OR with comparisons", "[algoly][stack]" )
@@ -134,7 +134,7 @@ TEST_CASE( "Algoly: StackUse: NOT atomized OR with comparisons", "[algoly][stack
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 4 );
+    TestCompileAndRunAlgoly( code, 0, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: return global const", "[algoly][stack]" )
@@ -144,7 +144,7 @@ TEST_CASE( "Algoly: StackUse: return global const", "[algoly][stack]" )
         "def a N end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 3 );
+    TestCompileAndRunAlgoly( code, 5, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: return local const", "[algoly][stack]" )
@@ -153,7 +153,7 @@ TEST_CASE( "Algoly: StackUse: return local const", "[algoly][stack]" )
         "def a const N = 5; N end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 3 );
+    TestCompileAndRunAlgoly( code, 5, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: return local", "[algoly][stack]" )
@@ -165,7 +165,7 @@ TEST_CASE( "Algoly: StackUse: return local", "[algoly][stack]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 4 );
+    TestCompileAndRunAlgoly( code, 5, 0, 4 );
 }
 TEST_CASE( "Algoly: StackUse: return local, 2 locals", "[algoly][stack]" )
 {
@@ -177,7 +177,7 @@ TEST_CASE( "Algoly: StackUse: return local, 2 locals", "[algoly][stack]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 5 );
+    TestCompileAndRunAlgoly( code, 5, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: call return local", "[algoly][stack]" )
@@ -192,7 +192,7 @@ TEST_CASE( "Algoly: StackUse: call return local", "[algoly][stack]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 6 );
+    TestCompileAndRunAlgoly( code, 5, 0, 6 );
 }
 
 TEST_CASE( "Algoly: StackUse: call, local, arg, binary", "[algoly][stack]" )
@@ -207,7 +207,7 @@ TEST_CASE( "Algoly: StackUse: call, local, arg, binary", "[algoly][stack]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6, 0, 8 );
+    TestCompileAndRunAlgoly( code, 6, 0, 8 );
 }
 
 TEST_CASE( "Algoly: StackUse: call at right at end of deep tree going right", "[algoly][stack]" )
@@ -218,7 +218,7 @@ TEST_CASE( "Algoly: StackUse: call at right at end of deep tree going right", "[
         "def B 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 9 );
+    TestCompileAndRunAlgoly( code, 9, 0, 9 );
 }
 
 TEST_CASE( "Algoly: StackUse: call at left in deep tree going right", "[algoly][stack]" )
@@ -232,7 +232,7 @@ TEST_CASE( "Algoly: StackUse: call at left in deep tree going right", "[algoly][
         "def E 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 12 );
+    TestCompileAndRunAlgoly( code, 9, 0, 12 );
 }
 
 TEST_CASE( "Algoly: StackUse: return binary, then tree going right", "[algoly][stack]" )
@@ -242,7 +242,7 @@ TEST_CASE( "Algoly: StackUse: return binary, then tree going right", "[algoly][s
         "def a return m+m; m+(m+(m+(m+m))) end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 7 );
+    TestCompileAndRunAlgoly( code, 4, 0, 7 );
 }
 
 TEST_CASE( "Algoly: StackUse: add countof and var", "[algoly][stack]" )
@@ -253,7 +253,7 @@ TEST_CASE( "Algoly: StackUse: add countof and var", "[algoly][stack]" )
         "def a m+countof(ar) end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 4 );
+    TestCompileAndRunAlgoly( code, 3, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: add countof and const", "[algoly][stack]" )
@@ -264,7 +264,7 @@ TEST_CASE( "Algoly: StackUse: add countof and const", "[algoly][stack]" )
         "def a M+countof(ar) end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: if with comparison and no else", "[algoly][stack]" )
@@ -275,10 +275,10 @@ TEST_CASE( "Algoly: StackUse: if with comparison and no else", "[algoly][stack]"
         ;
 
     WHEN( "2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 10, 2, 5 );
+        TestCompileAndRunAlgoly( code, 10, 2, 5 );
 
     WHEN( "3" )
-        TestCompileAndRunAlgoly( code, sizeof code, 0, 3, 5 );
+        TestCompileAndRunAlgoly( code, 0, 3, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: if with comparison and else", "[algoly][stack]" )
@@ -289,10 +289,10 @@ TEST_CASE( "Algoly: StackUse: if with comparison and else", "[algoly][stack]" )
         ;
 
     WHEN( "2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 10, 2, 5 );
+        TestCompileAndRunAlgoly( code, 10, 2, 5 );
 
     WHEN( "3" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 3, 5 );
+        TestCompileAndRunAlgoly( code, 20, 3, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: if with comparison and no else, shallow call tree", "[algoly][stack]" )
@@ -304,7 +304,7 @@ TEST_CASE( "Algoly: StackUse: if with comparison and no else, shallow call tree"
         "def C 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 7 );
+    TestCompileAndRunAlgoly( code, 1, 0, 7 );
 }
 
 TEST_CASE( "Algoly: StackUse: if with comparison and else, shallow call tree", "[algoly][stack]" )
@@ -316,7 +316,7 @@ TEST_CASE( "Algoly: StackUse: if with comparison and else, shallow call tree", "
         "def C 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 7 );
+    TestCompileAndRunAlgoly( code, 1, 0, 7 );
 }
 
 TEST_CASE( "Algoly: StackUse: if with comparison and else, shallow call tree in else", "[algoly][stack]" )
@@ -328,7 +328,7 @@ TEST_CASE( "Algoly: StackUse: if with comparison and else, shallow call tree in 
         "def C 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 7 );
+    TestCompileAndRunAlgoly( code, 10, 0, 7 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign global", "[algoly][stack]" )
@@ -338,7 +338,7 @@ TEST_CASE( "Algoly: StackUse: assign global", "[algoly][stack]" )
         "def a m := 9; 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 3 );
+    TestCompileAndRunAlgoly( code, 1, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign global return", "[algoly][stack]" )
@@ -348,7 +348,7 @@ TEST_CASE( "Algoly: StackUse: assign global return", "[algoly][stack]" )
         "def a m := 9 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 4 );
+    TestCompileAndRunAlgoly( code, 9, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign local", "[algoly][stack]" )
@@ -358,7 +358,7 @@ TEST_CASE( "Algoly: StackUse: assign local", "[algoly][stack]" )
         "def a var x := 0; x := 9; 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 4 );
+    TestCompileAndRunAlgoly( code, 1, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign local return", "[algoly][stack]" )
@@ -368,7 +368,7 @@ TEST_CASE( "Algoly: StackUse: assign local return", "[algoly][stack]" )
         "def a var x := 0; x := 9 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 5 );
+    TestCompileAndRunAlgoly( code, 9, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign param", "[algoly][stack]" )
@@ -378,7 +378,7 @@ TEST_CASE( "Algoly: StackUse: assign param", "[algoly][stack]" )
         "def a(x) x := 9; 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 4 );
+    TestCompileAndRunAlgoly( code, 1, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign param return", "[algoly][stack]" )
@@ -388,7 +388,7 @@ TEST_CASE( "Algoly: StackUse: assign param return", "[algoly][stack]" )
         "def a(x) x := 9 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 5 );
+    TestCompileAndRunAlgoly( code, 9, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: have arg, assign local", "[algoly][stack]" )
@@ -398,7 +398,7 @@ TEST_CASE( "Algoly: StackUse: have arg, assign local", "[algoly][stack]" )
         "def a(x) var y := 0; y := 9; 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 5 );
+    TestCompileAndRunAlgoly( code, 1, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: have arg, assign local return", "[algoly][stack]" )
@@ -408,7 +408,7 @@ TEST_CASE( "Algoly: StackUse: have arg, assign local return", "[algoly][stack]" 
         "def a(x) var y := 0; y := 9 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 6 );
+    TestCompileAndRunAlgoly( code, 9, 0, 6 );
 }
 
 TEST_CASE( "Algoly: StackUse: 2-nested call, assign", "[algoly][stack]" )
@@ -420,7 +420,7 @@ TEST_CASE( "Algoly: StackUse: 2-nested call, assign", "[algoly][stack]" )
         "def C 9 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 7 );
+    TestCompileAndRunAlgoly( code, 1, 0, 7 );
 }
 
 TEST_CASE( "Algoly: StackUse: 2-nested call, assign return", "[algoly][stack]" )
@@ -432,7 +432,7 @@ TEST_CASE( "Algoly: StackUse: 2-nested call, assign return", "[algoly][stack]" )
         "def C 9 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 7 );
+    TestCompileAndRunAlgoly( code, 9, 0, 7 );
 }
 
 TEST_CASE( "Algoly: StackUse: return lambda", "[algoly][stack]" )
@@ -442,7 +442,7 @@ TEST_CASE( "Algoly: StackUse: return lambda", "[algoly][stack]" )
         "def B->&proc lambda 3 end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 5 );
+    TestCompileAndRunAlgoly( code, 1, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign lambda", "[algoly][stack]" )
@@ -454,7 +454,7 @@ TEST_CASE( "Algoly: StackUse: assign lambda", "[algoly][stack]" )
         "def C 0 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 5 );
+    TestCompileAndRunAlgoly( code, 1, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign return lambda", "[algoly][stack]" )
@@ -466,7 +466,7 @@ TEST_CASE( "Algoly: StackUse: assign return lambda", "[algoly][stack]" )
         "def C 0 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 6 );
+    TestCompileAndRunAlgoly( code, 1, 0, 6 );
 }
 
 TEST_CASE( "Algoly: StackUse: call lambda", "[algoly][stack]" )
@@ -475,7 +475,7 @@ TEST_CASE( "Algoly: StackUse: call lambda", "[algoly][stack]" )
         "def a() (lambda 3 end)() end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign call lambda", "[algoly][stack]" )
@@ -486,7 +486,7 @@ TEST_CASE( "Algoly: StackUse: assign call lambda", "[algoly][stack]" )
         "def B 8 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 //--------------
@@ -499,7 +499,7 @@ TEST_CASE( "Algoly: StackUse: addrof", "[algoly][stack]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 5 );
+    TestCompileAndRunAlgoly( code, 1, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign addrof", "[algoly][stack]" )
@@ -512,7 +512,7 @@ TEST_CASE( "Algoly: StackUse: assign addrof", "[algoly][stack]" )
         "def D 0 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 5 );
+    TestCompileAndRunAlgoly( code, 1, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign return addrof", "[algoly][stack]" )
@@ -525,7 +525,7 @@ TEST_CASE( "Algoly: StackUse: assign return addrof", "[algoly][stack]" )
         "def D 0 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 6 );
+    TestCompileAndRunAlgoly( code, 1, 0, 6 );
 }
 
 TEST_CASE( "Algoly: StackUse: call addrof", "[algoly][stack]" )
@@ -535,7 +535,7 @@ TEST_CASE( "Algoly: StackUse: call addrof", "[algoly][stack]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: assign call addrof", "[algoly][stack]" )
@@ -547,7 +547,7 @@ TEST_CASE( "Algoly: StackUse: assign call addrof", "[algoly][stack]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: global chain assign 3 fptr", "[algoly][stack]" )
@@ -562,7 +562,7 @@ TEST_CASE( "Algoly: StackUse: global chain assign 3 fptr", "[algoly][stack]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 4 );
+    TestCompileAndRunAlgoly( code, 9, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: local chain assign 3 fptr", "[algoly][stack]" )
@@ -577,7 +577,7 @@ TEST_CASE( "Algoly: StackUse: local chain assign 3 fptr", "[algoly][stack]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 4+3 );
+    TestCompileAndRunAlgoly( code, 9, 0, 4+3 );
 }
 
 TEST_CASE( "Algoly: StackUse: even call tree", "[algoly][stack]" )
@@ -590,7 +590,7 @@ TEST_CASE( "Algoly: StackUse: even call tree", "[algoly][stack]" )
         "def B(x, y) x+y end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 36, 0, 10 );
+    TestCompileAndRunAlgoly( code, 36, 0, 10 );
 }
 
 TEST_CASE( "Algoly: StackUse: deep calls", "[algoly][stack]" )
@@ -606,7 +606,7 @@ TEST_CASE( "Algoly: StackUse: deep calls", "[algoly][stack]" )
         "def F(x, y) var m := x+5, n := y+6; m+n end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 16+22, 0, 34 );
+    TestCompileAndRunAlgoly( code, 16+22, 0, 34 );
 }
 
 TEST_CASE( "Algoly: StackUse: native basic 2", "[algoly][stack]" )
@@ -644,7 +644,7 @@ TEST_CASE( "Algoly: StackUse: for", "[algoly][stack]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 5 );
+    TestCompileAndRunAlgoly( code, 3, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: for by", "[algoly][stack]" )
@@ -659,7 +659,7 @@ TEST_CASE( "Algoly: StackUse: for by", "[algoly][stack]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 5 );
+    TestCompileAndRunAlgoly( code, 3, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: loop", "[algoly][stack]" )
@@ -668,7 +668,7 @@ TEST_CASE( "Algoly: StackUse: loop", "[algoly][stack]" )
         "def a loop break end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 3 );
+    TestCompileAndRunAlgoly( code, 0, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: loop while", "[algoly][stack]" )
@@ -678,7 +678,7 @@ TEST_CASE( "Algoly: StackUse: loop while", "[algoly][stack]" )
         "def a loop do while m end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 3 );
+    TestCompileAndRunAlgoly( code, 0, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: while", "[algoly][stack]" )
@@ -688,7 +688,7 @@ TEST_CASE( "Algoly: StackUse: while", "[algoly][stack]" )
         "def a while m do end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 3 );
+    TestCompileAndRunAlgoly( code, 0, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: if no else", "[algoly][stack]" )
@@ -698,10 +698,10 @@ TEST_CASE( "Algoly: StackUse: if no else", "[algoly][stack]" )
         ;
 
     WHEN( "0" )
-        TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 4 );
+        TestCompileAndRunAlgoly( code, 0, 0, 4 );
 
     WHEN( "1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 4, 1, 4 );
+        TestCompileAndRunAlgoly( code, 4, 1, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: if else", "[algoly][stack]" )
@@ -711,10 +711,10 @@ TEST_CASE( "Algoly: StackUse: if else", "[algoly][stack]" )
         ;
 
     WHEN( "0" )
-        TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 4 );
+        TestCompileAndRunAlgoly( code, 5, 0, 4 );
 
     WHEN( "1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 4, 1, 4 );
+        TestCompileAndRunAlgoly( code, 4, 1, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: if many elsif", "[algoly][stack]" )
@@ -740,31 +740,31 @@ TEST_CASE( "Algoly: StackUse: if many elsif", "[algoly][stack]" )
         ;
 
     WHEN( "2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 2, 8 );
+        TestCompileAndRunAlgoly( code, 20, 2, 8 );
 
     WHEN( "3" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 3, 8 );
+        TestCompileAndRunAlgoly( code, 20, 3, 8 );
 
     WHEN( "4" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 4, 8 );
+        TestCompileAndRunAlgoly( code, 20, 4, 8 );
 
     WHEN( "5" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 5, 8 );
+        TestCompileAndRunAlgoly( code, 20, 5, 8 );
 
     WHEN( "6" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 6, 8 );
+        TestCompileAndRunAlgoly( code, 20, 6, 8 );
 
     WHEN( "7" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 7, 8 );
+        TestCompileAndRunAlgoly( code, 20, 7, 8 );
 
     WHEN( "8" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 8, 8 );
+        TestCompileAndRunAlgoly( code, 20, 8, 8 );
 
     WHEN( "9" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 9, 8 );
+        TestCompileAndRunAlgoly( code, 20, 9, 8 );
 
     WHEN( "10" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 10, 8 );
+        TestCompileAndRunAlgoly( code, 20, 10, 8 );
 }
 
 TEST_CASE( "Algoly: StackUse: add two if no else", "[algoly][stack]" )
@@ -774,16 +774,16 @@ TEST_CASE( "Algoly: StackUse: add two if no else", "[algoly][stack]" )
         ;
 
     WHEN( "0, 0" )
-        TestCompileAndRunAlgoly( code, sizeof code, 0, { 0, 0 }, 6 );
+        TestCompileAndRunAlgoly( code, 0, { 0, 0 }, 6 );
 
     WHEN( "0, 1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 5, { 0, 1 }, 6 );
+        TestCompileAndRunAlgoly( code, 5, { 0, 1 }, 6 );
 
     WHEN( "1, 0" )
-        TestCompileAndRunAlgoly( code, sizeof code, 4, { 1, 0 }, 6 );
+        TestCompileAndRunAlgoly( code, 4, { 1, 0 }, 6 );
 
     WHEN( "1, 1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 9, { 1, 1 }, 6 );
+        TestCompileAndRunAlgoly( code, 9, { 1, 1 }, 6 );
 }
 
 TEST_CASE( "Algoly: StackUse: add two if else", "[algoly][stack]" )
@@ -793,16 +793,16 @@ TEST_CASE( "Algoly: StackUse: add two if else", "[algoly][stack]" )
         ;
 
     WHEN( "0, 0" )
-        TestCompileAndRunAlgoly( code, sizeof code, 30, { 0, 0 }, 6 );
+        TestCompileAndRunAlgoly( code, 30, { 0, 0 }, 6 );
 
     WHEN( "0, 1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 15, { 0, 1 }, 6 );
+        TestCompileAndRunAlgoly( code, 15, { 0, 1 }, 6 );
 
     WHEN( "1, 0" )
-        TestCompileAndRunAlgoly( code, sizeof code, 24, { 1, 0 }, 6 );
+        TestCompileAndRunAlgoly( code, 24, { 1, 0 }, 6 );
 
     WHEN( "1, 1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 9, { 1, 1 }, 6 );
+        TestCompileAndRunAlgoly( code, 9, { 1, 1 }, 6 );
 }
 
 TEST_CASE( "Algoly: StackUse: case no else", "[algoly][stack]" )
@@ -812,10 +812,10 @@ TEST_CASE( "Algoly: StackUse: case no else", "[algoly][stack]" )
         ;
 
     WHEN( "2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 10, 2, 5 );
+        TestCompileAndRunAlgoly( code, 10, 2, 5 );
 
     WHEN( "3" )
-        TestCompileAndRunAlgoly( code, sizeof code, 0, 3, 5 );
+        TestCompileAndRunAlgoly( code, 0, 3, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: case else", "[algoly][stack]" )
@@ -825,10 +825,10 @@ TEST_CASE( "Algoly: StackUse: case else", "[algoly][stack]" )
         ;
 
     WHEN( "2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 10, 2, 5 );
+        TestCompileAndRunAlgoly( code, 10, 2, 5 );
 
     WHEN( "3" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 3, 5 );
+        TestCompileAndRunAlgoly( code, 20, 3, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: case many clauses", "[algoly][stack]" )
@@ -855,31 +855,31 @@ TEST_CASE( "Algoly: StackUse: case many clauses", "[algoly][stack]" )
         ;
 
     WHEN( "2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 2, 8 );
+        TestCompileAndRunAlgoly( code, 20, 2, 8 );
 
     WHEN( "3" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 3, 8 );
+        TestCompileAndRunAlgoly( code, 20, 3, 8 );
 
     WHEN( "4" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 4, 8 );
+        TestCompileAndRunAlgoly( code, 20, 4, 8 );
 
     WHEN( "5" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 5, 8 );
+        TestCompileAndRunAlgoly( code, 20, 5, 8 );
 
     WHEN( "6" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 6, 8 );
+        TestCompileAndRunAlgoly( code, 20, 6, 8 );
 
     WHEN( "7" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 7, 8 );
+        TestCompileAndRunAlgoly( code, 20, 7, 8 );
 
     WHEN( "8" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 8, 8 );
+        TestCompileAndRunAlgoly( code, 20, 8, 8 );
 
     WHEN( "9" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 9, 8 );
+        TestCompileAndRunAlgoly( code, 20, 9, 8 );
 
     WHEN( "10" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, 10, 8 );
+        TestCompileAndRunAlgoly( code, 20, 10, 8 );
 }
 
 TEST_CASE( "Algoly: StackUse: add two case no else", "[algoly][stack]" )
@@ -889,16 +889,16 @@ TEST_CASE( "Algoly: StackUse: add two case no else", "[algoly][stack]" )
         ;
 
     WHEN( "1, 1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 0, { 1, 1 }, 7 );
+        TestCompileAndRunAlgoly( code, 0, { 1, 1 }, 7 );
 
     WHEN( "1, 2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 20, { 1, 2 }, 7 );
+        TestCompileAndRunAlgoly( code, 20, { 1, 2 }, 7 );
 
     WHEN( "2, 1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 10, { 2, 1 }, 7 );
+        TestCompileAndRunAlgoly( code, 10, { 2, 1 }, 7 );
 
     WHEN( "2, 2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 30, { 2, 2 }, 7 );
+        TestCompileAndRunAlgoly( code, 30, { 2, 2 }, 7 );
 }
 
 TEST_CASE( "Algoly: StackUse: add two case else", "[algoly][stack]" )
@@ -908,16 +908,16 @@ TEST_CASE( "Algoly: StackUse: add two case else", "[algoly][stack]" )
         ;
 
     WHEN( "1, 1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 300, { 1, 1 }, 7 );
+        TestCompileAndRunAlgoly( code, 300, { 1, 1 }, 7 );
 
     WHEN( "1, 2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 120, { 1, 2 }, 7 );
+        TestCompileAndRunAlgoly( code, 120, { 1, 2 }, 7 );
 
     WHEN( "2, 1" )
-        TestCompileAndRunAlgoly( code, sizeof code, 210, { 2, 1 }, 7 );
+        TestCompileAndRunAlgoly( code, 210, { 2, 1 }, 7 );
 
     WHEN( "2, 2" )
-        TestCompileAndRunAlgoly( code, sizeof code, 30, { 2, 2 }, 7 );
+        TestCompileAndRunAlgoly( code, 30, { 2, 2 }, 7 );
 }
 
 TEST_CASE( "Algoly: StackUse: read global array 2x2 2-const indexes", "[algoly][stack]" )
@@ -930,7 +930,7 @@ TEST_CASE( "Algoly: StackUse: read global array 2x2 2-const indexes", "[algoly][
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 3 );
+    TestCompileAndRunAlgoly( code, 4, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: read local array 2x2 2-const indexes", "[algoly][stack]" )
@@ -943,7 +943,7 @@ TEST_CASE( "Algoly: StackUse: read local array 2x2 2-const indexes", "[algoly][s
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 7 );
+    TestCompileAndRunAlgoly( code, 4, 0, 7 );
 }
 
 TEST_CASE( "Algoly: StackUse: read global array 2x2 1-const index, 1-var index", "[algoly][stack]" )
@@ -956,7 +956,7 @@ TEST_CASE( "Algoly: StackUse: read global array 2x2 1-const index, 1-var index",
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 4 );
+    TestCompileAndRunAlgoly( code, 4, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: read local array 2x2 1-const index, 1-var index", "[algoly][stack]" )
@@ -969,7 +969,7 @@ TEST_CASE( "Algoly: StackUse: read local array 2x2 1-const index, 1-var index", 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 8 );
+    TestCompileAndRunAlgoly( code, 4, 0, 8 );
 }
 
 TEST_CASE( "Algoly: StackUse: read global array 2x2 1-var index, 1-const index", "[algoly][stack]" )
@@ -982,7 +982,7 @@ TEST_CASE( "Algoly: StackUse: read global array 2x2 1-var index, 1-const index",
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 4 );
+    TestCompileAndRunAlgoly( code, 4, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: read local array 2x2 1-var index, 1-const index", "[algoly][stack]" )
@@ -995,7 +995,7 @@ TEST_CASE( "Algoly: StackUse: read local array 2x2 1-var index, 1-const index", 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 8 );
+    TestCompileAndRunAlgoly( code, 4, 0, 8 );
 }
 
 TEST_CASE( "Algoly: StackUse: read global array 2x2 2-var indexes", "[algoly][stack]" )
@@ -1008,7 +1008,7 @@ TEST_CASE( "Algoly: StackUse: read global array 2x2 2-var indexes", "[algoly][st
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 4 );
+    TestCompileAndRunAlgoly( code, 4, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: read local array 2x2 2-var indexes", "[algoly][stack]" )
@@ -1022,7 +1022,7 @@ TEST_CASE( "Algoly: StackUse: read local array 2x2 2-var indexes", "[algoly][sta
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 8 );
+    TestCompileAndRunAlgoly( code, 4, 0, 8 );
 }
 
 TEST_CASE( "Algoly: StackUse: write global array 2x2 2-const indexes", "[algoly][stack]" )
@@ -1037,7 +1037,7 @@ TEST_CASE( "Algoly: StackUse: write global array 2x2 2-const indexes", "[algoly]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 3 );
+    TestCompileAndRunAlgoly( code, 5, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: write local array 2x2 2-const indexes", "[algoly][stack]" )
@@ -1053,7 +1053,7 @@ TEST_CASE( "Algoly: StackUse: write local array 2x2 2-const indexes", "[algoly][
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 7 );
+    TestCompileAndRunAlgoly( code, 5, 0, 7 );
 }
 
 
@@ -1069,7 +1069,7 @@ TEST_CASE( "Algoly: StackUse: write global array 2x2 2-var indexes", "[algoly][s
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 5 );
+    TestCompileAndRunAlgoly( code, 5, 0, 5 );
 }
 
 TEST_CASE( "Algoly: StackUse: write local array 2x2 2-var indexes", "[algoly][stack]" )
@@ -1084,7 +1084,7 @@ TEST_CASE( "Algoly: StackUse: write local array 2x2 2-var indexes", "[algoly][st
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 9 );
+    TestCompileAndRunAlgoly( code, 5, 0, 9 );
 }
 
 TEST_CASE( "Algoly: StackUse: global slice dim1 const indexes", "[algoly][stack]" )
@@ -1096,7 +1096,7 @@ TEST_CASE( "Algoly: StackUse: global slice dim1 const indexes", "[algoly][stack]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 3 );
+    TestCompileAndRunAlgoly( code, 4, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: global slice dim0 const indexes", "[algoly][stack]" )
@@ -1108,7 +1108,7 @@ TEST_CASE( "Algoly: StackUse: global slice dim0 const indexes", "[algoly][stack]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 3 );
+    TestCompileAndRunAlgoly( code, 4, 0, 3 );
 }
 
 TEST_CASE( "Algoly: StackUse: global slice dim1 var indexes", "[algoly][stack]" )
@@ -1121,7 +1121,7 @@ TEST_CASE( "Algoly: StackUse: global slice dim1 var indexes", "[algoly][stack]" 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 4 );
+    TestCompileAndRunAlgoly( code, 4, 0, 4 );
 }
 
 TEST_CASE( "Algoly: StackUse: global slice dim0 var indexes", "[algoly][stack]" )
@@ -1134,7 +1134,7 @@ TEST_CASE( "Algoly: StackUse: global slice dim0 var indexes", "[algoly][stack]" 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 4 );
+    TestCompileAndRunAlgoly( code, 4, 0, 4 );
 }
 
 TEST_CASE( "Algoly: calls across 3 modules", "[algoly][stack]" )

@@ -15,7 +15,7 @@ TEST_CASE( "Algoly: big number", "[algoly][limit]" )
         "def a 2147483647 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX, 0, 3 );
+    TestCompileAndRunAlgoly( code, INT32_MAX, 0, 3 );
 }
 
 TEST_CASE( "Algoly: negative min number", "[algoly][limit]" )
@@ -24,7 +24,7 @@ TEST_CASE( "Algoly: negative min number", "[algoly][limit]" )
         "def a -2147483648 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MIN, 0, 3 );
+    TestCompileAndRunAlgoly( code, INT32_MIN, 0, 3 );
 }
 
 TEST_CASE( "Algoly: unary minus negative min number, literal", "[algoly][limit]" )
@@ -33,7 +33,7 @@ TEST_CASE( "Algoly: unary minus negative min number, literal", "[algoly][limit]"
         "def a - -2147483648 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX, 0, 3 );
+    TestCompileAndRunAlgoly( code, INT32_MAX, 0, 3 );
 }
 
 TEST_CASE( "Algoly: unary minus negative min number, var", "[algoly][limit]" )
@@ -45,7 +45,7 @@ TEST_CASE( "Algoly: unary minus negative min number, var", "[algoly][limit]" )
         "end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
+    TestCompileAndRunAlgoly( code, INT32_MAX );
 }
 
 TEST_CASE( "Algoly: divide negative min number by -1, literal", "[algoly][limit]" )
@@ -54,7 +54,7 @@ TEST_CASE( "Algoly: divide negative min number by -1, literal", "[algoly][limit]
         "def a -2147483648/-1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
+    TestCompileAndRunAlgoly( code, INT32_MAX );
 }
 
 TEST_CASE( "Algoly: divide negative min number by -1, var", "[algoly][limit]" )
@@ -66,7 +66,7 @@ TEST_CASE( "Algoly: divide negative min number by -1, var", "[algoly][limit]" )
         "end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
+    TestCompileAndRunAlgoly( code, INT32_MAX );
 }
 
 TEST_CASE( "Algoly: addition overflow +/+, var", "[algoly][limit]" )
@@ -78,7 +78,7 @@ TEST_CASE( "Algoly: addition overflow +/+, var", "[algoly][limit]" )
         "end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
+    TestCompileAndRunAlgoly( code, INT32_MAX );
 }
 
 TEST_CASE( "Algoly: multiplication overflow +/+, var", "[algoly][limit]" )
@@ -90,7 +90,7 @@ TEST_CASE( "Algoly: multiplication overflow +/+, var", "[algoly][limit]" )
         "end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
+    TestCompileAndRunAlgoly( code, INT32_MAX );
 }
 
 TEST_CASE( "Algoly: subtraction overflow -/+, var", "[algoly][limit]" )
@@ -103,7 +103,7 @@ TEST_CASE( "Algoly: subtraction overflow -/+, var", "[algoly][limit]" )
         "end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MIN );
+    TestCompileAndRunAlgoly( code, INT32_MIN );
 }
 
 TEST_CASE( "Algoly: number too big", "[algoly][limit][negative]" )
@@ -112,7 +112,7 @@ TEST_CASE( "Algoly: number too big", "[algoly][limit][negative]" )
         "def a 2147483648 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 
@@ -153,7 +153,7 @@ TEST_CASE( "Algoly: max params for main", "[algoly][limit]" )
 
     std::initializer_list<int> initializer( &args[0], &args[ParamSizeMax] );
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8001, initializer, 131 );
+    TestCompileAndRunAlgoly( code, 8001, initializer, 131 );
 }
 
 TEST_CASE( "Algoly: max params for func", "[algoly][limit]" )
@@ -192,7 +192,7 @@ TEST_CASE( "Algoly: max params for func", "[algoly][limit]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8001, {}, 131 + 2 );
+    TestCompileAndRunAlgoly( code, 8001, {}, 131 + 2 );
 }
 
 TEST_CASE( "Algoly: too many params", "[algoly][limit][negative]" )
@@ -211,7 +211,7 @@ TEST_CASE( "Algoly: too many params", "[algoly][limit][negative]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: max params with open array for func", "[algoly][limit]" )
@@ -251,7 +251,7 @@ TEST_CASE( "Algoly: max params with open array for func", "[algoly][limit]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 7750 + 10 + 100, {}, 131 + 3 );
+    TestCompileAndRunAlgoly( code, 7750 + 10 + 100, {}, 131 + 3 );
 }
 
 TEST_CASE( "Algoly: too many params with open array", "[algoly][limit][negative]" )
@@ -270,7 +270,7 @@ TEST_CASE( "Algoly: too many params with open array", "[algoly][limit][negative]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 
@@ -296,7 +296,7 @@ TEST_CASE( "Algoly: max locals", "[algoly][limit]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 32131 + 30, {}, 257 + 7 );
+    TestCompileAndRunAlgoly( code, 32131 + 30, {}, 257 + 7 );
 }
 
 TEST_CASE( "Algoly: too many locals", "[algoly][limit][negative]" )
@@ -310,7 +310,7 @@ TEST_CASE( "Algoly: too many locals", "[algoly][limit][negative]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 
@@ -336,7 +336,7 @@ TEST_CASE( "Algoly: max globals", "[algoly][limit]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2147319811 + 30, {}, 2 + 7 );
+    TestCompileAndRunAlgoly( code, 2147319811 + 30, {}, 2 + 7 );
 }
 
 TEST_CASE( "Algoly: too many globals", "[algoly][limit][negative]" )
@@ -348,7 +348,7 @@ TEST_CASE( "Algoly: too many globals", "[algoly][limit][negative]" )
         "def a end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 
@@ -362,7 +362,7 @@ TEST_CASE( "Algoly: duplicate param", "[algoly][negative]" )
         "def F(p, p) end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate local, same block", "[algoly][negative]" )
@@ -371,7 +371,7 @@ TEST_CASE( "Algoly: duplicate local, same block", "[algoly][negative]" )
         "def F var local := 3, local := 5 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate local const, same block", "[algoly][negative]" )
@@ -380,7 +380,7 @@ TEST_CASE( "Algoly: duplicate local const, same block", "[algoly][negative]" )
         "def F const local = 3, local = 5 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate local, different block OK", "[algoly]" )
@@ -395,7 +395,7 @@ TEST_CASE( "Algoly: duplicate local, different block OK", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8 );
+    TestCompileAndRunAlgoly( code, 8 );
 }
 
 TEST_CASE( "Algoly: duplicate local const, different block OK", "[algoly]" )
@@ -410,7 +410,7 @@ TEST_CASE( "Algoly: duplicate local const, different block OK", "[algoly]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8 );
+    TestCompileAndRunAlgoly( code, 8 );
 }
 
 TEST_CASE( "Algoly: duplicate global", "[algoly][negative]" )
@@ -419,7 +419,7 @@ TEST_CASE( "Algoly: duplicate global", "[algoly][negative]" )
         "var g := 3, g := 5\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate global const", "[algoly][negative]" )
@@ -428,7 +428,7 @@ TEST_CASE( "Algoly: duplicate global const", "[algoly][negative]" )
         "const g = 3, g = 5\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate type", "[algoly][negative]" )
@@ -437,7 +437,7 @@ TEST_CASE( "Algoly: duplicate type", "[algoly][negative]" )
         "type T = int, T = &proc\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate global, different block", "[algoly][negative]" )
@@ -448,7 +448,7 @@ TEST_CASE( "Algoly: duplicate global, different block", "[algoly][negative]" )
         "var g := 5\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate global const, different block", "[algoly][negative]" )
@@ -459,7 +459,7 @@ TEST_CASE( "Algoly: duplicate global const, different block", "[algoly][negative
         "const g = 5\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate type, different block", "[algoly][negative]" )
@@ -470,7 +470,7 @@ TEST_CASE( "Algoly: duplicate type, different block", "[algoly][negative]" )
         "type T = &proc\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate record field", "[algoly][negative]" )
@@ -479,7 +479,7 @@ TEST_CASE( "Algoly: duplicate record field", "[algoly][negative]" )
         "type R = record x, x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate enum member", "[algoly][negative]" )
@@ -488,7 +488,7 @@ TEST_CASE( "Algoly: duplicate enum member", "[algoly][negative]" )
         "type E = enum x, x end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: duplicate func", "[algoly][negative]" )
@@ -498,7 +498,7 @@ TEST_CASE( "Algoly: duplicate func", "[algoly][negative]" )
         "def a(x) 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 // TODO: add duplicate module name, duplicate module import, duplicate module import as

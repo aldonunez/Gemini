@@ -9,7 +9,7 @@ TEST_CASE( "Algoly: simple enum first", "[algoly][enum]" )
         "def a->E E.E1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 3 );
+    TestCompileAndRunAlgoly( code, 0, 0, 3 );
 }
 
 TEST_CASE( "Algoly: simple enum last", "[algoly][enum]" )
@@ -19,7 +19,7 @@ TEST_CASE( "Algoly: simple enum last", "[algoly][enum]" )
         "def a->E E.E3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2, 0, 3 );
+    TestCompileAndRunAlgoly( code, 2, 0, 3 );
 }
 
 TEST_CASE( "Algoly: simple enum first, trailing comma", "[algoly][enum]" )
@@ -29,7 +29,7 @@ TEST_CASE( "Algoly: simple enum first, trailing comma", "[algoly][enum]" )
         "def a->E E.E1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 3 );
+    TestCompileAndRunAlgoly( code, 0, 0, 3 );
 }
 
 TEST_CASE( "Algoly: explicit first enum first", "[algoly][enum]" )
@@ -39,7 +39,7 @@ TEST_CASE( "Algoly: explicit first enum first", "[algoly][enum]" )
         "def a->E E.E1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 3 );
+    TestCompileAndRunAlgoly( code, 4, 0, 3 );
 }
 
 TEST_CASE( "Algoly: explicit first enum last", "[algoly][enum]" )
@@ -49,7 +49,7 @@ TEST_CASE( "Algoly: explicit first enum last", "[algoly][enum]" )
         "def a->E E.E3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6, 0, 3 );
+    TestCompileAndRunAlgoly( code, 6, 0, 3 );
 }
 
 TEST_CASE( "Algoly: explicit all enum first", "[algoly][enum]" )
@@ -59,7 +59,7 @@ TEST_CASE( "Algoly: explicit all enum first", "[algoly][enum]" )
         "def a->E E.E1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 4, 0, 3 );
+    TestCompileAndRunAlgoly( code, 4, 0, 3 );
 }
 
 TEST_CASE( "Algoly: explicit all enum last", "[algoly][enum]" )
@@ -69,7 +69,7 @@ TEST_CASE( "Algoly: explicit all enum last", "[algoly][enum]" )
         "def a->E E.E3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6, 0, 3 );
+    TestCompileAndRunAlgoly( code, 6, 0, 3 );
 }
 
 TEST_CASE( "Algoly: enum as self", "[algoly][enum]" )
@@ -79,7 +79,7 @@ TEST_CASE( "Algoly: enum as self", "[algoly][enum]" )
         "def a -> E E.E3 as E end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2, 0, 3 );
+    TestCompileAndRunAlgoly( code, 2, 0, 3 );
 }
 
 TEST_CASE( "Algoly: explicit first enum last as int", "[algoly][enum]" )
@@ -89,7 +89,7 @@ TEST_CASE( "Algoly: explicit first enum last as int", "[algoly][enum]" )
         "def a E.E3 as int end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: explicit first enum as int add", "[algoly][enum]" )
@@ -99,7 +99,7 @@ TEST_CASE( "Algoly: explicit first enum as int add", "[algoly][enum]" )
         "def a E.E2 as int + E.E3 as int end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 5, 0, 3 );
+    TestCompileAndRunAlgoly( code, 5, 0, 3 );
 }
 
 TEST_CASE( "Algoly: infer enum", "[algoly][enum]" )
@@ -113,7 +113,7 @@ TEST_CASE( "Algoly: infer enum", "[algoly][enum]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 11, 0, 3 );
+    TestCompileAndRunAlgoly( code, 11, 0, 3 );
 }
 
 TEST_CASE( "Algoly: array of enum assign local", "[algoly][enum]" )
@@ -124,7 +124,7 @@ TEST_CASE( "Algoly: array of enum assign local", "[algoly][enum]" )
         "def a->E var e: E := arr[1]; e end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2, 0, 4 );
+    TestCompileAndRunAlgoly( code, 2, 0, 4 );
 }
 
 TEST_CASE( "Algoly: enum as other enum", "[algoly][enum]" )
@@ -135,7 +135,7 @@ TEST_CASE( "Algoly: enum as other enum", "[algoly][enum]" )
         "def a->E var e: E := F.F2 as E; e end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 4 );
+    TestCompileAndRunAlgoly( code, 1, 0, 4 );
 }
 
 TEST_CASE( "Algoly: enum cast and call", "[algoly][enum]" )
@@ -152,7 +152,7 @@ TEST_CASE( "Algoly: enum cast and call", "[algoly][enum]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 1, 0, 6 );
+    TestCompileAndRunAlgoly( code, 1, 0, 6 );
 }
 
 TEST_CASE( "Algoly: reference member inside enum def", "[algoly][enum]" )
@@ -162,7 +162,7 @@ TEST_CASE( "Algoly: reference member inside enum def", "[algoly][enum]" )
         "def a->E E.E3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 16, 0, 3 );
+    TestCompileAndRunAlgoly( code, 16, 0, 3 );
 }
 
 TEST_CASE( "Algoly: int as int", "[algoly][enum]" )
@@ -171,7 +171,7 @@ TEST_CASE( "Algoly: int as int", "[algoly][enum]" )
         "def a 3 as int end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: enum as mod dotted int alias", "[algoly][enum]" )
@@ -236,7 +236,7 @@ TEST_CASE( "Algoly: case with enum key", "[algoly][enum]" )
         "def a() case E.E2 when E.E2 then 3 else 1 end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0 );
+    TestCompileAndRunAlgoly( code, 3, 0 );
 }
 
 TEST_CASE( "Algoly: case expr has enum type", "[algoly][enum]" )
@@ -246,7 +246,7 @@ TEST_CASE( "Algoly: case expr has enum type", "[algoly][enum]" )
         "def a->E case 2 when 2 then E.E3 else E.E2 end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2, 0 );
+    TestCompileAndRunAlgoly( code, 2, 0 );
 }
 
 TEST_CASE( "Algoly: if expr has enum type", "[algoly][enum]" )
@@ -256,5 +256,5 @@ TEST_CASE( "Algoly: if expr has enum type", "[algoly][enum]" )
         "def a->E var n := 2; if n=2 then E.E3 else E.E1 end end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 2, 0 );
+    TestCompileAndRunAlgoly( code, 2, 0 );
 }

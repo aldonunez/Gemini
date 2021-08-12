@@ -13,7 +13,7 @@ TEST_CASE( "Algoly: global record empty", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 3 );
+    TestCompileAndRunAlgoly( code, 0, 0, 3 );
 }
 
 TEST_CASE( "Algoly: local record empty", "[algoly][record]" )
@@ -26,7 +26,7 @@ TEST_CASE( "Algoly: local record empty", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 3 );
+    TestCompileAndRunAlgoly( code, 0, 0, 3 );
 }
 #endif
 
@@ -41,7 +41,7 @@ TEST_CASE( "Algoly: read global record 1 int", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: read local record 1 int", "[algoly][record]" )
@@ -55,7 +55,7 @@ TEST_CASE( "Algoly: read local record 1 int", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 4 );
+    TestCompileAndRunAlgoly( code, 3, 0, 4 );
 }
 
 TEST_CASE( "Algoly: write global record 1 int", "[algoly][record]" )
@@ -70,7 +70,7 @@ TEST_CASE( "Algoly: write global record 1 int", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 3 );
+    TestCompileAndRunAlgoly( code, 9, 0, 3 );
 }
 
 TEST_CASE( "Algoly: write local record 1 int", "[algoly][record]" )
@@ -85,7 +85,7 @@ TEST_CASE( "Algoly: write local record 1 int", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 9, 0, 4 );
+    TestCompileAndRunAlgoly( code, 9, 0, 4 );
 }
 
 TEST_CASE( "Algoly: read global record 2 int", "[algoly][record]" )
@@ -99,7 +99,7 @@ TEST_CASE( "Algoly: read global record 2 int", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 7, 0, 4 );
+    TestCompileAndRunAlgoly( code, 7, 0, 4 );
 }
 
 TEST_CASE( "Algoly: read local record 2 int", "[algoly][record]" )
@@ -113,7 +113,7 @@ TEST_CASE( "Algoly: read local record 2 int", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 7, 0, 6 );
+    TestCompileAndRunAlgoly( code, 7, 0, 6 );
 }
 
 TEST_CASE( "Algoly: write global record 2 int", "[algoly][record]" )
@@ -129,7 +129,7 @@ TEST_CASE( "Algoly: write global record 2 int", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 30, 0, 4 );
+    TestCompileAndRunAlgoly( code, 30, 0, 4 );
 }
 
 TEST_CASE( "Algoly: write local record 2 int", "[algoly][record]" )
@@ -145,7 +145,7 @@ TEST_CASE( "Algoly: write local record 2 int", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 30, 0, 6 );
+    TestCompileAndRunAlgoly( code, 30, 0, 6 );
 }
 
 TEST_CASE( "Algoly: read global record 2 int default init", "[algoly][record]" )
@@ -159,7 +159,7 @@ TEST_CASE( "Algoly: read global record 2 int default init", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 4 );
+    TestCompileAndRunAlgoly( code, 0, 0, 4 );
 }
 
 TEST_CASE( "Algoly: read local record 2 int default init", "[algoly][record]" )
@@ -173,7 +173,7 @@ TEST_CASE( "Algoly: read local record 2 int default init", "[algoly][record]" )
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 0, 0, 6 );
+    TestCompileAndRunAlgoly( code, 0, 0, 6 );
 }
 
 //-----------------------
@@ -189,7 +189,7 @@ TEST_CASE( "Algoly: read global record int, &proc, int", "[algoly][record]" )
         "def B 100 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 107, 0, 4 );
+    TestCompileAndRunAlgoly( code, 107, 0, 4 );
 }
 
 TEST_CASE( "Algoly: read local record int, &proc, int", "[algoly][record]" )
@@ -203,7 +203,7 @@ TEST_CASE( "Algoly: read local record int, &proc, int", "[algoly][record]" )
         "def B 100 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 107, 0, 7 );
+    TestCompileAndRunAlgoly( code, 107, 0, 7 );
 }
 
 TEST_CASE( "Algoly: write global record int, &proc, int", "[algoly][record]" )
@@ -219,7 +219,7 @@ TEST_CASE( "Algoly: write global record int, &proc, int", "[algoly][record]" )
         "def B 100 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 130, 0, 4 );
+    TestCompileAndRunAlgoly( code, 130, 0, 4 );
 }
 
 TEST_CASE( "Algoly: write local record int, &proc, int", "[algoly][record]" )
@@ -235,7 +235,7 @@ TEST_CASE( "Algoly: write local record int, &proc, int", "[algoly][record]" )
         "def B 100 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 130, 0, 7 );
+    TestCompileAndRunAlgoly( code, 130, 0, 7 );
 }
 
 TEST_CASE( "Algoly: read global record int, &proc, int default init", "[algoly][record]" )
@@ -249,7 +249,7 @@ TEST_CASE( "Algoly: read global record int, &proc, int default init", "[algoly][
         "def B 100 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 100, 0, 4 );
+    TestCompileAndRunAlgoly( code, 100, 0, 4 );
 }
 
 TEST_CASE( "Algoly: read local record int, &proc, int default init", "[algoly][record]" )
@@ -263,7 +263,7 @@ TEST_CASE( "Algoly: read local record int, &proc, int default init", "[algoly][r
         "def B 100 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 100, 0, 7 );
+    TestCompileAndRunAlgoly( code, 100, 0, 7 );
 }
 
 //---
@@ -280,7 +280,7 @@ TEST_CASE( "Algoly: read record of record", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 6, 0, 4 );
+    TestCompileAndRunAlgoly( code, 6, 0, 4 );
 }
 
 TEST_CASE( "Algoly: write record of record", "[algoly][record]" )
@@ -296,7 +296,7 @@ TEST_CASE( "Algoly: write record of record", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 12, 0, 4 );
+    TestCompileAndRunAlgoly( code, 12, 0, 4 );
 }
 
 
@@ -316,7 +316,7 @@ TEST_CASE( "Algoly: read global array of record (int, &proc, int) repeat, const 
         "def B 100 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 214, 0, 4 );
+    TestCompileAndRunAlgoly( code, 214, 0, 4 );
 }
 
 TEST_CASE( "Algoly: read local array of record (int, &proc, int) repeat, const indexes", "[algoly][record]" )
@@ -331,7 +331,7 @@ TEST_CASE( "Algoly: read local array of record (int, &proc, int) repeat, const i
         "def B 100 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 214, 0, 10 );
+    TestCompileAndRunAlgoly( code, 214, 0, 10 );
 }
 
 TEST_CASE( "Algoly: read global array of record (int, int), var indexes", "[algoly][record]" )
@@ -346,7 +346,7 @@ TEST_CASE( "Algoly: read global array of record (int, int), var indexes", "[algo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 18, 0, 5 );
+    TestCompileAndRunAlgoly( code, 18, 0, 5 );
 }
 
 TEST_CASE( "Algoly: read local array of record (int, int), var indexes", "[algoly][record]" )
@@ -361,7 +361,7 @@ TEST_CASE( "Algoly: read local array of record (int, int), var indexes", "[algol
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 18, 0, 9 );
+    TestCompileAndRunAlgoly( code, 18, 0, 9 );
 }
 
 
@@ -380,7 +380,7 @@ TEST_CASE( "Algoly: read global record of array", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 4 );
+    TestCompileAndRunAlgoly( code, 10, 0, 4 );
 }
 
 TEST_CASE( "Algoly: read local record of array", "[algoly][record]" )
@@ -394,7 +394,7 @@ TEST_CASE( "Algoly: read local record of array", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 8 );
+    TestCompileAndRunAlgoly( code, 10, 0, 8 );
 }
 
 TEST_CASE( "Algoly: read global record of array, var indexes", "[algoly][record]" )
@@ -409,7 +409,7 @@ TEST_CASE( "Algoly: read global record of array, var indexes", "[algoly][record]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 5 );
+    TestCompileAndRunAlgoly( code, 10, 0, 5 );
 }
 
 TEST_CASE( "Algoly: read local record of array, var indexes", "[algoly][record]" )
@@ -424,7 +424,7 @@ TEST_CASE( "Algoly: read local record of array, var indexes", "[algoly][record]"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 10, 0, 9 );
+    TestCompileAndRunAlgoly( code, 10, 0, 9 );
 }
 
 
@@ -444,7 +444,7 @@ TEST_CASE( "Algoly: global array of array of record, const indexes", "[algoly][r
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8, 0, 3 );
+    TestCompileAndRunAlgoly( code, 8, 0, 3 );
 }
 
 TEST_CASE( "Algoly: local array of array of record, const indexes", "[algoly][record]" )
@@ -460,7 +460,7 @@ TEST_CASE( "Algoly: local array of array of record, const indexes", "[algoly][re
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8, 0, 11 );
+    TestCompileAndRunAlgoly( code, 8, 0, 11 );
 }
 
 TEST_CASE( "Algoly: global array of array of record, var indexes", "[algoly][record]" )
@@ -477,7 +477,7 @@ TEST_CASE( "Algoly: global array of array of record, var indexes", "[algoly][rec
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8, 0, 4 );
+    TestCompileAndRunAlgoly( code, 8, 0, 4 );
 }
 
 TEST_CASE( "Algoly: local array of array of record, var indexes", "[algoly][record]" )
@@ -494,7 +494,7 @@ TEST_CASE( "Algoly: local array of array of record, var indexes", "[algoly][reco
         ;
     ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8, 0, 12 );
+    TestCompileAndRunAlgoly( code, 8, 0, 12 );
 }
 
 
@@ -519,7 +519,7 @@ TEST_CASE( "Algoly: record of array of record, const indexes", "[algoly][record]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 36, 0, 4 );
+    TestCompileAndRunAlgoly( code, 36, 0, 4 );
 }
 
 TEST_CASE( "Algoly: record of array of record, var indexes", "[algoly][record]" )
@@ -540,7 +540,7 @@ TEST_CASE( "Algoly: record of array of record, var indexes", "[algoly][record]" 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 36, 0, 5 );
+    TestCompileAndRunAlgoly( code, 36, 0, 5 );
 }
 
 TEST_CASE( "Algoly: array of record of array, const indexes", "[algoly][record]" )
@@ -559,7 +559,7 @@ TEST_CASE( "Algoly: array of record of array, const indexes", "[algoly][record]"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 36, 0, 4 );
+    TestCompileAndRunAlgoly( code, 36, 0, 4 );
 }
 
 TEST_CASE( "Algoly: array of record of array, var indexes", "[algoly][record]" )
@@ -579,7 +579,7 @@ TEST_CASE( "Algoly: array of record of array, var indexes", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 36, 0, 5 );
+    TestCompileAndRunAlgoly( code, 36, 0, 5 );
 }
 
 TEST_CASE( "Algoly: array of record of record, const indexes", "[algoly][record]" )
@@ -599,7 +599,7 @@ TEST_CASE( "Algoly: array of record of record, const indexes", "[algoly][record]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 36, 0, 4 );
+    TestCompileAndRunAlgoly( code, 36, 0, 4 );
 }
 
 TEST_CASE( "Algoly: array of record of record, var indexes", "[algoly][record]" )
@@ -620,7 +620,7 @@ TEST_CASE( "Algoly: array of record of record, var indexes", "[algoly][record]" 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 36, 0, 5 );
+    TestCompileAndRunAlgoly( code, 36, 0, 5 );
 }
 
 TEST_CASE( "Algoly: record of record of array, const indexes", "[algoly][record]" )
@@ -640,7 +640,7 @@ TEST_CASE( "Algoly: record of record of array, const indexes", "[algoly][record]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 36, 0, 4 );
+    TestCompileAndRunAlgoly( code, 36, 0, 4 );
 }
 
 TEST_CASE( "Algoly: record of record of array, var indexes", "[algoly][record]" )
@@ -661,7 +661,7 @@ TEST_CASE( "Algoly: record of record of array, var indexes", "[algoly][record]" 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 36, 0, 5 );
+    TestCompileAndRunAlgoly( code, 36, 0, 5 );
 }
 
 TEST_CASE( "Algoly: array of record of record of array, loop indexing", "[algoly][record]" )
@@ -687,7 +687,7 @@ TEST_CASE( "Algoly: array of record of record of array, loop indexing", "[algoly
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 35, 0, 17 );
+    TestCompileAndRunAlgoly( code, 35, 0, 17 );
 }
 
 TEST_CASE( "Algoly: read global array of array of repeating record with fptr and default init int, loop indexing", "[algoly][record]" )
@@ -708,7 +708,7 @@ TEST_CASE( "Algoly: read global array of array of repeating record with fptr and
         "def B 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 12, 0, 7 );
+    TestCompileAndRunAlgoly( code, 12, 0, 7 );
 }
 
 TEST_CASE( "Algoly: read local array of array of repeating record with fptr and default init int, loop indexing", "[algoly][record]" )
@@ -729,7 +729,7 @@ TEST_CASE( "Algoly: read local array of array of repeating record with fptr and 
         "def B 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 12, 0, 7+8 );
+    TestCompileAndRunAlgoly( code, 12, 0, 7+8 );
 }
 
 
@@ -752,7 +752,7 @@ TEST_CASE( "Algoly: assign record, global-global", "[algoly][record]" )
         "def C 10 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+    TestCompileAndRunAlgoly( code, 214, 0 );
 }
 
 TEST_CASE( "Algoly: assign record, global-local", "[algoly][record]" )
@@ -770,7 +770,7 @@ TEST_CASE( "Algoly: assign record, global-local", "[algoly][record]" )
         "def C 10 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+    TestCompileAndRunAlgoly( code, 214, 0 );
 }
 
 TEST_CASE( "Algoly: assign record, local-local", "[algoly][record]" )
@@ -788,7 +788,7 @@ TEST_CASE( "Algoly: assign record, local-local", "[algoly][record]" )
         "def C 10 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+    TestCompileAndRunAlgoly( code, 214, 0 );
 }
 
 
@@ -810,7 +810,7 @@ TEST_CASE( "Algoly: init record, global-global", "[algoly][record]" )
         "def C 10 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+    TestCompileAndRunAlgoly( code, 214, 0 );
 }
 
 TEST_CASE( "Algoly: init record, global-local", "[algoly][record]" )
@@ -827,7 +827,7 @@ TEST_CASE( "Algoly: init record, global-local", "[algoly][record]" )
         "def C 10 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+    TestCompileAndRunAlgoly( code, 214, 0 );
 }
 
 TEST_CASE( "Algoly: init record, local-local", "[algoly][record]" )
@@ -844,7 +844,7 @@ TEST_CASE( "Algoly: init record, local-local", "[algoly][record]" )
         "def C 10 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 214, 0 );
+    TestCompileAndRunAlgoly( code, 214, 0 );
 }
 
 
@@ -869,7 +869,7 @@ TEST_CASE( "Algoly: assign record in record to record, global-global", "[algoly]
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in record to record, global-local", "[algoly][record]" )
@@ -889,7 +889,7 @@ TEST_CASE( "Algoly: assign record in record to record, global-local", "[algoly][
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in record to record, local-local", "[algoly][record]" )
@@ -909,7 +909,7 @@ TEST_CASE( "Algoly: assign record in record to record, local-local", "[algoly][r
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record to record in record, global-global", "[algoly][record]" )
@@ -929,7 +929,7 @@ TEST_CASE( "Algoly: assign record to record in record, global-global", "[algoly]
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record to record in record, global-local", "[algoly][record]" )
@@ -949,7 +949,7 @@ TEST_CASE( "Algoly: assign record to record in record, global-local", "[algoly][
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record to record in record, local-local", "[algoly][record]" )
@@ -969,7 +969,7 @@ TEST_CASE( "Algoly: assign record to record in record, local-local", "[algoly][r
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in record to record in record, global-global", "[algoly][record]" )
@@ -989,7 +989,7 @@ TEST_CASE( "Algoly: assign record in record to record in record, global-global",
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in record to record in record, global-local", "[algoly][record]" )
@@ -1009,7 +1009,7 @@ TEST_CASE( "Algoly: assign record in record to record in record, global-local", 
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in record to record in record, local-local", "[algoly][record]" )
@@ -1029,7 +1029,7 @@ TEST_CASE( "Algoly: assign record in record to record in record, local-local", "
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 
@@ -1053,7 +1053,7 @@ TEST_CASE( "Algoly: init record in record to record, global-global", "[algoly][r
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record in record to record, global-local", "[algoly][record]" )
@@ -1073,7 +1073,7 @@ TEST_CASE( "Algoly: init record in record to record, global-local", "[algoly][re
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record in record to record, local-local", "[algoly][record]" )
@@ -1093,7 +1093,7 @@ TEST_CASE( "Algoly: init record in record to record, local-local", "[algoly][rec
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record to record in record, global-global", "[algoly][record]" )
@@ -1112,7 +1112,7 @@ TEST_CASE( "Algoly: init record to record in record, global-global", "[algoly][r
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record to record in record, global-local", "[algoly][record]" )
@@ -1131,7 +1131,7 @@ TEST_CASE( "Algoly: init record to record in record, global-local", "[algoly][re
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record to record in record, local-local", "[algoly][record]" )
@@ -1150,7 +1150,7 @@ TEST_CASE( "Algoly: init record to record in record, local-local", "[algoly][rec
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record in record to record in record, global-global", "[algoly][record]" )
@@ -1169,7 +1169,7 @@ TEST_CASE( "Algoly: init record in record to record in record, global-global", "
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: init record in record to record in record, global-local", "[algoly][record]" )
@@ -1188,7 +1188,7 @@ TEST_CASE( "Algoly: init record in record to record in record, global-local", "[
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: init record in record to record in record, local-local", "[algoly][record]" )
@@ -1207,7 +1207,7 @@ TEST_CASE( "Algoly: init record in record to record in record, local-local", "[a
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 
@@ -1231,7 +1231,7 @@ TEST_CASE( "Algoly: assign record in array to record, const indexes, global-glob
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record, const indexes, global-local", "[algoly][record]" )
@@ -1250,7 +1250,7 @@ TEST_CASE( "Algoly: assign record in array to record, const indexes, global-loca
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record, const indexes, local-local", "[algoly][record]" )
@@ -1269,7 +1269,7 @@ TEST_CASE( "Algoly: assign record in array to record, const indexes, local-local
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record, var indexes, global-global", "[algoly][record]" )
@@ -1289,7 +1289,7 @@ TEST_CASE( "Algoly: assign record in array to record, var indexes, global-global
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record, var indexes, global-local", "[algoly][record]" )
@@ -1309,7 +1309,7 @@ TEST_CASE( "Algoly: assign record in array to record, var indexes, global-local"
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record, var indexes, local-local", "[algoly][record]" )
@@ -1329,7 +1329,7 @@ TEST_CASE( "Algoly: assign record in array to record, var indexes, local-local",
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record to record in array, const indexes, global-global", "[algoly][record]" )
@@ -1348,7 +1348,7 @@ TEST_CASE( "Algoly: assign record to record in array, const indexes, global-glob
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record to record in array, const indexes, global-local", "[algoly][record]" )
@@ -1367,7 +1367,7 @@ TEST_CASE( "Algoly: assign record to record in array, const indexes, global-loca
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record to record in array, const indexes, local-local", "[algoly][record]" )
@@ -1386,7 +1386,7 @@ TEST_CASE( "Algoly: assign record to record in array, const indexes, local-local
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record to record in array, var indexes, global-global", "[algoly][record]" )
@@ -1406,7 +1406,7 @@ TEST_CASE( "Algoly: assign record to record in array, var indexes, global-global
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record to record in array, var indexes, global-local", "[algoly][record]" )
@@ -1426,7 +1426,7 @@ TEST_CASE( "Algoly: assign record to record in array, var indexes, global-local"
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record to record in array, var indexes, local-local", "[algoly][record]" )
@@ -1446,7 +1446,7 @@ TEST_CASE( "Algoly: assign record to record in array, var indexes, local-local",
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record in array, const indexes, global-global", "[algoly][record]" )
@@ -1465,7 +1465,7 @@ TEST_CASE( "Algoly: assign record in array to record in array, const indexes, gl
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record in array, const indexes, global-local", "[algoly][record]" )
@@ -1484,7 +1484,7 @@ TEST_CASE( "Algoly: assign record in array to record in array, const indexes, gl
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record in array, const indexes, local-local", "[algoly][record]" )
@@ -1503,7 +1503,7 @@ TEST_CASE( "Algoly: assign record in array to record in array, const indexes, lo
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record in array, var indexes, global-global", "[algoly][record]" )
@@ -1523,7 +1523,7 @@ TEST_CASE( "Algoly: assign record in array to record in array, var indexes, glob
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record in array, var indexes, global-local", "[algoly][record]" )
@@ -1543,7 +1543,7 @@ TEST_CASE( "Algoly: assign record in array to record in array, var indexes, glob
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: assign record in array to record in array, var indexes, local-local", "[algoly][record]" )
@@ -1563,7 +1563,7 @@ TEST_CASE( "Algoly: assign record in array to record in array, var indexes, loca
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 
@@ -1586,7 +1586,7 @@ TEST_CASE( "Algoly: init record in array to record, const indexes, global-global
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record in array to record, const indexes, global-local", "[algoly][record]" )
@@ -1604,7 +1604,7 @@ TEST_CASE( "Algoly: init record in array to record, const indexes, global-local"
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record in array to record, const indexes, local-local", "[algoly][record]" )
@@ -1622,7 +1622,7 @@ TEST_CASE( "Algoly: init record in array to record, const indexes, local-local",
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record in array to record, var indexes, global-local", "[algoly][record]" )
@@ -1641,7 +1641,7 @@ TEST_CASE( "Algoly: init record in array to record, var indexes, global-local", 
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record in array to record, var indexes, local-local", "[algoly][record]" )
@@ -1660,7 +1660,7 @@ TEST_CASE( "Algoly: init record in array to record, var indexes, local-local", "
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record to record in array, const indexes, global-global", "[algoly][record]" )
@@ -1678,7 +1678,7 @@ TEST_CASE( "Algoly: init record to record in array, const indexes, global-global
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record to record in array, const indexes, global-local", "[algoly][record]" )
@@ -1696,7 +1696,7 @@ TEST_CASE( "Algoly: init record to record in array, const indexes, global-local"
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record to record in array, const indexes, local-local", "[algoly][record]" )
@@ -1714,7 +1714,7 @@ TEST_CASE( "Algoly: init record to record in array, const indexes, local-local",
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 227, 0 );
+    TestCompileAndRunAlgoly( code, 227, 0 );
 }
 
 TEST_CASE( "Algoly: init record in array to record in array, const indexes, global-global", "[algoly][record]" )
@@ -1732,7 +1732,7 @@ TEST_CASE( "Algoly: init record in array to record in array, const indexes, glob
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: init record in array to record in array, const indexes, global-local", "[algoly][record]" )
@@ -1750,7 +1750,7 @@ TEST_CASE( "Algoly: init record in array to record in array, const indexes, glob
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 TEST_CASE( "Algoly: init record in array to record in array, const indexes, local-local", "[algoly][record]" )
@@ -1768,7 +1768,7 @@ TEST_CASE( "Algoly: init record in array to record in array, const indexes, loca
         "def D 1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 239, 0 );
+    TestCompileAndRunAlgoly( code, 239, 0 );
 }
 
 
@@ -1789,7 +1789,7 @@ TEST_CASE( "Algoly: assign array of int in record to array, global-global", "[al
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: assign array of int in record to array, global-local", "[algoly][record]" )
@@ -1805,7 +1805,7 @@ TEST_CASE( "Algoly: assign array of int in record to array, global-local", "[alg
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: assign array of int in record to array, local-local", "[algoly][record]" )
@@ -1821,7 +1821,7 @@ TEST_CASE( "Algoly: assign array of int in record to array, local-local", "[algo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: assign array to array of int in record, global-global", "[algoly][record]" )
@@ -1837,7 +1837,7 @@ TEST_CASE( "Algoly: assign array to array of int in record, global-global", "[al
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: assign array to array of int in record, global-local", "[algoly][record]" )
@@ -1853,7 +1853,7 @@ TEST_CASE( "Algoly: assign array to array of int in record, global-local", "[alg
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: assign array to array of int in record, local-local", "[algoly][record]" )
@@ -1869,7 +1869,7 @@ TEST_CASE( "Algoly: assign array to array of int in record, local-local", "[algo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: assign array in record to array of int in record, global-global", "[algoly][record]" )
@@ -1885,7 +1885,7 @@ TEST_CASE( "Algoly: assign array in record to array of int in record, global-glo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+    TestCompileAndRunAlgoly( code, 28, 0 );
 }
 
 TEST_CASE( "Algoly: assign array in record to array of int in record, global-local", "[algoly][record]" )
@@ -1901,7 +1901,7 @@ TEST_CASE( "Algoly: assign array in record to array of int in record, global-loc
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+    TestCompileAndRunAlgoly( code, 28, 0 );
 }
 
 TEST_CASE( "Algoly: assign array in record to array of int in record, local-local", "[algoly][record]" )
@@ -1917,7 +1917,7 @@ TEST_CASE( "Algoly: assign array in record to array of int in record, local-loca
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+    TestCompileAndRunAlgoly( code, 28, 0 );
 }
 
 
@@ -1937,7 +1937,7 @@ TEST_CASE( "Algoly: init array of int in record to array, global-global", "[algo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: init array of int in record to array, global-local", "[algoly][record]" )
@@ -1952,7 +1952,7 @@ TEST_CASE( "Algoly: init array of int in record to array, global-local", "[algol
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: init array of int in record to array, local-local", "[algoly][record]" )
@@ -1967,7 +1967,7 @@ TEST_CASE( "Algoly: init array of int in record to array, local-local", "[algoly
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: init array to array of int in record, global-global", "[algoly][record]" )
@@ -1982,7 +1982,7 @@ TEST_CASE( "Algoly: init array to array of int in record, global-global", "[algo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: init array to array of int in record, global-local", "[algoly][record]" )
@@ -1997,7 +1997,7 @@ TEST_CASE( "Algoly: init array to array of int in record, global-local", "[algol
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: init array to array of int in record, local-local", "[algoly][record]" )
@@ -2012,7 +2012,7 @@ TEST_CASE( "Algoly: init array to array of int in record, local-local", "[algoly
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 17, 0 );
+    TestCompileAndRunAlgoly( code, 17, 0 );
 }
 
 TEST_CASE( "Algoly: init array in record to array of int in record, global-global", "[algoly][record]" )
@@ -2027,7 +2027,7 @@ TEST_CASE( "Algoly: init array in record to array of int in record, global-globa
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+    TestCompileAndRunAlgoly( code, 28, 0 );
 }
 
 TEST_CASE( "Algoly: init array in record to array of int in record, global-local", "[algoly][record]" )
@@ -2042,7 +2042,7 @@ TEST_CASE( "Algoly: init array in record to array of int in record, global-local
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+    TestCompileAndRunAlgoly( code, 28, 0 );
 }
 
 TEST_CASE( "Algoly: init array in record to array of int in record, local-local", "[algoly][record]" )
@@ -2057,7 +2057,7 @@ TEST_CASE( "Algoly: init array in record to array of int in record, local-local"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 28, 0 );
+    TestCompileAndRunAlgoly( code, 28, 0 );
 }
 
 
@@ -2080,7 +2080,7 @@ TEST_CASE( "Algoly: pass global record by ref", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33, 0 );
+    TestCompileAndRunAlgoly( code, 33, 0 );
 }
 
 TEST_CASE( "Algoly: pass local record by ref", "[algoly][record]" )
@@ -2098,7 +2098,7 @@ TEST_CASE( "Algoly: pass local record by ref", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 33, 0 );
+    TestCompileAndRunAlgoly( code, 33, 0 );
 }
 
 TEST_CASE( "Algoly: pass global record by ref 2", "[algoly][record]" )
@@ -2121,7 +2121,7 @@ TEST_CASE( "Algoly: pass global record by ref 2", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 333, 0 );
+    TestCompileAndRunAlgoly( code, 333, 0 );
 }
 
 TEST_CASE( "Algoly: pass local record by ref 2", "[algoly][record]" )
@@ -2144,7 +2144,7 @@ TEST_CASE( "Algoly: pass local record by ref 2", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 333, 0 );
+    TestCompileAndRunAlgoly( code, 333, 0 );
 }
 
 
@@ -2168,7 +2168,7 @@ TEST_CASE( "Algoly: pass global record in record by ref", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+    TestCompileAndRunAlgoly( code, 40, 0 );
 }
 
 TEST_CASE( "Algoly: pass local record in record by ref", "[algoly][record]" )
@@ -2187,7 +2187,7 @@ TEST_CASE( "Algoly: pass local record in record by ref", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+    TestCompileAndRunAlgoly( code, 40, 0 );
 }
 
 TEST_CASE( "Algoly: pass global record in record by ref 2", "[algoly][record]" )
@@ -2212,7 +2212,7 @@ TEST_CASE( "Algoly: pass global record in record by ref 2", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 336, 0 );
+    TestCompileAndRunAlgoly( code, 336, 0 );
 }
 
 TEST_CASE( "Algoly: pass local record in record by ref 2", "[algoly][record]" )
@@ -2237,7 +2237,7 @@ TEST_CASE( "Algoly: pass local record in record by ref 2", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 336, 0 );
+    TestCompileAndRunAlgoly( code, 336, 0 );
 }
 
 //----------------------------------------------------------------------------
@@ -2259,7 +2259,7 @@ TEST_CASE( "Algoly: pass global record in array by ref", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+    TestCompileAndRunAlgoly( code, 40, 0 );
 }
 
 TEST_CASE( "Algoly: pass local record in array by ref", "[algoly][record]" )
@@ -2277,7 +2277,7 @@ TEST_CASE( "Algoly: pass local record in array by ref", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+    TestCompileAndRunAlgoly( code, 40, 0 );
 }
 
 TEST_CASE( "Algoly: pass global record in array by ref 2", "[algoly][record]" )
@@ -2300,7 +2300,7 @@ TEST_CASE( "Algoly: pass global record in array by ref 2", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 333+7, 0 );
+    TestCompileAndRunAlgoly( code, 333+7, 0 );
 }
 
 TEST_CASE( "Algoly: pass local record in array by ref 2", "[algoly][record]" )
@@ -2323,7 +2323,7 @@ TEST_CASE( "Algoly: pass local record in array by ref 2", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 333+7, 0 );
+    TestCompileAndRunAlgoly( code, 333+7, 0 );
 }
 
 
@@ -2346,7 +2346,7 @@ TEST_CASE( "Algoly: pass global array in record by ref", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+    TestCompileAndRunAlgoly( code, 40, 0 );
 }
 
 TEST_CASE( "Algoly: pass local array in record by ref", "[algoly][record]" )
@@ -2364,7 +2364,7 @@ TEST_CASE( "Algoly: pass local array in record by ref", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 40, 0 );
+    TestCompileAndRunAlgoly( code, 40, 0 );
 }
 
 TEST_CASE( "Algoly: pass global array in record by ref 2", "[algoly][record]" )
@@ -2387,7 +2387,7 @@ TEST_CASE( "Algoly: pass global array in record by ref 2", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 333 + 7, 0 );
+    TestCompileAndRunAlgoly( code, 333 + 7, 0 );
 }
 
 TEST_CASE( "Algoly: pass local array in record by ref 2", "[algoly][record]" )
@@ -2410,5 +2410,5 @@ TEST_CASE( "Algoly: pass local array in record by ref 2", "[algoly][record]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 333 + 7, 0 );
+    TestCompileAndRunAlgoly( code, 333 + 7, 0 );
 }
