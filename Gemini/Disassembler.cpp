@@ -18,11 +18,12 @@ static const char* gOpCodes[] =
     "OVER",
     "PUSH",
     "NOT",
+    "LDARGA",
     "LDARG",
     "STARG",
+    "LDLOCA",
     "LDLOC",
     "STLOC",
-    "LDLOCA",
     "LDMOD",
     "STMOD",
     "LDC",
@@ -111,11 +112,12 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         break;
 
     case OP_PUSH:
+    case OP_LDARGA:
     case OP_LDARG:
     case OP_STARG:
+    case OP_LDLOCA:
     case OP_LDLOC:
     case OP_STLOC:
-    case OP_LDLOCA:
         {
             int value = *(U8*) mCodePtr++;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );

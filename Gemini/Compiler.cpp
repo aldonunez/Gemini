@@ -1813,7 +1813,15 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
             {
                 auto param = (ParamStorage*) baseDecl;
 
-                if ( param->Mode == ParamMode::InOutRef )
+                if ( param->Mode == ParamMode::Value )
+                {
+                    assert( offset >= 0 && offset < ParamSizeMax );
+                    assert( offset < (ParamSizeMax - param->Offset) );
+
+                    EmitU8( OP_LDARGA, static_cast<uint8_t>(param->Offset + offset) );
+                    IncreaseExprDepth();
+                }
+                else if ( param->Mode == ParamMode::InOutRef )
                 {
                     EmitU8( OP_LDARG, param->Offset );
 

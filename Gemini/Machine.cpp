@@ -277,6 +277,22 @@ int Machine::Run()
             }
             break;
 
+        case OP_LDARGA:
+            {
+                int index = ReadU8( codePtr );
+                long offset = mFramePtr + FRAME_WORDS + index;
+
+                if ( offset >= mStackSize )
+                    return ERR_BAD_ADDRESS;
+
+                if ( WouldOverflow() )
+                    return ERR_STACK_OVERFLOW;
+
+                U32 addrWord = CodeAddr::Build( offset, MODINDEX_STACK );
+                Push( addrWord );
+            }
+            break;
+
         case OP_LDARG:
             {
                 int index = ReadU8( codePtr );
@@ -307,6 +323,22 @@ int Machine::Run()
             }
             break;
 
+        case OP_LDLOCA:
+            {
+                U8  index = ReadU8( codePtr );
+                I32 offset = mFramePtr - 1 - index;
+
+                if ( offset < 0 )
+                    return ERR_BAD_ADDRESS;
+
+                if ( WouldOverflow() )
+                    return ERR_STACK_OVERFLOW;
+
+                U32 addrWord = CodeAddr::Build( offset, MODINDEX_STACK );
+                Push( addrWord );
+            }
+            break;
+
         case OP_LDLOC:
             {
                 int index = ReadU8( codePtr );
@@ -334,22 +366,6 @@ int Machine::Run()
                     return ERR_STACK_UNDERFLOW;
 
                 mStack[offset] = Pop();
-            }
-            break;
-
-        case OP_LDLOCA:
-            {
-                U8  index = ReadU8( codePtr );
-                I32 offset = mFramePtr - 1 - index;
-
-                if ( offset < 0 )
-                    return ERR_BAD_ADDRESS;
-
-                if ( WouldOverflow() )
-                    return ERR_STACK_OVERFLOW;
-
-                U32 addrWord = CodeAddr::Build( offset, MODINDEX_STACK );
-                Push( addrWord );
             }
             break;
 
