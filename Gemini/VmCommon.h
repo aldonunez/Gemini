@@ -88,3 +88,73 @@ void WritePacked( uint8_t*& p, S value )
 #define WriteU24    WritePacked<uint32_t, 3>
 #define WriteI32    WritePacked<int32_t>
 #define WriteU32    WritePacked<uint32_t>
+
+
+struct VmDivModResult
+{
+    int32_t Quotient;
+    int32_t Remainder;
+};
+
+
+constexpr int32_t Saturate( int64_t n )
+{
+    if ( n > INT32_MAX )
+        n = INT32_MAX;
+    else if ( n < INT32_MIN )
+        n = INT32_MIN;
+
+    return static_cast<int32_t>(n);
+}
+
+constexpr int32_t VmAdd( int32_t a, int32_t b )
+{
+    return Saturate( static_cast<int64_t>(a) + b );
+}
+
+constexpr int32_t VmSub( int32_t a, int32_t b )
+{
+    return Saturate( static_cast<int64_t>(a) - b );
+}
+
+constexpr int32_t VmMul( int32_t a, int32_t b )
+{
+    return Saturate( static_cast<int64_t>(a) * b );
+}
+
+constexpr VmDivModResult VmDivMod( int32_t a, int32_t b )
+{
+    int32_t q = 0;
+    int32_t r = 0;
+
+    if ( a == INT32_MIN && b == -1 )
+    {
+        q = INT32_MAX;
+        r = 0;
+    }
+    else
+    {
+        q = a / b;
+        r = a % b;
+
+        // (r < 0 && b > 0) || (r > 0 && b < 0)
+
+        if ( r != 0 && (r ^ b) < 0 )
+        {
+            q--;
+            r += b;
+        }
+    }
+
+    return { q, r };
+}
+
+constexpr int32_t VmDiv( int32_t a, int32_t b )
+{
+    return VmDivMod( a, b ).Quotient;
+}
+
+constexpr int32_t VmMod( int32_t a, int32_t b )
+{
+    return VmDivMod( a, b ).Remainder;
+}

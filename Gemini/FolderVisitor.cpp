@@ -6,6 +6,7 @@
 
 #include "pch.h"
 #include "FolderVisitor.h"
+#include "VmCommon.h"
 #include <assert.h>
 
 
@@ -68,31 +69,25 @@ void FolderVisitor::VisitBinaryExpr( BinaryExpr* binary )
         int32_t right = mLastValue.value();
         int32_t result = 0;
 
-        // Cast operands to unsigned for well defined overflow from arithmetic ops + - *
-
         if ( binary->Op == "+" )
-            result = static_cast<uint32_t>(left) + static_cast<uint32_t>(right);
+            result = VmAdd( left, right );
         else if ( binary->Op == "-" )
-            result = static_cast<uint32_t>(left) - static_cast<uint32_t>(right);
+            result = VmSub( left, right );
         else if ( binary->Op == "*" )
-            result = static_cast<uint32_t>(left) * static_cast<uint32_t>(right);
+            result = VmMul( left, right );
         else if ( binary->Op == "/" )
         {
             if ( right == 0 )
                 mRep.ThrowSemanticsError( binary->Right.get(), "Division by 0" );
-            if ( left == INT32_MIN && right == -1 )
-                right = 1;
 
-            result = left / right;
+            result = VmDiv( left, right );
         }
         else if ( binary->Op == "%" )
         {
             if ( right == 0 )
                 mRep.ThrowSemanticsError( binary->Right.get(), "Division by 0" );
-            if ( left == INT32_MIN && right == -1 )
-                right = 1;
 
-            result = left % right;
+            result = VmMod( left, right );
         }
         else if ( binary->Op == "=" )
             result = left == right;
@@ -372,7 +367,7 @@ void FolderVisitor::VisitUnaryExpr( UnaryExpr* unary )
     if ( mLastValue.has_value() )
     {
         if ( unary->Op == "-" )
-            mLastValue = -mLastValue.value();
+            mLastValue = VmSub( 0, mLastValue.value() );
         else if ( unary->Op == "not" )
             mLastValue = !mLastValue.value();
         else

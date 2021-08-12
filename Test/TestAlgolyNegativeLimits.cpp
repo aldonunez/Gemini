@@ -33,7 +33,7 @@ TEST_CASE( "Algoly: unary minus negative min number, literal", "[algoly][limit]"
         "def a - -2147483648 end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MIN, 0, 3 );
+    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX, 0, 3 );
 }
 
 TEST_CASE( "Algoly: unary minus negative min number, var", "[algoly][limit]" )
@@ -45,7 +45,7 @@ TEST_CASE( "Algoly: unary minus negative min number, var", "[algoly][limit]" )
         "end"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MIN );
+    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
 }
 
 TEST_CASE( "Algoly: divide negative min number by -1, literal", "[algoly][limit]" )
@@ -54,7 +54,7 @@ TEST_CASE( "Algoly: divide negative min number by -1, literal", "[algoly][limit]
         "def a -2147483648/-1 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, INT32_MIN );
+    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
 }
 
 TEST_CASE( "Algoly: divide negative min number by -1, var", "[algoly][limit]" )
@@ -63,6 +63,43 @@ TEST_CASE( "Algoly: divide negative min number by -1, var", "[algoly][limit]" )
         "var n := -2147483648\n"
         "def a\n"
         "  n/-1\n"
+        "end"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
+}
+
+TEST_CASE( "Algoly: addition overflow +/+, var", "[algoly][limit]" )
+{
+    const char code[] =
+        "var n := 2147483647\n"
+        "def a\n"
+        "  n+n\n"
+        "end"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
+}
+
+TEST_CASE( "Algoly: multiplication overflow +/+, var", "[algoly][limit]" )
+{
+    const char code[] =
+        "var n := 2147483647\n"
+        "def a\n"
+        "  n*n\n"
+        "end"
+        ;
+
+    TestCompileAndRunAlgoly( code, sizeof code, INT32_MAX );
+}
+
+TEST_CASE( "Algoly: subtraction overflow -/+, var", "[algoly][limit]" )
+{
+    const char code[] =
+        "var m := -2147483647\n"
+        "var n := 2147483647\n"
+        "def a\n"
+        "  m-n\n"
         "end"
         ;
 
