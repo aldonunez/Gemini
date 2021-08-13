@@ -54,11 +54,48 @@ constexpr ResultVariant Emplace( T value )
 }
 
 
+class ParamSpan
+{
+    const int*  mFirst = nullptr;
+    size_t      mSize;
+
+public:
+    template <size_t N>
+    ParamSpan( int (&array)[N] ) :
+        mFirst( &array[0] ),
+        mSize( N )
+    {
+    }
+
+    ParamSpan( const int* first, const int* last ) :
+        mFirst( first ),
+        mSize( last - first )
+    {
+    }
+
+    size_t size() const
+    {
+        return mSize;
+    }
+
+    const int* begin() const
+    {
+        return mFirst;
+    }
+
+    const int* end() const
+    {
+        return mFirst + mSize;
+    }
+};
+
+
 constexpr int32_t DefaultParam = INT32_MAX;
 
 
 void TestCompileAndRunAlgoly( const char* code, int result, int param = DefaultParam, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, int result, const std::initializer_list<int>& params, int expectedStack = 0 );
+void TestCompileAndRunAlgoly( const char* code, int result, const ParamSpan& params, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, Gemini::CompilerErr result );
 
 void TestCompileAndRunLispy( const char* code, int result, int param = DefaultParam, int expectedStack = 0 );
@@ -75,17 +112,8 @@ void TestCompileAndRun(
 void TestCompileAndRun(
     Language lang,
     const ModuleSource* moduleSources,
-    int expectedResult,
-    const std::initializer_list<int>& params,
-    int expectedStack = 0,
-    NativePair* natives = nullptr
-);
-
-void TestCompileAndRun(
-    Language lang,
-    const ModuleSource* moduleSources,
     ResultVariant expectedResult,
-    const std::initializer_list<int>& params,
+    const ParamSpan& params,
     int expectedStack = 0,
     NativePair* natives = nullptr
 );

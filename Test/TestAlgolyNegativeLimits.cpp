@@ -151,9 +151,9 @@ TEST_CASE( "Algoly: max params for main", "[algoly][limit]" )
         args[i] = i;
     }
 
-    std::initializer_list<int> initializer( &args[0], &args[ParamSizeMax] );
+    ParamSpan paramSpan( args );
 
-    TestCompileAndRunAlgoly( code, 8001, initializer, 131 );
+    TestCompileAndRunAlgoly( code, 8001, paramSpan, 131 );
 }
 
 TEST_CASE( "Algoly: max params for func", "[algoly][limit]" )

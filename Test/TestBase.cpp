@@ -246,31 +246,47 @@ void Disassemble( const uint8_t* program, int size )
 static CELL gStack[1024];
 
 
-void TestCompileAndRun( Language lang, const char* code, ResultVariant result, const std::initializer_list<int>& params, int expectedStack );
+void TestCompileAndRun( Language lang, const char* code, ResultVariant result, const ParamSpan& params, int expectedStack );
 
 
 void TestCompileAndRunAlgoly( const char* code, int result, int param, int expectedStack )
 {
-    TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Stack>( result ), { param }, expectedStack );
+    int array[] = { param };
+    ParamSpan paramSpan( array );
+
+    TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Stack>( result ), paramSpan, expectedStack );
 }
 
 void TestCompileAndRunAlgoly( const char* code, int result, const std::initializer_list<int>& params, int expectedStack )
+{
+    ParamSpan paramSpan( params.begin(), params.end() );
+
+    TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Stack>( result ), paramSpan, expectedStack );
+}
+
+void TestCompileAndRunAlgoly( const char* code, int result, const ParamSpan& params, int expectedStack )
 {
     TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Stack>( result ), params, expectedStack );
 }
 
 void TestCompileAndRunAlgoly( const char* code, CompilerErr result )
 {
-    TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Compiler>( result ), {}, 0 );
+    int dummy = 0;
+    ParamSpan emptyParamSpan( &dummy, &dummy );
+
+    TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Compiler>( result ), emptyParamSpan, 0 );
 }
 
 void TestCompileAndRunLispy( const char* code, int result, int param, int expectedStack )
 {
-    TestCompileAndRun( Language::Geml, code, Emplace<ResultKind::Stack>( result ), { param }, expectedStack );
+    int array[] = { param };
+    ParamSpan paramSpan( array );
+
+    TestCompileAndRun( Language::Geml, code, Emplace<ResultKind::Stack>( result ), paramSpan, expectedStack );
 }
 
 
-void TestCompileAndRun( Language lang, const char* code, ResultVariant result, const std::initializer_list<int>& params, int expectedStack )
+void TestCompileAndRun( Language lang, const char* code, ResultVariant result, const ParamSpan& params, int expectedStack )
 {
     const char* sources[] =
     {
@@ -299,30 +315,14 @@ void TestCompileAndRun(
     NativePair* natives
 )
 {
-    TestCompileAndRun(
-        lang,
-        moduleSources,
-        expectedResult,
-        { param },
-        expectedStack,
-        natives );
-}
+    int array[] = { param };
+    ParamSpan paramSpan( array );
 
-
-void TestCompileAndRun(
-    Language lang,
-    const ModuleSource* moduleSources,
-    int expectedResult,
-    const std::initializer_list<int>& params,
-    int expectedStack,
-    NativePair* natives
-)
-{
     TestCompileAndRun(
         lang,
         moduleSources,
         Emplace<ResultKind::Stack>( expectedResult ),
-        params,
+        paramSpan,
         expectedStack,
         natives );
 }
@@ -332,7 +332,7 @@ void TestCompileAndRun(
     Language lang,
     const ModuleSource* moduleSources,
     ResultVariant expectedResult,
-    const std::initializer_list<int>& params,
+    const ParamSpan& params,
     int expectedStack,
     NativePair* natives
 )
