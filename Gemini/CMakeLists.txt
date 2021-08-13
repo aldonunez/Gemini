@@ -1,4 +1,4 @@
-add_library(Gemini
+add_library(geminivm
     AlgolyParser.cpp
     BinderVisitor.cpp
     Compiler.cpp
@@ -22,9 +22,9 @@ set(GEMINI_PUBLIC_HEADERS
     VmCommon.h
 )
 
-set_target_properties(Gemini PROPERTIES PUBLIC_HEADER "${GEMINI_PUBLIC_HEADERS}")
+set_target_properties(geminivm PROPERTIES PUBLIC_HEADER "${GEMINI_PUBLIC_HEADERS}")
 
-install(TARGETS Gemini
+install(TARGETS geminivm
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${CMAKE_PROJECT_NAME}
 )

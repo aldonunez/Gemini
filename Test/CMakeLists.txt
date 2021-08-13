@@ -12,7 +12,7 @@ add_executable(Test
     TestLispy.cpp
 )
 
-target_link_libraries(Test PUBLIC Gemini)
+target_link_libraries(Test PUBLIC geminivm)
 
 target_include_directories(Test PUBLIC
     "${PROJECT_BINARY_DIR}"
