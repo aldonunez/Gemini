@@ -1400,6 +1400,95 @@ TEST_CASE( "Algoly: big array 63x1024 extrapolate repeat", "[algoly]" )
     TestCompileAndRunAlgoly( code, 33062400 );
 }
 
+TEST_CASE( "Algoly: array extrapolate limit positive 1", "[algoly]" )
+{
+    // 2,147,483,648
+    const char code[] =
+        "var ar: [3] := [2, 1073741825...+]\n"
+        "def a\n"
+        "  ar[2] = ar[1] + (ar[1] - ar[0])\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 1 );
+}
+
+TEST_CASE( "Algoly: array extrapolate limit positive 2", "[algoly]" )
+{
+    const char code[] =
+        "var ar: [4] := [2, 1073741825...+]\n"
+        "def a\n"
+        "  ar[3] = ar[1] + (ar[1] - ar[0])*2\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 1 );
+}
+
+TEST_CASE( "Algoly: array extrapolate limit positive 3", "[algoly]" )
+{
+    // 4,294,967,296
+    const char code[] =
+        "var ar: [5] := [0, 1073741824...+]\n"
+        "def a\n"
+        "  ar[4] = ar[1] + (ar[1] - ar[0])*3\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 1 );
+}
+
+TEST_CASE( "Algoly: array extrapolate limit negative in range", "[algoly]" )
+{
+    // -2,147,483,648
+    const char code[] =
+        "var ar: [3] := [-2, -1073741825...+]\n"
+        "def a\n"
+        "  ar[2] = ar[1] + (ar[1] - ar[0])\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 1 );
+}
+
+TEST_CASE( "Algoly: array extrapolate limit negative 1", "[algoly]" )
+{
+    // -2,147,483,649
+    const char code[] =
+        "var ar: [3] := [-1, -1073741825...+]\n"
+        "def a\n"
+        "  ar[2] = ar[1] + (ar[1] - ar[0])\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 1 );
+}
+
+TEST_CASE( "Algoly: array extrapolate limit negative 2", "[algoly]" )
+{
+    const char code[] =
+        "var ar: [4] := [-1, -1073741825...+]\n"
+        "def a\n"
+        "  ar[3] = ar[1] + (ar[1] - ar[0])*2\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 1 );
+}
+
+TEST_CASE( "Algoly: array extrapolate limit negative 3", "[algoly]" )
+{
+    // -4,294,967,297
+    const char code[] =
+        "var ar: [5] := [-1, -1073741825...+]\n"
+        "def a\n"
+        "  ar[4] = ar[1] + (ar[1] - ar[0])*3\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 1 );
+}
+
 
 //----------------------------------------------------------------------------
 //  Natives

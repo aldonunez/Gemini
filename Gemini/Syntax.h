@@ -167,9 +167,7 @@ struct ParamSpecRef
     Unique<Gemini::TypeRef> TypeRef;
     ParamMode               Mode = ParamMode::Value;
 
-    ParamSpecRef()
-    {
-    }
+    ParamSpecRef() = default;
 
     ParamSpecRef( ParamSpecRef&& other ) noexcept :
         TypeRef( std::move( other.TypeRef ) ),

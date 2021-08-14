@@ -985,12 +985,12 @@ void Compiler::EmitLocalArrayInitializer( LocalSize offset, InitList* initList, 
         {
             auto prevValue2 = GetFinalOptionalSyntaxValue( initList->Values[count - 2].get() );
             if ( prevValue2.has_value() )
-                step = prevValue - prevValue2.value();
+                step = VmSub( prevValue, prevValue2.value() );
         }
 
         for ( ; i < size; i++ )
         {
-            U32 newValue = prevValue + step;
+            U32 newValue = VmAdd( prevValue, step );
 
             EmitLoadConstant( newValue );
             EmitU8( OP_STLOC, (U8) locIndex );
@@ -2117,12 +2117,12 @@ void Compiler::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList
 
         if ( i >= 2 )
         {
-            step = prevValue - mGlobals[offset + i - 2];
+            step = VmSub( prevValue, mGlobals[offset + i - 2] );
         }
 
         for ( ; i < size; i++ )
         {
-            U32 newValue = prevValue + step;
+            U32 newValue = VmAdd( prevValue, step );
 
             mGlobals[offset + i] = newValue;
             prevValue = newValue;
