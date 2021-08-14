@@ -1400,14 +1400,31 @@ TEST_CASE( "Algoly: big array 63x1024 extrapolate repeat", "[algoly]" )
     TestCompileAndRunAlgoly( code, 33062400 );
 }
 
+#define EXTRAPOLATE_MATCHES_FUNC_3 \
+    "def Matches(var ar: [3])\n" \
+    "  ar[2] = ar[1] + (ar[1] - ar[0])\n" \
+    "end\n"
+
+#define EXTRAPOLATE_MATCHES_FUNC_4 \
+    "def Matches(var ar: [4])\n" \
+    "  ar[3] = ar[1] + (ar[1] - ar[0])*2\n" \
+    "end\n"
+
+#define EXTRAPOLATE_MATCHES_FUNC_5 \
+    "def Matches(var ar: [5])\n" \
+    "  ar[4] = ar[1] + (ar[1] - ar[0])*3\n" \
+    "end\n"
+
 TEST_CASE( "Algoly: array extrapolate limit positive 1", "[algoly]" )
 {
     // 2,147,483,648
     const char code[] =
-        "var ar: [3] := [2, 1073741825...+]\n"
+        "var gar: [3] := [2, 1073741825...+]\n"
         "def a\n"
-        "  ar[2] = ar[1] + (ar[1] - ar[0])\n"
+        "  var lar: [3] := [2, 1073741825...+]\n"
+        "  Matches(gar) and Matches(lar) and (gar[2] = lar[2])\n"
         "end\n"
+        EXTRAPOLATE_MATCHES_FUNC_3
         ;
 
     TestCompileAndRunAlgoly( code, 1 );
@@ -1416,10 +1433,12 @@ TEST_CASE( "Algoly: array extrapolate limit positive 1", "[algoly]" )
 TEST_CASE( "Algoly: array extrapolate limit positive 2", "[algoly]" )
 {
     const char code[] =
-        "var ar: [4] := [2, 1073741825...+]\n"
+        "var gar: [4] := [2, 1073741825...+]\n"
         "def a\n"
-        "  ar[3] = ar[1] + (ar[1] - ar[0])*2\n"
+        "  var lar: [4] := [2, 1073741825...+]\n"
+        "  Matches(gar) and Matches(lar) and (gar[3] = lar[3])\n"
         "end\n"
+        EXTRAPOLATE_MATCHES_FUNC_4
         ;
 
     TestCompileAndRunAlgoly( code, 1 );
@@ -1429,10 +1448,12 @@ TEST_CASE( "Algoly: array extrapolate limit positive 3", "[algoly]" )
 {
     // 4,294,967,296
     const char code[] =
-        "var ar: [5] := [0, 1073741824...+]\n"
+        "var gar: [5] := [0, 1073741824...+]\n"
         "def a\n"
-        "  ar[4] = ar[1] + (ar[1] - ar[0])*3\n"
+        "  var lar: [5] := [0, 1073741824...+]\n"
+        "  Matches(gar) and Matches(lar) and (gar[4] = lar[4])\n"
         "end\n"
+        EXTRAPOLATE_MATCHES_FUNC_5
         ;
 
     TestCompileAndRunAlgoly( code, 1 );
@@ -1442,10 +1463,12 @@ TEST_CASE( "Algoly: array extrapolate limit negative in range", "[algoly]" )
 {
     // -2,147,483,648
     const char code[] =
-        "var ar: [3] := [-2, -1073741825...+]\n"
+        "var gar: [3] := [-2, -1073741825...+]\n"
         "def a\n"
-        "  ar[2] = ar[1] + (ar[1] - ar[0])\n"
+        "  var lar: [3] := [-2, -1073741825...+]\n"
+        "  Matches(gar) and Matches(lar) and (gar[2] = lar[2])\n"
         "end\n"
+        EXTRAPOLATE_MATCHES_FUNC_3
         ;
 
     TestCompileAndRunAlgoly( code, 1 );
@@ -1455,10 +1478,12 @@ TEST_CASE( "Algoly: array extrapolate limit negative 1", "[algoly]" )
 {
     // -2,147,483,649
     const char code[] =
-        "var ar: [3] := [-1, -1073741825...+]\n"
+        "var gar: [3] := [-1, -1073741825...+]\n"
         "def a\n"
-        "  ar[2] = ar[1] + (ar[1] - ar[0])\n"
+        "  var lar: [3] := [-1, -1073741825...+]\n"
+        "  Matches(gar) and Matches(lar) and (gar[2] = lar[2])\n"
         "end\n"
+        EXTRAPOLATE_MATCHES_FUNC_3
         ;
 
     TestCompileAndRunAlgoly( code, 1 );
@@ -1467,10 +1492,12 @@ TEST_CASE( "Algoly: array extrapolate limit negative 1", "[algoly]" )
 TEST_CASE( "Algoly: array extrapolate limit negative 2", "[algoly]" )
 {
     const char code[] =
-        "var ar: [4] := [-1, -1073741825...+]\n"
+        "var gar: [4] := [-1, -1073741825...+]\n"
         "def a\n"
-        "  ar[3] = ar[1] + (ar[1] - ar[0])*2\n"
+        "  var lar: [4] := [-1, -1073741825...+]\n"
+        "  Matches(gar) and Matches(lar) and (gar[3] = lar[3])\n"
         "end\n"
+        EXTRAPOLATE_MATCHES_FUNC_4
         ;
 
     TestCompileAndRunAlgoly( code, 1 );
@@ -1480,10 +1507,12 @@ TEST_CASE( "Algoly: array extrapolate limit negative 3", "[algoly]" )
 {
     // -4,294,967,297
     const char code[] =
-        "var ar: [5] := [-1, -1073741825...+]\n"
+        "var gar: [5] := [-1, -1073741825...+]\n"
         "def a\n"
-        "  ar[4] = ar[1] + (ar[1] - ar[0])*3\n"
+        "  var lar: [5] := [-1, -1073741825...+]\n"
+        "  Matches(gar) and Matches(lar) and (gar[4] = lar[4])\n"
         "end\n"
+        EXTRAPOLATE_MATCHES_FUNC_5
         ;
 
     TestCompileAndRunAlgoly( code, 1 );
