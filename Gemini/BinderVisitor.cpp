@@ -946,8 +946,8 @@ void BinderVisitor::CheckInitializer(
             if ( arrayInit.Values.size() < 2 )
                 mRep.ThrowSemanticsError( &arrayInit, "Element extrapolation requires at least two elements" );
 
-            if ( !IsIntegralType( elemType->GetKind() ) )
-                mRep.ThrowSemanticsError( &arrayInit, "Elements must be integral to extrapolate them" );
+            if ( elemType->GetKind() != TypeKind::Int )
+                mRep.ThrowSemanticsError( &arrayInit, "Elements must be integers to extrapolate them" );
         }
         else
         {
