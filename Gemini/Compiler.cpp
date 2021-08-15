@@ -2275,9 +2275,13 @@ Compiler::GenStatus& Compiler::Status()
 
 void Compiler::GenerateSentinel()
 {
-    size_t curIndex = ReserveProgram( SENTINEL_SIZE );
+    constexpr auto ALIGN = MODULE_CODE_ALIGNMENT;
 
-    for ( int i = 0; i < SENTINEL_SIZE; i++ )
+    size_t alignedSize = ((mCodeBin.size() + SENTINEL_SIZE + (ALIGN - 1)) / ALIGN) * ALIGN;
+    size_t paddingSize = alignedSize - mCodeBin.size();
+    size_t curIndex = ReserveProgram( paddingSize );
+
+    for ( int i = 0; i < paddingSize; i++ )
     {
         mCodeBin[curIndex++] = OP_SENTINEL;
     }

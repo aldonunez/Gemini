@@ -21,7 +21,8 @@ typedef int32_t I32;
 
 
 constexpr uint8_t SENTINEL_SIZE = 6;
-constexpr uint32_t MAX_MODULE_CODE_SIZE = ((1ul << 24) - 2);
+constexpr uint8_t MODULE_CODE_ALIGNMENT = 4;
+constexpr uint32_t MAX_MODULE_CODE_SIZE = ((1ul << 24) - MODULE_CODE_ALIGNMENT);
 constexpr uint16_t MAX_MODULE_DATA_SIZE = UINT16_MAX - 1;
 
 
