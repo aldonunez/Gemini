@@ -219,10 +219,13 @@ void BinderVisitor::Declare( Unit* unit )
         DeclareNode( funcNode.get() );
 }
 
-void BinderVisitor::Bind( Unit* unit )
+void BinderVisitor::BindDeclarations( Unit* unit )
 {
     unit->Accept( this );
+}
 
+void BinderVisitor::BindFunctionBodies( Unit* unit )
+{
     BindProcs( unit );
     BindLambdas( unit );
 }

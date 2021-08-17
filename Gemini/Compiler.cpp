@@ -142,7 +142,10 @@ void Compiler::BindAttributes()
         binder.Declare( unit.get() );
 
     for ( auto& unit : mUnits )
-        binder.Bind( unit.get() );
+        binder.BindDeclarations( unit.get() );
+
+    for ( auto& unit : mUnits )
+        binder.BindFunctionBodies( unit.get() );
 
     mGlobals.resize( binder.GetDataSize() );
 }

@@ -1653,19 +1653,17 @@ TEST_CASE( "Algoly: native refer other", "[algoly]" )
     TestCompileAndRun( Language::Gema, modSources, 56 + 110, 0, 0, gNatives );
 }
 
-TEST_CASE( "Algoly: native separate units", "[algoly]" )
+TEST_CASE( "Algoly: native separate units, out of order", "[algoly]" )
 {
     const char* mainCode[] =
     {
         "def a\n"
-        "  Add(20, 30) + Mul(2, 3)\n"
+        "  Mul(2, 3) + Add(20, 30)\n"
         "end\n"
         ,
-
         "native Add(a, b)\n"
         "native Mul(a, b)\n"
         ,
-
         nullptr
     };
 

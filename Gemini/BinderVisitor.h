@@ -57,7 +57,8 @@ public:
         ICompilerLog* log );
 
     void Declare( Unit* unit );
-    void Bind( Unit* unit );
+    void BindDeclarations( Unit* unit );
+    void BindFunctionBodies( Unit* unit );
 
     size_t GetDataSize();
 
