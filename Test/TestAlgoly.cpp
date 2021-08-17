@@ -1999,6 +1999,34 @@ TEST_CASE( "Algoly: multi unit", "[algoly]" )
     TestCompileAndRun( Language::Gema, modSources, 314, 0 );
 }
 
+TEST_CASE( "Algoly: multi unit, lambdas", "[algoly]" )
+{
+    const char* mainCode[] =
+    {
+        "def a\n"
+        "  var f := lambda 1 end\n"
+        "  var g := lambda 2 end\n"
+        "  (f)() + (g)() + B()\n"
+        "end\n"
+        ,
+        "def B\n"
+        "  var h := lambda 3 end\n"
+        "  var i := lambda 4 end\n"
+        "  (h)() + (i)()\n"
+        "end\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 10, 0 );
+}
+
 TEST_CASE( "Algoly: import as", "[algoly]" )
 {
     const char* modCodeM2[] =

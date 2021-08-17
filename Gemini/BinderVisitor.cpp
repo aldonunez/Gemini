@@ -814,7 +814,7 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
 
     char name[32];
 
-    snprintf( name, sizeof name, "$Lambda$%zu", mLambdas.size() );
+    snprintf( name, sizeof name, "$Lambda$%zu", mTotalLambdas );
 
     auto funcType = MakeFuncType( lambdaExpr->Proc.get() );
 
@@ -832,6 +832,7 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
     lambdaExpr->Proc->Decl = func;
 
     mLambdas.push_back( std::move( lambdaExpr->Proc ) );
+    mTotalLambdas++;
 
     Unique<NameExpr> nameExpr( new NameExpr() );
     nameExpr->String = name;
@@ -1467,6 +1468,9 @@ void BinderVisitor::BindLambdas( Unit* unit )
 
         unit->FuncDeclarations.push_back( std::move( proc ) );
     }
+
+    // Empty the list, so that another unit doesn't try to process them
+    mLambdas.clear();
 }
 
 

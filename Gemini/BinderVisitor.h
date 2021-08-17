@@ -39,6 +39,7 @@ class BinderVisitor final : public Visitor
     LocalSize       mMaxLocalCount = 0;
     ParamSize       mParamCount = 0;
     GlobalSize      mGlobalSize = 0;
+    GlobalSize      mTotalLambdas = 0;
     int32_t         mPrevNativeId = -1;
 
     std::shared_ptr<ErrorType>  mErrorType;
