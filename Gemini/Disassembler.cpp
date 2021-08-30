@@ -121,7 +121,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_INDEX_S:
         {
             int value = *(U8*) mCodePtr++;
-            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u", value );
         }
         break;
 
