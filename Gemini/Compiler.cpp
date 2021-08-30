@@ -240,6 +240,8 @@ void Compiler::GenerateDiscard( Syntax* elem, const GenConfig& config )
 
         DecreaseExprDepth();
     }
+
+    assert( mCurExprDepth == 0 );
 }
 
 void Compiler::VisitNumberExpr( NumberExpr* numberExpr )
@@ -489,7 +491,9 @@ void Compiler::GenerateReturn( ReturnStatement* retStmt, const GenConfig& config
     }
 
     Emit( OP_RET );
-    DecreaseExprDepth();
+
+    if ( config.discard )
+        DecreaseExprDepth();
 
     status.discarded = true;
     status.tailRet = true;
@@ -2177,6 +2181,8 @@ void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
     procDecl->Body.Accept( this );
 
     mGenStack.pop_back();
+
+    assert( mCurExprDepth == 1 );
 
     if ( !status.tailRet )
     {
