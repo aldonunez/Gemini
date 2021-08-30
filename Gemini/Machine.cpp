@@ -624,7 +624,7 @@ int Machine::Run()
 
                 U32  base = mSP[1];
                 CELL index = mSP[0];
-                U32  stride = ReadU32( codePtr );
+                U32  stride = ReadU24( codePtr );
 
                 if ( index < 0 )
                     return ERR_BAD_ADDRESS;

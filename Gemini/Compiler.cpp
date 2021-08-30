@@ -1887,7 +1887,7 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     if ( arrayType.ElemType->GetSize() > UINT8_MAX )
     {
-        EmitU32( OP_INDEX, arrayType.ElemType->GetSize() );
+        EmitU24( OP_INDEX, arrayType.ElemType->GetSize() );
     }
     else
     {
@@ -2503,6 +2503,15 @@ void Compiler::EmitU16( OpCode opcode, U16 operand )
     mCodeBin[curIndex] = opcode;
 
     StoreU16( &mCodeBin.at( curIndex + 1 ), operand );
+}
+
+void Compiler::EmitU24( OpCode opcode, U32 operand )
+{
+    size_t curIndex = ReserveCode( 4 );
+
+    mCodeBin[curIndex] = opcode;
+
+    StoreU24( &mCodeBin.at( curIndex + 1 ), operand );
 }
 
 void Compiler::EmitU32( OpCode opcode, U32 operand )

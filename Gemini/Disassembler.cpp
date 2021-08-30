@@ -118,6 +118,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LDLOCA:
     case OP_LDLOC:
     case OP_STLOC:
+    case OP_INDEX_S:
         {
             int value = *(U8*) mCodePtr++;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );
@@ -125,7 +126,6 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         break;
 
     case OP_LDC_S:
-    case OP_INDEX_S:
         {
             int value = *(I8*) mCodePtr++;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );
@@ -141,8 +141,14 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         }
         break;
 
-    case OP_LDC:
     case OP_INDEX:
+        {
+            int value = ReadU24( mCodePtr );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u", value );
+        }
+        break;
+
+    case OP_LDC:
         {
             int value = ReadI32( mCodePtr );
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );

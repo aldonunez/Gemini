@@ -445,6 +445,7 @@ private:
     void Emit( OpCode opcode );
     void EmitU8( OpCode opcode, U8 operand );
     void EmitU16( OpCode opcode, U16 operand );
+    void EmitU24( OpCode opcode, U32 operand );
     void EmitU32( OpCode opcode, U32 operand );
     void EmitModAccess( OpCode opcode, U8 mod, U16 addr );
 
