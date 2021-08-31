@@ -13,9 +13,10 @@ class Disassembler
 {
     const U8*   mCodeBin;
     const U8*   mCodePtr;
+    bool        mShowInstAddr;
 
 public:
-    Disassembler( const U8* code );
+    Disassembler( const U8* code, bool showInstAddr = true );
 
     int32_t Disassemble( char* disassembly, size_t capacity );
 };

@@ -61,9 +61,10 @@ static const char* gPrimitives[] =
 };
 
 
-Disassembler::Disassembler( const U8* code )
+Disassembler::Disassembler( const U8* code, bool showInstAddr )
     :   mCodeBin( code ),
-        mCodePtr( code )
+        mCodePtr( code ),
+        mShowInstAddr( showInstAddr )
 {
     if ( code == nullptr )
         throw std::invalid_argument( "code" );
@@ -90,7 +91,17 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     else
         opName = "*Invalid opcode";
 
-    charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), "%06X:  %s", addr, opName );
+    if ( mShowInstAddr )
+    {
+        charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), "%06X:", addr );
+        if ( charsWritten < 0 )
+            return -1;
+
+        disassembly += charsWritten;
+        totalCharsWritten += charsWritten;
+    }
+
+    charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), "  %s", opName );
     if ( charsWritten < 0 )
         return -1;
 
