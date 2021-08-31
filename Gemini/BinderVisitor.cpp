@@ -649,7 +649,7 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
     }
     else
     {
-        mRep.ThrowSemanticsError( dotExpr->Head.get(), "Can only access members of a module" );
+        mRep.ThrowSemanticsError( dotExpr->Head.get(), "Can only access members of a module, enum, or record" );
     }
 }
 
