@@ -1422,3 +1422,142 @@ TEST_CASE( "Algoly: PassRef: countof local pass whole to open array slice open a
 
     TestCompileAndRunAlgoly( code, 30+300+3000+2+30, 0, 12 + 9 );
 }
+
+TEST_CASE( "Algoly: open slice index literal", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "var ar: [3] := [1, 2, 3]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[2]\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  array[1..3][1] := 30\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 30 );
+}
+
+TEST_CASE( "Algoly: open slice index complex expr", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "var ar: [3] := [1, 2, 3]\n"
+        "const I = 1\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[2]\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  array[I+0..3][1] := 30\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 30 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Compare bounds checking
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: PassRef: in bounds, global closed array, var index", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "var two := 2\n"
+        "var ar: [3] := [1, 2, 3]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[0] + ar[1] + ar[2]\n"
+        "end\n"
+        "def B(var array: [3])\n"
+        "  array[two] := 10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 13, 0, 9 );
+}
+
+TEST_CASE( "Algoly: PassRef: in bounds, global open array, var index", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "var two := 2\n"
+        "var ar: [3] := [1, 2, 3]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[0] + ar[1] + ar[2]\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  array[two] := 10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 13, 0, 10 );
+}
+
+TEST_CASE( "Algoly: PassRef: in bounds, global open array, const index", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "var two := 2\n"
+        "var ar: [3] := [1, 2, 3]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[0] + ar[1] + ar[2]\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  array[2] := 10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 13, 0, 10 );
+}
+
+TEST_CASE( "Algoly: PassRef: out of bounds, global closed array, var index", "[algoly][pass-ref][negative]" )
+{
+    const char code[] =
+        "var three := 3\n"
+        "var ar: [3] := [1, 2, 3]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[0] + ar[1] + ar[2]\n"
+        "end\n"
+        "def B(var array: [3])\n"
+        "  array[three] := 10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, ERR_BOUND );
+}
+
+TEST_CASE( "Algoly: PassRef: out of bounds, global open array, var index", "[algoly][pass-ref][negative]" )
+{
+    const char code[] =
+        "var three := 3\n"
+        "var ar: [3] := [1, 2, 3]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[0] + ar[1] + ar[2]\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  array[three] := 10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, ERR_BOUND );
+}
+
+TEST_CASE( "Algoly: PassRef: out of bounds, global open array, const index", "[algoly][pass-ref][negative]" )
+{
+    const char code[] =
+        "var ar: [3] := [1, 2, 3]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[0] + ar[1] + ar[2]\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  array[3] := 10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, ERR_BOUND );
+}

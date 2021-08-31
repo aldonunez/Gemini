@@ -1858,17 +1858,21 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     Generate( indexExpr->Head.get(), config, status );
 
-    std::optional<int32_t> optIndexVal;
-
-    optIndexVal = GetFinalOptionalSyntaxValue( indexExpr->Index.get() );
-
-    if ( optIndexVal.has_value() )
+    if ( arrayType.Count > 0 )
     {
-        assert( optIndexVal.value() < DataSizeMax );
+        std::optional<int32_t> optIndexVal;
 
-        status.offset += static_cast<DataSize>(optIndexVal.value()) * arrayType.ElemType->GetSize();
-        return;
+        optIndexVal = GetFinalOptionalSyntaxValue( indexExpr->Index.get() );
+
+        if ( optIndexVal.has_value() )
+        {
+            assert( optIndexVal.value() < DataSizeMax );
+
+            status.offset += static_cast<DataSize>(optIndexVal.value()) * arrayType.ElemType->GetSize();
+            return;
+        }
     }
+    // Else, open arrays need to check the index
 
     if ( !status.spilledAddr )
     {
@@ -1888,6 +1892,28 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
     }
 
     Generate( indexExpr->Index.get() );
+
+    if ( arrayType.Count == 0 )
+    {
+        Declaration*    decl = nullptr;
+        int32_t         offset = 0;
+
+        CalcAddress( indexExpr->Head.get(), decl, offset );
+
+        if ( decl->Kind != DeclKind::Param )
+            THROW_INTERNAL_ERROR( "" );
+
+        // Only ref params are allowed to take open array types
+        // Because of this, the address calculation above won't spill
+
+        auto param = (ParamStorage*) decl;
+
+        EmitU8( OP_BOUNDOPEN, param->Offset + 1 );
+    }
+    else
+    {
+        EmitU24( OP_BOUND, arrayType.Count );
+    }
 
     if ( arrayType.ElemType->GetSize() > UINT8_MAX )
     {
@@ -1979,7 +2005,46 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
 
         assert( indexVal < DataSizeMax );
 
-        status.offset += static_cast<DataSize>(indexVal) * arrayType.ElemType->GetSize();
+        if ( arrayType.Count > 0 )
+        {
+            status.offset += static_cast<DataSize>(indexVal) * arrayType.ElemType->GetSize();
+        }
+        else
+        {
+            EmitLoadAddress( sliceExpr, status.baseDecl, status.offset );
+
+            // Set this after emitting the original decl's address above
+            status.baseDecl = mLoadedAddrDecl.get();
+            status.offset = 0;
+            status.spilledAddr = true;
+
+            EmitLoadConstant( indexVal );
+
+            Declaration*    decl = nullptr;
+            int32_t         offset = 0;
+
+            CalcAddress( sliceExpr->Head.get(), decl, offset );
+
+            if ( decl->Kind != DeclKind::Param )
+                THROW_INTERNAL_ERROR( "" );
+
+            // Only ref params are allowed to take open array types
+            // Because of this, the address calculation above won't spill
+
+            auto param = (ParamStorage*) decl;
+
+            EmitU8( OP_BOUNDOPEN, param->Offset + 1 );
+
+            if ( arrayType.ElemType->GetSize() > UINT8_MAX )
+            {
+                EmitU32( OP_INDEX, arrayType.ElemType->GetSize() );
+            }
+            else
+            {
+                EmitU8( OP_INDEX_S, static_cast<U8>(arrayType.ElemType->GetSize()) );
+            }
+            DecreaseExprDepth();
+        }
         return;
     }
 

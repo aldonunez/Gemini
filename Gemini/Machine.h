@@ -26,6 +26,7 @@ enum VmError
     ERR_NATIVECODE_NOT_FOUND,
     ERR_DIVIDE,
     ERR_NATIVE_ERROR,
+    ERR_BOUND,
 };
 
 
