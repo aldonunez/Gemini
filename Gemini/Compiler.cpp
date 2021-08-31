@@ -1908,7 +1908,17 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
 
         auto param = (ParamStorage*) decl;
 
-        EmitU8( OP_BOUNDOPEN, param->Offset + 1 );
+        if ( fullExpr->Kind == SyntaxKind::Index )
+        {
+            EmitU8( OP_BOUNDOPEN, param->Offset + 1 );
+        }
+        else
+        {
+            Generate( ((SliceExpr*) fullExpr)->LastIndex.get() );
+
+            EmitU8( OP_BOUNDOPENSLICE, param->Offset + 1 );
+            DecreaseExprDepth();
+        }
     }
     else
     {

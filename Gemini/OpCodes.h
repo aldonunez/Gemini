@@ -43,6 +43,7 @@ enum OpCode : uint8_t
     OP_COPYBLOCK,
     OP_BOUND,
     OP_BOUNDOPEN,
+    OP_BOUNDOPENSLICE,
     OP_MAXOPCODE,
 
     // Having each module end with this unsupported opcode ensures that:

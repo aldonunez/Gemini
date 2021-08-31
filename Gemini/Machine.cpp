@@ -716,6 +716,27 @@ int Machine::Run()
             }
             break;
 
+        case OP_BOUNDOPENSLICE:
+            {
+                if ( WouldUnderflow( 2 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                CELL index = mSP[1];
+                CELL end = Pop();
+                int  iArg = ReadU8( codePtr );
+                long offset = mFramePtr + FRAME_WORDS + iArg;
+
+                if ( offset >= mStackSize )
+                    return ERR_BAD_ADDRESS;
+
+                CELL bound = mStack[offset];
+
+                if ( index < 0 || index >= bound
+                    || end <= index || end > bound )
+                    return ERR_BOUND;
+            }
+            break;
+
         default:
             return ERR_BAD_OPCODE;
         }

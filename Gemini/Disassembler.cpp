@@ -45,6 +45,7 @@ static const char* gOpCodes[] =
     "COPYBLOCK",
     "BOUND",
     "BOUNDOPEN",
+    "BOUNDOPENSLICE",
 };
 
 static const char* gPrimitives[] = 
@@ -133,6 +134,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_STLOC:
     case OP_INDEX_S:
     case OP_BOUNDOPEN:
+    case OP_BOUNDOPENSLICE:
         {
             int value = *(U8*) mCodePtr++;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u", value );
