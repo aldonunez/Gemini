@@ -11,7 +11,7 @@
 #include <utility>
 
 
-enum
+enum VmError
 {
     ERR_NONE,
     ERR_YIELDED,

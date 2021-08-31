@@ -57,9 +57,11 @@ constexpr ResultVariant Emplace( T value )
 class ParamSpan
 {
     const int*  mFirst = nullptr;
-    size_t      mSize;
+    size_t      mSize = 0;
 
 public:
+    ParamSpan() = default;
+
     template <size_t N>
     ParamSpan( int (&array)[N] ) :
         mFirst( &array[0] ),
@@ -97,6 +99,7 @@ void TestCompileAndRunAlgoly( const char* code, int result, int param = DefaultP
 void TestCompileAndRunAlgoly( const char* code, int result, const std::initializer_list<int>& params, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, int result, const ParamSpan& params, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, Gemini::CompilerErr result );
+void TestCompileAndRunAlgoly( const char* code, VmError result );
 
 void TestCompileAndRunLispy( const char* code, int result, int param = DefaultParam, int expectedStack = 0 );
 

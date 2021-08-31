@@ -277,6 +277,11 @@ void TestCompileAndRunAlgoly( const char* code, CompilerErr result )
     TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Compiler>( result ), emptyParamSpan, 0 );
 }
 
+void TestCompileAndRunAlgoly( const char* code, VmError result )
+{
+    TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Vm>( result ), ParamSpan(), 0 );
+}
+
 void TestCompileAndRunLispy( const char* code, int result, int param, int expectedStack )
 {
     int array[] = { param };
