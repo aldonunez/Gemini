@@ -340,6 +340,7 @@ private:
     void GenerateSymbol( NameExpr* symbol, const GenConfig& config, GenStatus& status );
     void GenerateValue( Syntax* node, Declaration* decl, const GenConfig& config, GenStatus& status );
     void GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status );
+    void GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* index, const GenConfig& config, GenStatus& status );
     void GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status );

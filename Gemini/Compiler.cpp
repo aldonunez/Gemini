@@ -1850,19 +1850,19 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
     }
 }
 
-void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status )
+void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* index, const GenConfig& config, GenStatus& status )
 {
     assert( config.calcAddr );
 
-    auto& arrayType = (ArrayType&) *indexExpr->Head->Type;
+    auto& arrayType = (ArrayType&) *head->Type;
 
-    Generate( indexExpr->Head.get(), config, status );
+    Generate( head, config, status );
 
     if ( arrayType.Count > 0 )
     {
         std::optional<int32_t> optIndexVal;
 
-        optIndexVal = GetFinalOptionalSyntaxValue( indexExpr->Index.get() );
+        optIndexVal = GetFinalOptionalSyntaxValue( index );
 
         if ( optIndexVal.has_value() )
         {
@@ -1876,7 +1876,7 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
 
     if ( !status.spilledAddr )
     {
-        EmitLoadAddress( indexExpr, status.baseDecl, status.offset );
+        EmitLoadAddress( fullExpr, status.baseDecl, status.offset );
 
         // Set this after emitting the original decl's address above
         status.baseDecl = mLoadedAddrDecl.get();
@@ -1891,14 +1891,14 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
         status.offset = 0;
     }
 
-    Generate( indexExpr->Index.get() );
+    Generate( index );
 
     if ( arrayType.Count == 0 )
     {
         Declaration*    decl = nullptr;
         int32_t         offset = 0;
 
-        CalcAddress( indexExpr->Head.get(), decl, offset );
+        CalcAddress( head, decl, offset );
 
         if ( decl->Kind != DeclKind::Param )
             THROW_INTERNAL_ERROR( "" );
@@ -1925,6 +1925,11 @@ void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, 
     }
 
     DecreaseExprDepth();
+}
+
+void Compiler::GenerateArefAddr( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status )
+{
+    GenerateArefAddrBase( indexExpr, indexExpr->Head.get(), indexExpr->Index.get(), config, status );
 }
 
 void Compiler::GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status )
@@ -1997,54 +2002,7 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
     }
     else if ( config.calcAddr )
     {
-        Generate( sliceExpr->Head.get(), config, status );
-
-        auto& arrayType = (ArrayType&) *sliceExpr->Head->Type;
-
-        int32_t indexVal = GetSyntaxValue( sliceExpr->FirstIndex.get(), "" );
-
-        assert( indexVal < DataSizeMax );
-
-        if ( arrayType.Count > 0 )
-        {
-            status.offset += static_cast<DataSize>(indexVal) * arrayType.ElemType->GetSize();
-        }
-        else
-        {
-            EmitLoadAddress( sliceExpr, status.baseDecl, status.offset );
-
-            // Set this after emitting the original decl's address above
-            status.baseDecl = mLoadedAddrDecl.get();
-            status.offset = 0;
-            status.spilledAddr = true;
-
-            EmitLoadConstant( indexVal );
-
-            Declaration*    decl = nullptr;
-            int32_t         offset = 0;
-
-            CalcAddress( sliceExpr->Head.get(), decl, offset );
-
-            if ( decl->Kind != DeclKind::Param )
-                THROW_INTERNAL_ERROR( "" );
-
-            // Only ref params are allowed to take open array types
-            // Because of this, the address calculation above won't spill
-
-            auto param = (ParamStorage*) decl;
-
-            EmitU8( OP_BOUNDOPEN, param->Offset + 1 );
-
-            if ( arrayType.ElemType->GetSize() > UINT8_MAX )
-            {
-                EmitU32( OP_INDEX, arrayType.ElemType->GetSize() );
-            }
-            else
-            {
-                EmitU8( OP_INDEX_S, static_cast<U8>(arrayType.ElemType->GetSize()) );
-            }
-            DecreaseExprDepth();
-        }
+        GenerateArefAddrBase( sliceExpr, sliceExpr->Head.get(), sliceExpr->FirstIndex.get(), config, status );
         return;
     }
 
