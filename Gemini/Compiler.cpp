@@ -7,6 +7,7 @@
 #include "pch.h"
 #include "Compiler.h"
 #include "BinderVisitor.h"
+#include "Disassembler.h"
 #include "FolderVisitor.h"
 #include "OpCodes.h"
 #include <algorithm>
@@ -14,9 +15,20 @@
 #include <string.h>
 #include <stdexcept>
 
+#define ENABLE_DISASSEMBLY 0
+
 
 namespace Gemini
 {
+
+#if ENABLE_DISASSEMBLY
+    void Disassemble( const uint8_t* program, int size );
+
+    #define DISASSEMBLE( code, size ) Disassemble( code, size )
+#else
+    #define DISASSEMBLE( code, size )
+#endif
+
 
 Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
     mEnv( env ),
@@ -848,6 +860,8 @@ void Compiler::EmitLoadFuncAddress( Function* func )
     EmitFuncAddress( func, { CodeRefKind::Code, static_cast<int32_t>( curIndex + 1 ) } );
 
     IncreaseExprDepth();
+
+    DISASSEMBLE( &mCodeBin[curIndex], 5 );
 }
 
 void Compiler::EmitFuncAddress( Function* func, CodeRef funcRef )
@@ -1121,6 +1135,8 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
 
         StoreU24( &mCodeBin[curIndex+2], func->Address );
 
+        DISASSEMBLE( &mCodeBin[curIndex], 5 );
+
         if ( mInFunc )
             mCurFunc->CalledFunctions.push_back( { func->Name, mCurExprDepth, mModIndex } );
     }
@@ -1158,6 +1174,8 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
             mCodeBin[curIndex + 0] = opCode;
             mCodeBin[curIndex + 1] = callFlags;
             mCodeBin[curIndex + 2] = (U8) id;
+
+            DISASSEMBLE( &mCodeBin[curIndex], 3 );
         }
         else
         {
@@ -1166,6 +1184,8 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
             mCodeBin[curIndex + 1] = callFlags;
 
             StoreU32( &mCodeBin[curIndex + 2], id );
+
+            DISASSEMBLE( &mCodeBin[curIndex], 6 );
         }
     }
 
@@ -2523,6 +2543,8 @@ void Compiler::EmitBranch( OpCode opcode, PatchChain* chain )
     size_t curIndex = ReserveCode( BranchInst::Size );
 
     mCodeBin[curIndex] = opcode;
+
+    DISASSEMBLE( &mCodeBin[curIndex], BranchInst::Size );
 }
 
 void Compiler::Emit( OpCode opcode )
@@ -2530,6 +2552,8 @@ void Compiler::Emit( OpCode opcode )
     size_t curIndex = ReserveCode( 1 );
 
     mCodeBin[curIndex] = opcode;
+
+    DISASSEMBLE( &mCodeBin[curIndex], 1 );
 }
 
 void Compiler::EmitU8( OpCode opcode, U8 operand )
@@ -2538,6 +2562,8 @@ void Compiler::EmitU8( OpCode opcode, U8 operand )
 
     mCodeBin[curIndex] = opcode;
     mCodeBin[curIndex + 1] = operand;
+
+    DISASSEMBLE( &mCodeBin[curIndex], 2 );
 }
 
 void Compiler::EmitU16( OpCode opcode, U16 operand )
@@ -2547,6 +2573,8 @@ void Compiler::EmitU16( OpCode opcode, U16 operand )
     mCodeBin[curIndex] = opcode;
 
     StoreU16( &mCodeBin.at( curIndex + 1 ), operand );
+
+    DISASSEMBLE( &mCodeBin[curIndex], 3 );
 }
 
 void Compiler::EmitU24( OpCode opcode, U32 operand )
@@ -2556,6 +2584,8 @@ void Compiler::EmitU24( OpCode opcode, U32 operand )
     mCodeBin[curIndex] = opcode;
 
     StoreU24( &mCodeBin.at( curIndex + 1 ), operand );
+
+    DISASSEMBLE( &mCodeBin[curIndex], 4 );
 }
 
 void Compiler::EmitU32( OpCode opcode, U32 operand )
@@ -2565,6 +2595,8 @@ void Compiler::EmitU32( OpCode opcode, U32 operand )
     mCodeBin[curIndex] = opcode;
 
     StoreU32( &mCodeBin.at( curIndex + 1 ), operand );
+
+    DISASSEMBLE( &mCodeBin[curIndex], 5 );
 }
 
 void Compiler::EmitModAccess( OpCode opcode, U8 mod, U16 addr )
@@ -2575,9 +2607,13 @@ void Compiler::EmitModAccess( OpCode opcode, U8 mod, U16 addr )
     mCodeBin[curIndex+1] = mod;
 
     StoreU16( &mCodeBin[curIndex + 2], addr );
+
+    DISASSEMBLE( &mCodeBin[curIndex], 4 );
 }
 
 
+//----------------------------------------------------------------------------
+//  Log
 //----------------------------------------------------------------------------
 
 void Log( ICompilerLog* log, LogCategory category, const char* fileName, int line, int col, const char* format, va_list args );
@@ -2653,5 +2689,29 @@ void Log( ICompilerLog* log, LogCategory category, const char* fileName, int lin
         log->Add( category, fileName, line, col, msg );
     }
 }
+
+
+//----------------------------------------------------------------------------
+//  Disassembly
+//----------------------------------------------------------------------------
+
+#if ENABLE_DISASSEMBLY
+
+void Disassemble( const uint8_t* program, int size )
+{
+    Disassembler disassembler( program );
+    int totalBytesDisasm = 0;
+    while ( totalBytesDisasm < size )
+    {
+        char disasm[128];
+        int bytesDisasm = disassembler.Disassemble( disasm, std::size( disasm ) );
+        if ( bytesDisasm <= 0 )
+            break;
+        totalBytesDisasm += bytesDisasm;
+        printf( "%s\n", disasm );
+    }
+}
+
+#endif
 
 }
