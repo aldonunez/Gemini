@@ -497,7 +497,7 @@ TEST_CASE( "Algoly: local array of fptr", "[algoly]" )
 {
     const char code[] =
         "def a\n"
-        "var arr: [2] of &proc := [&B, &C]\n"
+        "  var arr: [2] of &proc := [&B, &C]\n"
         "  (arr[0])() + (arr[1])() end\n"
         "def B 2 end\n"
         "def C 3 end\n"
@@ -862,8 +862,10 @@ TEST_CASE( "Algoly: For-to-step, complex bounds and step, call lambda with loop 
 TEST_CASE( "Algoly: Let, call, complex exprs", "[algoly]" )
 {
     const char code[] =
-        "def a var x:=9*2;  x := x-B(-(33*3));\n"
-        "  x := x+(1+2*3-4); end\n"
+        "def a\n"
+        "  var x:=9*2;  x := x-B(-(33*3));\n"
+        "  x := x+(1+2*3-4)\n"
+        "end\n"
         "def B(x) x end\n"
         ;
 
@@ -1011,19 +1013,35 @@ TEST_CASE( "Algoly: Local array, int complex elem and extra init, complex indexi
 TEST_CASE( "Algoly: Assignment, chained", "[algoly]" )
 {
     const char code[] =
-        "def a var x:=0, y:=0, z:=1\n"
+        "def a\n"
+        "  var x:=0, y:=0, z:=1\n"
         "  x := y := z := B(3);\n"
-        "  x*y*z end\n"
+        "  x*y*z\n"
+        "end\n"
         "def B(x) x end\n"
         ;
 
     TestCompileAndRunAlgoly( code, 27 );
 }
 
+TEST_CASE( "Algoly: Assignment, return chained", "[algoly]" )
+{
+    const char code[] =
+        "def a\n"
+        "  var x:=0, y:=0, z:=1\n"
+        "  x := y := z := B(3);\n"
+        "end\n"
+        "def B(x) x end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
 TEST_CASE( "Algoly: Local array, empty init, chained assignment", "[algoly]" )
 {
     const char code[] =
-        "def a; var ar: [3] := []\n"
+        "def a\n"
+        "  var ar: [3] := []\n"
         "  ar[0] := ar[1] := ar[2] := B(3+ar[0]+ar[1]+ar[2])\n"
         "  ar[0]*ar[1]*ar[2] end\n"
         "def B(x) x end\n"

@@ -637,6 +637,9 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
     }
     else if ( dotExpr->Head->Type->GetKind() == TypeKind::Record )
     {
+        if ( !IsLValue( *dotExpr->Head ) )
+            mRep.ThrowSemanticsError( dotExpr->Head.get(), "Only l-values can access fields" );
+
         auto& recType = (RecordType&) *dotExpr->Head->Type;
 
         auto it = recType.Fields.find( dotExpr->Member );
@@ -767,6 +770,9 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 
     if ( indexExpr->Index->Type->GetKind() != TypeKind::Int )
         mRep.ThrowSemanticsError( indexExpr->Index.get(), "Index only supports integers" );
+
+    if ( !IsLValue( *indexExpr->Head ) )
+        mRep.ThrowSemanticsError( indexExpr->Head.get(), "Only l-values can be indexed" );
 
     auto arrayType = (ArrayType*) indexExpr->Head->Type.get();
 
@@ -1354,6 +1360,9 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 
     if ( sliceExpr->LastIndex->Type->GetKind() != TypeKind::Int )
         mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Range bounds must be integers" );
+
+    if ( !IsLValue( *sliceExpr->Head ) )
+        mRep.ThrowSemanticsError( sliceExpr->Head.get(), "Only l-values can be sliced" );
 
     auto arrayType = (ArrayType*) sliceExpr->Head->Type.get();
 

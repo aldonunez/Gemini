@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "TestBase.h"
 
+using namespace Gemini;
+
 
 #if 0
 TEST_CASE( "Algoly: global record empty", "[algoly][record]" )
@@ -2411,4 +2413,38 @@ TEST_CASE( "Algoly: pass local array in record by ref 2", "[algoly][record]" )
         ;
 
     TestCompileAndRunAlgoly( code, 333 + 7, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Access assigned record
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: read indexed assigned record", "[algoly][record][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "var r1: R := { a: 1, b: 2 }\n"
+        "var r2: R := { a: 3, b: 4 }\n"
+        "def a\n"
+        "  (r1 := r2).b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: write indexed assigned record", "[algoly][record][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "var r1: R := { a: 1, b: 2 }\n"
+        "var r2: R := { a: 3, b: 4 }\n"
+        "def a\n"
+        "  (r1 := r2).b := 10\n"
+        "  r1.a + r1.b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }

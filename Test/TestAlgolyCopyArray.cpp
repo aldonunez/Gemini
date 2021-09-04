@@ -1499,6 +1499,65 @@ TEST_CASE( "Algoly: CopyArray: init array 2x2 with slice, local-local", "[algoly
 
 
 //----------------------------------------------------------------------------
+//  Access assigned array
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: CopyArray: read indexed assigned array", "[algoly][copy-array][negative]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [3, 4]\n"
+        "def a\n"
+        "  (ar1 := ar2)[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: CopyArray: write indexed assigned array", "[algoly][copy-array][negative]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [3, 4]\n"
+        "def a\n"
+        "  (ar1 := ar2)[1] := 10\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: CopyArray: read sliced assigned array", "[algoly][copy-array][negative]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [3, 4]\n"
+        "def a\n"
+        "  (ar1 := ar2)[0..2][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: CopyArray: write sliced assigned array", "[algoly][copy-array][negative]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [3, 4]\n"
+        "def a\n"
+        "  (ar1 := ar2)[0..2][1] := 10\n"
+        "  ar1[0] + ar1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+
+//----------------------------------------------------------------------------
 //  Open array
 //----------------------------------------------------------------------------
 
