@@ -1917,8 +1917,19 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
         {
             Generate( ((SliceExpr*) fullExpr)->LastIndex.get() );
 
-            Emit( OP_BOUNDOPENCLOSEDSLICE );
-            DecreaseExprDepth( 2 );
+            auto firstVal = GetFinalOptionalSyntaxValue( index );
+            auto lastVal = GetFinalOptionalSyntaxValue( ((SliceExpr*) fullExpr)->LastIndex.get() );
+
+            if ( firstVal.has_value() && lastVal.has_value() )
+            {
+                Emit( OP_BOUNDOPENCLOSEDSLICE );
+                DecreaseExprDepth( 2 );
+            }
+            else
+            {
+                Emit( OP_BOUNDOPENSLICE );
+                DecreaseExprDepth( 1 );
+            }
         }
     }
     else

@@ -1611,6 +1611,42 @@ TEST_CASE( "Algoly: open array, closed slice, var index", "[algoly][pass-ref][bo
     TestCompileAndRunAlgoly( code, 30 );
 }
 
+TEST_CASE( "Algoly: open array, open slice, const index", "[algoly][pass-ref][bounds]" )
+{
+    const char code[] =
+        "var one := 1\n"
+        "var three := 3\n"
+        "var ar: [3] := [1, 2, 3]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[2]\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  array[one..three][1] := 30\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 30 );
+}
+
+TEST_CASE( "Algoly: open array, open slice, var index", "[algoly][pass-ref][bounds]" )
+{
+    const char code[] =
+        "var one := 1\n"
+        "var three := 3\n"
+        "var ar: [3] := [1, 2, 3]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "  ar[2]\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  array[one..three][one] := 30\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 30 );
+}
+
 TEST_CASE( "Algoly: PassRef: global array in record, var index", "[algoly][pass-ref][bounds]" )
 {
     const char code[] =
@@ -1642,6 +1678,27 @@ TEST_CASE( "Algoly: PassRef: closed slice of array in record in var indexed glob
         "  B( r[one].b[1..3] )\n"
         "  r[one].b[three] := 30\n"
         "  r[1].a + r[1].b[0] + r[1].b[1] + r[1].b[2] + r[1].b[3]\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  array[0] := 10\n"
+        "  array[1] := 20\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 65 );
+}
+
+TEST_CASE( "Algoly: PassRef: open slice of array in record", "[algoly][pass-ref][bounds]" )
+{
+    const char code[] =
+        "var one := 1\n"
+        "var three := 3\n"
+        "type R = record a, b: [4] end\n"
+        "var r: R := { a: 2, b: [3, 4, 5, 6] }\n"
+        "def a\n"
+        "  B( r.b[one..three] )\n"
+        "  r.b[three] := 30\n"
+        "  r.a + r.b[0] + r.b[1] + r.b[2] + r.b[3]\n"
         "end\n"
         "def B(var array: [])\n"
         "  array[0] := 10\n"

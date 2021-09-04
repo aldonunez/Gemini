@@ -45,6 +45,7 @@ static const char* gOpCodes[] =
     "COPYBLOCK",
     "BOUND",
     "BOUNDOPEN",
+    "BOUNDOPENSLICE",
     "BOUNDOPENCLOSEDSLICE",
     "BOUNDSLICE",
     "YIELD",
@@ -125,6 +126,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_STOREI:
     case OP_RET:
     case OP_BOUNDOPEN:
+    case OP_BOUNDOPENSLICE:
     case OP_BOUNDOPENCLOSEDSLICE:
     case OP_YIELD:
         break;

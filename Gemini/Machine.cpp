@@ -745,6 +745,27 @@ int Machine::Run()
             }
             break;
 
+        case OP_BOUNDOPENSLICE:
+            {
+                if ( WouldUnderflow( 4 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                CELL bound = mSP[3];
+                CELL addr = mSP[2];
+                CELL index = mSP[1];
+                CELL end = mSP[0];
+
+                if ( index < 0 || index >= bound
+                    || end <= index || end > bound )
+                    return ERR_BOUND;
+
+                mSP[3] = end - index;
+                mSP[2] = addr;
+                mSP[1] = index;
+                mSP++;
+            }
+            break;
+
         case OP_BOUNDOPENCLOSEDSLICE:
             {
                 if ( WouldUnderflow( 4 ) )
