@@ -763,29 +763,71 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
 
 void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig& config, GenStatus& status )
 {
-    // Value
-    Generate( assignment->Right.get() );
-
-    if ( config.discard )
+    if ( IsOpenArrayType( *assignment->Left->Type ) || IsOpenArrayType( *assignment->Right->Type ) )
     {
-        status.discarded = true;
+        auto& leftArrayType = (ArrayType&) *assignment->Left->Type;
+        auto& rightArrayType = (ArrayType&) *assignment->Right->Type;
+
+        if ( IsClosedArrayType( rightArrayType ) )
+            EmitLoadConstant( rightArrayType.Count );
+
+        // Value
+        Generate( assignment->Right.get() );
+
+        if ( config.discard )
+        {
+            status.discarded = true;
+        }
+        else
+        {
+            Emit( OP_OVER );
+            Emit( OP_OVER );
+            IncreaseExprDepth();
+            IncreaseExprDepth();
+        }
+
+        if ( IsClosedArrayType( leftArrayType ) )
+            EmitLoadConstant( leftArrayType.Count );
+
+        Declaration*    baseDecl = nullptr;
+        int32_t         offset = 0;
+
+        CalcAddress( assignment->Left.get(), baseDecl, offset );
+
+        EmitLoadAddress( assignment->Left.get(), baseDecl, offset );
+
+        EmitU24( OP_COPYARRAY, rightArrayType.ElemType->GetSize() );
+
+        DecreaseExprDepth( 4 );
+
+        // Generating a return value or argument value would need PUSHBLOCK
     }
     else
     {
-        Emit( OP_DUP );
-        IncreaseExprDepth();
+        // Value
+        Generate( assignment->Right.get() );
+
+        if ( config.discard )
+        {
+            status.discarded = true;
+        }
+        else
+        {
+            Emit( OP_DUP );
+            IncreaseExprDepth();
+        }
+
+        Declaration*    baseDecl = nullptr;
+        int32_t         offset = 0;
+
+        CalcAddress( assignment->Left.get(), baseDecl, offset );
+
+        EmitLoadAddress( assignment->Left.get(), baseDecl, offset );
+
+        EmitU24( OP_COPYBLOCK, assignment->Right->Type->GetSize() );
+
+        DecreaseExprDepth( 2 );
     }
-
-    Declaration*    baseDecl = nullptr;
-    int32_t         offset = 0;
-
-    CalcAddress( assignment->Left.get(), baseDecl, offset );
-
-    EmitLoadAddress( assignment->Left.get(), baseDecl, offset );
-
-    EmitU24( OP_COPYBLOCK, assignment->Right->Type->GetSize() );
-
-    DecreaseExprDepth( 2 );
 }
 
 void Compiler::VisitAssignmentExpr( AssignmentExpr* assignment )
@@ -906,10 +948,10 @@ void Compiler::GenerateLetBinding( DataDecl* binding )
 {
     auto local = (LocalStorage*) binding->GetDecl();
 
-    GenerateLocalInit( local->Offset, binding->Initializer.get() );
+    GenerateLocalInit( local->Offset, local->Type.get(), binding->Initializer.get() );
 }
 
-void Compiler::GenerateLocalInit( LocalSize offset, Syntax* initializer )
+void Compiler::GenerateLocalInit( LocalSize offset, Type* localType, Syntax* initializer )
 {
     if ( initializer == nullptr )
         return;
@@ -926,15 +968,15 @@ void Compiler::GenerateLocalInit( LocalSize offset, Syntax* initializer )
     {
         auto arrayType = (ArrayType*) type;
 
-        EmitLocalArrayInitializer( offset, (InitList*) initializer, arrayType->Count );
+        EmitLocalArrayInitializer( offset, (ArrayType*) localType, (InitList*) initializer, arrayType->Count );
     }
     else if ( initializer->Kind == SyntaxKind::RecordInitializer )
     {
-        EmitLocalRecordInitializer( offset, (RecordInitializer*) initializer );
+        EmitLocalRecordInitializer( offset, (RecordType*) localType, (RecordInitializer*) initializer );
     }
     else
     {
-        EmitLocalAggregateCopyBlock( offset, initializer );
+        EmitLocalAggregateCopyBlock( offset, localType, initializer );
     }
 }
 
@@ -943,21 +985,39 @@ void Compiler::VisitLetStatement( LetStatement* letStmt )
     GenerateLet( letStmt, Config(), Status() );
 }
 
-void Compiler::EmitLocalAggregateCopyBlock( LocalSize offset, Syntax* valueElem )
+void Compiler::EmitLocalAggregateCopyBlock( LocalSize offset, Type* localType, Syntax* valueElem )
 {
-    Generate( valueElem );
+    if ( IsOpenArrayType( *valueElem->Type ) )
+    {
+        Generate( valueElem );
 
-    EmitU8( OP_LDLOCA, offset );
-    EmitU24( OP_COPYBLOCK, valueElem->Type->GetSize() );
+        auto dstArrayType = (ArrayType&) *localType;
 
-    IncreaseExprDepth();
-    DecreaseExprDepth( 2 );
+        EmitLoadConstant( dstArrayType.Count );
+        EmitU8( OP_LDLOCA, offset );
+        EmitU24( OP_COPYARRAY, dstArrayType.ElemType->GetSize() );
+
+        IncreaseExprDepth();
+        DecreaseExprDepth( 4 );
+    }
+    else
+    {
+        Generate( valueElem );
+
+        EmitU8( OP_LDLOCA, offset );
+        EmitU24( OP_COPYBLOCK, valueElem->Type->GetSize() );
+
+        IncreaseExprDepth();
+        DecreaseExprDepth( 2 );
+    }
 }
 
-void Compiler::EmitLocalArrayInitializer( LocalSize offset, InitList* initList, size_t size )
+void Compiler::EmitLocalArrayInitializer( LocalSize offset, ArrayType* localType, InitList* initList, size_t size )
 {
     LocalSize   locIndex = offset;
     LocalSize   i = 0;
+
+    auto        localElemType = localType->ElemType.get();
 
     if ( initList->Values.size() > size )
         mRep.ThrowSemanticsError( initList, "Array has too many initializers" );
@@ -966,7 +1026,7 @@ void Compiler::EmitLocalArrayInitializer( LocalSize offset, InitList* initList, 
     {
         assert( locIndex+1 >= entry->Type->GetSize() );
 
-        GenerateLocalInit( locIndex, entry.get() );
+        GenerateLocalInit( locIndex, localElemType, entry.get() );
         i++;
         locIndex -= static_cast<LocalSize>(entry->Type->GetSize());
     }
@@ -1008,13 +1068,13 @@ void Compiler::EmitLocalArrayInitializer( LocalSize offset, InitList* initList, 
         {
             assert( locIndex+1 >= lastNode->Type->GetSize() );
 
-            GenerateLocalInit( locIndex, lastNode );
+            GenerateLocalInit( locIndex, localElemType, lastNode );
             locIndex -= static_cast<LocalSize>(lastNode->Type->GetSize());
         }
     }
 }
 
-void Compiler::EmitLocalRecordInitializer( LocalSize offset, RecordInitializer* recordInit )
+void Compiler::EmitLocalRecordInitializer( LocalSize offset, RecordType* localType, RecordInitializer* recordInit )
 {
     for ( auto& fieldInit : recordInit->Fields )
     {
@@ -1022,7 +1082,10 @@ void Compiler::EmitLocalRecordInitializer( LocalSize offset, RecordInitializer* 
 
         assert( offset >= fieldDecl->Offset );
 
-        GenerateLocalInit( static_cast<LocalSize>(offset - fieldDecl->Offset), fieldInit->Initializer.get() );
+        auto itLocalField = localType->Fields.find( fieldInit->Name );
+        auto localFieldType = itLocalField->second->GetType();
+
+        GenerateLocalInit( static_cast<LocalSize>(offset - fieldDecl->Offset), localFieldType.get(), fieldInit->Initializer.get() );
     }
 }
 

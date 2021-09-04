@@ -41,6 +41,7 @@ enum OpCode : uint8_t
     OP_INDEX,
     OP_INDEX_S,
     OP_COPYBLOCK,
+    OP_COPYARRAY,
     OP_BOUND,
     OP_BOUNDOPEN,
     OP_BOUNDOPENSLICE,

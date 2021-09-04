@@ -781,10 +781,7 @@ bool ArrayType::IsAssignableFrom( Type* other ) const
     if ( ElemType->GetKind() == TypeKind::Pointer )
         return Count == otherArray->Count;
 
-    if ( Count == 0 || otherArray->Count == 0 )
-        return false;
-
-    return Count >= otherArray->Count;
+    return Count == 0 || Count >= otherArray->Count;
 }
 
 bool ArrayType::IsPassableFrom( Type* other, ParamMode mode ) const

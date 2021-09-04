@@ -377,10 +377,10 @@ private:
     void GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateLet( LetStatement* letStmt, const GenConfig& config, GenStatus& status );
     void GenerateLetBinding( DataDecl* binding );
-    void GenerateLocalInit( LocalSize offset, Syntax* initializer );
-    void EmitLocalArrayInitializer( LocalSize offset, InitList* initList, size_t size );
-    void EmitLocalRecordInitializer( LocalSize offset, RecordInitializer* recordInit );
-    void EmitLocalAggregateCopyBlock( LocalSize offset, Syntax* valueElem );
+    void GenerateLocalInit( LocalSize offset, Type* localType, Syntax* initializer );
+    void EmitLocalArrayInitializer( LocalSize offset, ArrayType* localType, InitList* initList, size_t size );
+    void EmitLocalRecordInitializer( LocalSize offset, RecordType* localType, RecordInitializer* recordInit );
+    void EmitLocalAggregateCopyBlock( LocalSize offset, Type* localType, Syntax* valueElem );
 
     void GenerateDopeVector( Syntax& node, ParamSpec& paramSpec );
     void GenerateArg( Syntax& node, ParamSpec& paramSpec );

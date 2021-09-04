@@ -43,6 +43,7 @@ static const char* gOpCodes[] =
     "INDEX",
     "INDEX.S",
     "COPYBLOCK",
+    "COPYARRAY",
     "BOUND",
     "BOUNDOPEN",
     "BOUNDOPENSLICE",
@@ -163,6 +164,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 
     case OP_INDEX:
     case OP_COPYBLOCK:
+    case OP_COPYARRAY:
     case OP_BOUND:
     case OP_BOUNDSLICE:
         {

@@ -714,6 +714,41 @@ int Machine::Run()
             }
             break;
 
+        case OP_COPYARRAY:
+            {
+                if ( WouldUnderflow( 4 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                CELL srcCount = mSP[3];
+                CELL srcAddr = mSP[2];
+                CELL dstCount = mSP[1];
+                CELL dstAddr = mSP[0];
+                U32  elemSize = ReadU24( codePtr );
+
+                mSP += 4;
+
+                if ( srcCount < 0 || dstCount < srcCount )
+                    return ERR_BOUND;
+
+                U64 size64 = static_cast<U64>(srcCount) * elemSize;
+
+                if ( size64 > MAX_MODULE_DATA_SIZE )
+                    return ERR_BOUND;
+
+                U32 size = static_cast<U32>(size64);
+
+                auto [err, pDst] = GetSizedDataPtr( dstAddr, size );
+                if ( err != ERR_NONE )
+                    return err;
+
+                auto [err1, pSrc] = GetSizedDataPtr( srcAddr, size );
+                if ( err1 != ERR_NONE )
+                    return err1;
+
+                std::copy_n( pSrc, size, pDst );
+            }
+            break;
+
         case OP_BOUND:
             {
                 if ( WouldUnderflow() )
