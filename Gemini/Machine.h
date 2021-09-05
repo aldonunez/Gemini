@@ -15,6 +15,7 @@ enum VmError
 {
     ERR_NONE,
     ERR_YIELDED,
+    ERR_SWITCH_TO_NATIVE,
     ERR_NOT_RUNING,
     ERR_BAD_ARG,
     ERR_BAD_OPCODE,

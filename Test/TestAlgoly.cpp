@@ -1545,6 +1545,41 @@ TEST_CASE( "Algoly: native basic", "[algoly]" )
     TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gNatives );
 }
 
+int NatNoReturnValue( Machine* machine, U8 argc, CELL* args, UserContext context )
+{
+    if ( machine == nullptr || argc != 2 || args == nullptr )
+        return ERR_BAD_ARG;
+
+    return ERR_NONE;
+}
+
+static NativePair gNoRetNatives[] =
+{
+    { 0, NatNoReturnValue },
+    { 0, nullptr }
+};
+
+TEST_CASE( "Algoly: native no return value", "[algoly]" )
+{
+    const char* mainCode[] =
+    {
+        "def a\n"
+        "  NoReturnValue(20, 30)\n"
+        "end\n"
+        "native NoReturnValue(a, b)\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, 0, 0, 0, gNoRetNatives );
+}
+
 static NativePair gHighNatives[] =
 {
     { INT32_MAX-1, NatAdd },

@@ -442,6 +442,8 @@ void TestCompileAndRun(
     if ( expectedStack > 0 )
         REQUIRE( (size_t) expectedStack == maxStack );
 
+    std::fill_n( gStack, std::size( gStack ), 0xFEFEFEFE );
+
     Machine machine;
 
     machine.Init( gStack, static_cast<U16>( std::size( gStack ) ), &env );

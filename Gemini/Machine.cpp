@@ -121,12 +121,16 @@ CELL* Machine::Start( U8 modIndex, U32 address, U8 argCount )
 
     mPC         = address;
     mMod        = module;
-    mModIndex   = modIndex;
+    mModIndex   = MODINDEX_NATIVE;
 
     U8 callFlags = CallFlags::Build( argCount, false );
 
     if ( PushFrame( mMod->CodeBase, callFlags ) == nullptr )
         return nullptr;
+
+    mPC         = address;
+    mMod        = module;
+    mModIndex   = modIndex;
 
     return args;
 }
@@ -143,7 +147,6 @@ void Machine::Reset()
 
 int Machine::CallNative( NativeFunc proc, U8 callFlags, UserContext context )
 {
-    bool  autoPop = CallFlags::GetAutoPop( callFlags );
     U8    argCount = CallFlags::GetCount( callFlags );
 
     if ( WouldUnderflow( argCount ) )
@@ -152,7 +155,7 @@ int Machine::CallNative( NativeFunc proc, U8 callFlags, UserContext context )
     if ( WouldOverflow() )
         return ERR_STACK_OVERFLOW;
 
-    CELL* args = mSP;
+    CELL* args = mSP + FRAME_WORDS;
     CELL* oldSP = mSP;
 
     int ret = proc( this, argCount, args, context );
@@ -162,23 +165,14 @@ int Machine::CallNative( NativeFunc proc, U8 callFlags, UserContext context )
         CELL* newSP = mSP;
         ptrdiff_t resultCount = oldSP - newSP;
 
-        mSP += argCount;
-
         if ( resultCount == 0 )
         {
             Push( 0 );
         }
-        else if ( resultCount == 1 )
-        {
-            mSP[0] = newSP[0];
-        }
-        else
+        else if ( resultCount != 1 )
         {
             return ERR_NATIVE_ERROR;
         }
-
-        if ( autoPop )
-            mSP++;
     }
     else if ( ret == ERR_YIELDED )
     {
@@ -207,6 +201,13 @@ int Machine::Run()
         int ret = CallNative( continuation, mNativeContinuationFlags, context );
         if ( ret != ERR_NONE )
             return ret;
+
+        int err = PopFrame();
+        if ( err != ERR_NONE )
+            return err;
+
+        if ( !IsCodeInBounds( mPC ) )
+            return ERR_BAD_ADDRESS;
     }
 
     const U8* codePtr = mMod->CodeBase + mPC;
@@ -526,10 +527,11 @@ int Machine::Run()
         case OP_RET:
             {
                 int err = PopFrame();
+                if ( err == ERR_SWITCH_TO_NATIVE )
+                    goto Done;
+
                 if ( err != ERR_NONE )
                     return err;
-                if ( mFramePtr >= mStackSize )
-                    goto Done;
 
                 if ( !IsCodeInBounds( mPC ) )
                     return ERR_BAD_ADDRESS;
@@ -603,8 +605,8 @@ int Machine::Run()
                     id = ReadU8( codePtr );
                 }
 
-                // If the native call yields, then we have to remember where we were.
-                mPC = static_cast<U32>( codePtr - mMod->CodeBase );
+                if ( PushFrame( codePtr, callFlags ) == nullptr )
+                    return ERR_STACK_OVERFLOW;
 
                 NativeCode nativeCode;
 
@@ -614,6 +616,15 @@ int Machine::Run()
                 int ret = CallNative( nativeCode.Proc, callFlags, 0 );
                 if ( ret != ERR_NONE )
                     return ret;
+
+                int err = PopFrame();
+                if ( err != ERR_NONE )
+                    return err;
+
+                if ( !IsCodeInBounds( mPC ) )
+                    return ERR_BAD_ADDRESS;
+
+                codePtr = mMod->CodeBase + mPC;
             }
             break;
 
@@ -770,6 +781,8 @@ StackFrame* Machine::PushFrame( const U8* curCodePtr, U8 callFlags )
 
 int Machine::PopFrame()
 {
+    int err = ERR_NONE;
+
     if ( (mFramePtr + FRAME_WORDS) > mStackSize )
         return ERR_STACK_UNDERFLOW;
 
@@ -785,8 +798,8 @@ int Machine::PopFrame()
 
     U8 newModIndex = CodeAddr::GetModule( curFrame->RetAddrWord );
 
-    int err = SwitchModule( newModIndex );
-    if ( err != ERR_NONE )
+    err = SwitchModule( newModIndex );
+    if ( err != ERR_NONE && err != ERR_SWITCH_TO_NATIVE )
         return err;
 
     CELL* oldSP = mSP;
@@ -800,7 +813,7 @@ int Machine::PopFrame()
     if ( autoPop )
         mSP++;
 
-    return ERR_NONE;
+    return err;
 }
 
 int Machine::PushCell( CELL value )
@@ -917,6 +930,9 @@ int Machine::CallPrimitive( U8 func )
 
 int Machine::SwitchModule( U8 newModIndex )
 {
+    if ( newModIndex == MODINDEX_NATIVE )
+        return ERR_SWITCH_TO_NATIVE;
+
     if ( newModIndex != mModIndex )
     {
         mMod = GetModule( newModIndex );

@@ -78,6 +78,7 @@ enum : uint8_t
 enum
 {
     MODINDEX_STACK  = 0xFE,
+    MODINDEX_NATIVE = 0xFF,
 };
 
 
