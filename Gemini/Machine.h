@@ -80,6 +80,8 @@ private:
         FRAME_WORDS = (sizeof( StackFrame ) + sizeof( CELL ) - 1) / sizeof( CELL ),
     };
 
+    static constexpr uint8_t MAX_NATIVE_NESTING = 255;
+
 public:
     enum
     {
@@ -97,6 +99,7 @@ private:
     NativeFunc      mNativeContinuation;
     UserContext     mNativeContinuationContext;
     U8              mNativeContinuationFlags;
+    U8              mNativeNestingLevel;
     U8              mModIndex;
     U32             mPC;
     const Module*   mMod;

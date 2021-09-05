@@ -46,6 +46,7 @@ Machine::Machine() :
     mNativeContinuation( nullptr ),
     mNativeContinuationContext( 0 ),
     mNativeContinuationFlags( 0 ),
+    mNativeNestingLevel( 0 ),
     mModIndex(),
     mPC(),
     mMod(),
@@ -158,7 +159,14 @@ int Machine::CallNative( NativeFunc proc, U8 callFlags, UserContext context )
     CELL* args = mSP + FRAME_WORDS;
     CELL* oldSP = mSP;
 
+    if ( mNativeNestingLevel == MAX_NATIVE_NESTING )
+        return ERR_NATIVE_ERROR;
+
+    mNativeNestingLevel++;
+
     int ret = proc( this, argCount, args, context );
+
+    mNativeNestingLevel--;
 
     if ( ret == ERR_NONE )
     {
@@ -829,6 +837,9 @@ int Machine::Yield( NativeFunc proc, UserContext context )
 {
     if ( proc == nullptr )
         return ERR_BAD_ARG;
+
+    if ( mNativeNestingLevel != 1 )
+        return ERR_NATIVE_ERROR;
 
     mNativeContinuation = proc;
     mNativeContinuationContext = context;
