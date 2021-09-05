@@ -2420,10 +2420,8 @@ void Compiler::CalculateStackDepth( Function* func )
         return;
     }
 
-    // TODO: Put Machine::FRAME_WORDS somewhere common, and use it here.
-
     func->IsCalculating = true;
-    func->IndividualStackUsage = 2 + func->LocalCount;
+    func->IndividualStackUsage = FRAME_WORDS + func->LocalCount;
 
     uint32_t maxChildDepth = 0;
     uint32_t maxChildStackUsage = func->ExprDepth;

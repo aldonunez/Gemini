@@ -75,18 +75,7 @@ struct StackFrame
 class Machine : private IEnvironment
 {
 private:
-    enum
-    {
-        FRAME_WORDS = (sizeof( StackFrame ) + sizeof( CELL ) - 1) / sizeof( CELL ),
-    };
-
     static constexpr uint8_t MAX_NATIVE_NESTING = 255;
-
-public:
-    enum
-    {
-        MIN_STACK = FRAME_WORDS * 4,
-    };
 
 private:
     CELL*           mSP;

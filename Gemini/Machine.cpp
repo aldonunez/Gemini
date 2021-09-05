@@ -36,6 +36,9 @@ callm <uint8> <uint8> <uint24>
 */
 
 
+static_assert( FRAME_WORDS == (sizeof( StackFrame ) + sizeof( CELL ) - 1) / sizeof( CELL ) );
+
+
 Machine::Machine() :
     mSP( nullptr ),
     mStack( nullptr ),
