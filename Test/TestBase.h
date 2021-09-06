@@ -95,6 +95,22 @@ public:
 constexpr int32_t DefaultParam = INT32_MAX;
 
 
+struct TestConfig
+{
+    Language            lang = Language::Gema;
+    const ModuleSource* moduleSources = nullptr;
+    ParamSpan           params;
+    ResultVariant       expectedResult = ResultVariant();
+    int                 expectedStack = 0;
+    NativePair*         natives = nullptr;
+
+    TestConfig( const ParamSpan& params ) :
+        params( params )
+    {
+    }
+};
+
+
 void TestCompileAndRunAlgoly( const char* code, int result, int param = DefaultParam, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, int result, const std::initializer_list<int>& params, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, int result, const ParamSpan& params, int expectedStack = 0 );
@@ -120,6 +136,8 @@ void TestCompileAndRun(
     int expectedStack = 0,
     NativePair* natives = nullptr
 );
+
+void TestCompileAndRun( const TestConfig& config );
 
 
 // Sample natives

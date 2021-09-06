@@ -342,6 +342,22 @@ void TestCompileAndRun(
     NativePair* natives
 )
 {
+    TestConfig config( params );
+
+    config.lang = lang;
+    config.moduleSources = moduleSources;
+    config.expectedResult = expectedResult;
+    config.expectedStack = expectedStack;
+    config.natives = natives;
+
+    TestCompileAndRun( config );
+}
+
+void TestCompileAndRun( const TestConfig& config )
+{
+    if ( config.moduleSources == nullptr )
+        throw std::invalid_argument( "config.moduleSources" );
+
     std::vector<U8> bin1;
     size_t      binSize = 0;
     std::vector<CELL> data1;
@@ -349,11 +365,11 @@ void TestCompileAndRun(
     uint32_t    maxStack = 0;
 
     CompilerEnv env;
-    CompilerLog log{ GetKind( expectedResult ) == ResultKind::Compiler };
+    CompilerLog log{ GetKind( config.expectedResult ) == ResultKind::Compiler };
 
     std::vector<std::shared_ptr<ModuleDeclaration>> modDecls;
 
-    for ( const ModuleSource* moduleSource = moduleSources;
+    for ( const ModuleSource* moduleSource = config.moduleSources;
         moduleSource->UnitTexts != nullptr;
         moduleSource++ )
     {
@@ -370,12 +386,12 @@ void TestCompileAndRun(
 
             assert( codeLen < INT_MAX );
 
-            if ( lang == Language::Gema )
+            if ( config.lang == Language::Gema )
             {
                 AlgolyParser parser( code, (int) codeLen, moduleSource->Name, &log );
                 unit = parser.Parse();
             }
-            else if ( lang == Language::Geml )
+            else if ( config.lang == Language::Geml )
             {
                 LispyParser parser( code, (int) codeLen, moduleSource->Name, &log );
                 unit = parser.Parse();
@@ -397,9 +413,9 @@ void TestCompileAndRun(
 
         maxStack = std::max( maxStack, stats.Static.MaxStackUsage );
 
-        if ( GetKind( expectedResult ) == ResultKind::Compiler )
+        if ( GetKind( config.expectedResult ) == ResultKind::Compiler )
         {
-            REQUIRE( compilerErr == Get<ResultKind::Compiler>( expectedResult ) );
+            REQUIRE( compilerErr == Get<ResultKind::Compiler>( config.expectedResult ) );
             return;
         }
         else
@@ -439,8 +455,8 @@ void TestCompileAndRun(
 #endif
     }
 
-    if ( expectedStack > 0 )
-        REQUIRE( (size_t) expectedStack == maxStack );
+    if ( config.expectedStack > 0 )
+        REQUIRE( (size_t) config.expectedStack == maxStack );
 
     std::fill_n( gStack, std::size( gStack ), 0xFEFEFEFE );
 
@@ -470,8 +486,8 @@ void TestCompileAndRun(
         }
     }
 
-    if ( natives != nullptr )
-        env.SetNativeFuncs( natives );
+    if ( config.natives != nullptr )
+        env.SetNativeFuncs( config.natives );
 
     ExternalFunc external = { 0 };
     ByteCode byteCode = { 0 };
@@ -483,11 +499,11 @@ void TestCompileAndRun(
     b = env.FindByteCode( external.Id, &byteCode );
     REQUIRE( b );
 
-    CELL* args = machine.Start( (U8) (env.GetModuleCount() - 1), byteCode.Address, (U8) params.size() );
+    CELL* args = machine.Start( (U8) (env.GetModuleCount() - 1), byteCode.Address, (U8) config.params.size() );
 
     REQUIRE( args != nullptr );
 
-    std::copy( params.begin(), params.end(), args );
+    std::copy( config.params.begin(), config.params.end(), args );
 
     int err = 0;
 
@@ -496,9 +512,9 @@ void TestCompileAndRun(
         err = machine.Run();
     } while ( err == ERR_YIELDED );
 
-    if ( GetKind( expectedResult ) == ResultKind::Vm )
+    if ( GetKind( config.expectedResult ) == ResultKind::Vm )
     {
-        REQUIRE( err == Get<ResultKind::Vm>( expectedResult ) );
+        REQUIRE( err == Get<ResultKind::Vm>( config.expectedResult ) );
         return;
     }
     else
@@ -506,6 +522,6 @@ void TestCompileAndRun(
         REQUIRE( err == 0 );
     }
 
-    if ( GetKind( expectedResult ) == ResultKind::Stack )
-        REQUIRE( gStack[std::size( gStack ) - 1] == Get<ResultKind::Stack>( expectedResult ) );
+    if ( GetKind( config.expectedResult ) == ResultKind::Stack )
+        REQUIRE( gStack[std::size( gStack ) - 1] == Get<ResultKind::Stack>( config.expectedResult ) );
 }
