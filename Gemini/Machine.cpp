@@ -705,7 +705,7 @@ int Machine::Run()
             }
             break;
 
-        case OP_BOUND:
+        case OP_INDEX:
             {
                 if ( WouldUnderflow( 2 ) )
                     return ERR_STACK_UNDERFLOW;
@@ -728,7 +728,7 @@ int Machine::Run()
             }
             break;
 
-        case OP_BOUNDOPEN:
+        case OP_INDEXOPEN:
             {
                 if ( WouldUnderflow( 3 ) )
                     return ERR_STACK_UNDERFLOW;
@@ -751,7 +751,7 @@ int Machine::Run()
             }
             break;
 
-        case OP_BOUNDOPENSLICE:
+        case OP_RANGEOPEN:
             {
                 if ( WouldUnderflow( 4 ) )
                     return ERR_STACK_UNDERFLOW;
@@ -777,7 +777,7 @@ int Machine::Run()
             }
             break;
 
-        case OP_BOUNDOPENCLOSEDSLICE:
+        case OP_RANGEOPENCLOSED:
             {
                 if ( WouldUnderflow( 4 ) )
                     return ERR_STACK_UNDERFLOW;
@@ -802,7 +802,7 @@ int Machine::Run()
             }
             break;
 
-        case OP_BOUNDSLICE:
+        case OP_RANGE:
             {
                 if ( WouldUnderflow( 3 ) )
                     return ERR_STACK_UNDERFLOW;

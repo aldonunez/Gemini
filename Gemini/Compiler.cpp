@@ -1978,7 +1978,7 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
     {
         if ( fullExpr->Kind == SyntaxKind::Index )
         {
-            EmitU24( OP_BOUNDOPEN, arrayType.ElemType->GetSize() );
+            EmitU24( OP_INDEXOPEN, arrayType.ElemType->GetSize() );
             DecreaseExprDepth();
         }
         else
@@ -1990,12 +1990,12 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
 
             if ( firstVal.has_value() && lastVal.has_value() )
             {
-                EmitU24( OP_BOUNDOPENCLOSEDSLICE, arrayType.ElemType->GetSize() );
+                EmitU24( OP_RANGEOPENCLOSED, arrayType.ElemType->GetSize() );
                 DecreaseExprDepth( 2 );
             }
             else
             {
-                EmitU24( OP_BOUNDOPENSLICE, arrayType.ElemType->GetSize() );
+                EmitU24( OP_RANGEOPEN, arrayType.ElemType->GetSize() );
                 DecreaseExprDepth( 1 );
             }
         }
@@ -2004,13 +2004,13 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
     {
         if ( fullExpr->Kind == SyntaxKind::Index )
         {
-            EmitOpenIndex( OP_BOUND, arrayType.ElemType->GetSize(), arrayType.Count );
+            EmitOpenIndex( OP_INDEX, arrayType.ElemType->GetSize(), arrayType.Count );
         }
         else
         {
             Generate( ((SliceExpr*) fullExpr)->LastIndex.get() );
 
-            EmitOpenIndex( OP_BOUNDSLICE, arrayType.ElemType->GetSize(), arrayType.Count );
+            EmitOpenIndex( OP_RANGE, arrayType.ElemType->GetSize(), arrayType.Count );
         }
     }
 

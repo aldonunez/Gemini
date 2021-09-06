@@ -42,11 +42,11 @@ static const char* gOpCodes[] =
     "CALLNATIVE.S",
     "COPYBLOCK",
     "COPYARRAY",
-    "BOUND",
-    "BOUNDOPEN",
-    "BOUNDOPENSLICE",
-    "BOUNDOPENCLOSEDSLICE",
-    "BOUNDSLICE",
+    "INDEX",
+    "INDEXOPEN",
+    "RANGEOPEN",
+    "RANGEOPENCLOSED",
+    "RANGE",
     "YIELD",
 };
 
@@ -158,9 +158,9 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 
     case OP_COPYBLOCK:
     case OP_COPYARRAY:
-    case OP_BOUNDOPEN:
-    case OP_BOUNDOPENSLICE:
-    case OP_BOUNDOPENCLOSEDSLICE:
+    case OP_INDEXOPEN:
+    case OP_RANGEOPEN:
+    case OP_RANGEOPENCLOSED:
         {
             int value = ReadU24( mCodePtr );
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u", value );
@@ -241,8 +241,8 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         }
         break;
 
-    case OP_BOUND:
-    case OP_BOUNDSLICE:
+    case OP_INDEX:
+    case OP_RANGE:
         {
             int stride = ReadU24( mCodePtr );
             int bound = ReadU24( mCodePtr );
