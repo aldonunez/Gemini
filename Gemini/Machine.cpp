@@ -765,6 +765,26 @@ int Machine::Run()
             }
             break;
 
+        case OP_BOUNDSLICE:
+            {
+                if ( WouldUnderflow( 3 ) )
+                    return ERR_STACK_UNDERFLOW;
+
+                CELL addr = mSP[2];
+                CELL index = mSP[1];
+                CELL end = mSP[0];
+                CELL bound = ReadU24( codePtr );
+
+                if ( index < 0 || index >= bound
+                    || end <= index || end > bound )
+                    return ERR_BOUND;
+
+                mSP[2] = end - index;
+                mSP[1] = addr;
+                mSP[0] = index;
+            }
+            break;
+
         case OP_YIELD:
             {
                 if ( mNativeNestingLevel > 0 )

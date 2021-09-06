@@ -1389,28 +1389,33 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 
     auto arrayType = (ArrayType*) sliceExpr->Head->Type.get();
 
-    int32_t firstVal = Evaluate( sliceExpr->FirstIndex.get() );
-    int32_t lastVal = Evaluate( sliceExpr->LastIndex.get() );
+    std::optional<int32_t> firstVal = GetOptionalSyntaxValue( sliceExpr->FirstIndex.get() );
+    std::optional<int32_t> lastVal = GetOptionalSyntaxValue( sliceExpr->LastIndex.get() );
 
-    if ( firstVal >= lastVal )
-        mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Range is not in increasing order" );
-
-    if ( firstVal < 0 )
-        mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
-
-    if ( arrayType->Count > 0 )
+    if ( firstVal.has_value() && lastVal.has_value() )
     {
-        if ( lastVal > arrayType->Count )
+        if ( firstVal >= lastVal )
+            mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Range is not in increasing order" );
+
+        if ( firstVal < 0 )
             mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
+
+        if ( arrayType->Count > 0 )
+        {
+            if ( lastVal > arrayType->Count )
+                mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Slices must be within bounds of array" );
+        }
+
+        int32_t rawSize = lastVal.value() - firstVal.value();
+
+        DataSize size = CheckArraySize( static_cast<size_t>(rawSize), arrayType->ElemType.get(), sliceExpr );
+
+        sliceExpr->Type = Make<ArrayType>( size, arrayType->ElemType );
     }
-
-    int32_t rawSize = lastVal - firstVal;
-
-    DataSize size = CheckArraySize( static_cast<size_t>(rawSize), arrayType->ElemType.get(), sliceExpr );
-
-    auto slicedArrayType = Make<ArrayType>( size, arrayType->ElemType );
-
-    sliceExpr->Type = slicedArrayType;
+    else
+    {
+        sliceExpr->Type = Make<ArrayType>( static_cast<DataSize>(0), arrayType->ElemType );
+    }
 }
 
 void BinderVisitor::VisitStatementList( StatementList* stmtList )

@@ -44,6 +44,7 @@ enum OpCode : uint8_t
     OP_BOUND,
     OP_BOUNDOPEN,
     OP_BOUNDOPENCLOSEDSLICE,
+    OP_BOUNDSLICE,
     OP_YIELD,
     OP_MAXOPCODE,
 

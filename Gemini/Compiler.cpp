@@ -1923,7 +1923,16 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
     }
     else
     {
-        EmitU24( OP_BOUND, arrayType.Count );
+        if ( fullExpr->Kind == SyntaxKind::Index )
+        {
+            EmitU24( OP_BOUND, arrayType.Count );
+        }
+        else
+        {
+            Generate( ((SliceExpr*) fullExpr)->LastIndex.get() );
+
+            EmitU24( OP_BOUNDSLICE, arrayType.Count );
+        }
     }
 
     if ( arrayType.ElemType->GetSize() > UINT8_MAX )
