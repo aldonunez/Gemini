@@ -455,10 +455,8 @@ void TestCompileAndRun( const TestConfig& config )
 #endif
     }
 
-#if 0
     if ( config.expectedStack > 0 )
         REQUIRE( (size_t) config.expectedStack == maxStack );
-#endif
 
     std::fill_n( gStack, std::size( gStack ), 0xFEFEFEFE );
 

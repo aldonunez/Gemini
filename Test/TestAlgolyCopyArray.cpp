@@ -15,7 +15,7 @@ TEST_CASE( "Algoly: CopyArray: global copy 2 elems", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 7, 0, 5 );
+    TestCompileAndRunAlgoly( code, 7, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local copy 2 elems", "[algoly][copy-array]" )
@@ -29,7 +29,7 @@ TEST_CASE( "Algoly: CopyArray: local copy 2 elems", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 7, 0, 5+4 );
+    TestCompileAndRunAlgoly( code, 7, 0, 4+4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global to local copy 2 elems", "[algoly][copy-array]" )
@@ -43,7 +43,7 @@ TEST_CASE( "Algoly: CopyArray: global to local copy 2 elems", "[algoly][copy-arr
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 7, 0, 7 );
+    TestCompileAndRunAlgoly( code, 7, 0, 6 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local to global copy 2 elems", "[algoly][copy-array]" )
@@ -57,7 +57,7 @@ TEST_CASE( "Algoly: CopyArray: local to global copy 2 elems", "[algoly][copy-arr
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 7, 0, 7 );
+    TestCompileAndRunAlgoly( code, 7, 0, 6 );
 }
 
 //---
@@ -85,7 +85,7 @@ TEST_CASE( "Algoly: CopyArray: init local array with local", "[algoly][copy-arra
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 7, 0, 9 );
+    TestCompileAndRunAlgoly( code, 7, 0, 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init local array with global", "[algoly][copy-array]" )
@@ -98,7 +98,7 @@ TEST_CASE( "Algoly: CopyArray: init local array with global", "[algoly][copy-arr
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 7, 0, 7 );
+    TestCompileAndRunAlgoly( code, 7, 0, 6 );
 }
 
 //-----
@@ -114,7 +114,7 @@ TEST_CASE( "Algoly: CopyArray: assign shorter array to longer global-global", "[
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 12, 0, 5 );
+    TestCompileAndRunAlgoly( code, 12, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign shorter array to longer local-local", "[algoly][copy-array]" )
@@ -128,7 +128,7 @@ TEST_CASE( "Algoly: CopyArray: assign shorter array to longer local-local", "[al
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 12, 0, 5+5 );
+    TestCompileAndRunAlgoly( code, 12, 0, 4+5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init array with shorter array global-global", "[algoly][copy-array]" )
@@ -156,7 +156,7 @@ TEST_CASE( "Algoly: CopyArray: init array with shorter array local-local", "[alg
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 18, 0, 10 );
+    TestCompileAndRunAlgoly( code, 18, 0, 9 );
 }
 
 
@@ -176,7 +176,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing, global-global", "[alg
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 5 );
+    TestCompileAndRunAlgoly( code, 17, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with indexing, global-local", "[algoly][copy-array]" )
@@ -191,7 +191,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing, global-local", "[algo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 7 );
+    TestCompileAndRunAlgoly( code, 17, 0, 6 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with indexing, local-global", "[algoly][copy-array]" )
@@ -206,7 +206,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing, local-global", "[algo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 9 );
+    TestCompileAndRunAlgoly( code, 17, 0, 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with indexing, local-local", "[algoly][copy-array]" )
@@ -221,7 +221,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing, local-local", "[algol
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 11 );
+    TestCompileAndRunAlgoly( code, 17, 0, 10 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, global-global", "[algoly][copy-array]" )
@@ -237,7 +237,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, global-global
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 5 );
+    TestCompileAndRunAlgoly( code, 17, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, global-local", "[algoly][copy-array]" )
@@ -253,7 +253,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, global-local"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 7 );
+    TestCompileAndRunAlgoly( code, 17, 0, 6 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, local-global", "[algoly][copy-array]" )
@@ -269,7 +269,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, local-global"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 9 );
+    TestCompileAndRunAlgoly( code, 17, 0, 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, local-local", "[algoly][copy-array]" )
@@ -285,7 +285,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing, local-local",
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 11 );
+    TestCompileAndRunAlgoly( code, 17, 0, 10 );
 }
 
 //----------
@@ -302,7 +302,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, global-global
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 5 );
+    TestCompileAndRunAlgoly( code, 17, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, global-local", "[algoly][copy-array]" )
@@ -317,7 +317,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, global-local"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 7 );
+    TestCompileAndRunAlgoly( code, 17, 0, 6 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, local-global", "[algoly][copy-array]" )
@@ -332,7 +332,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, local-global"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 9 );
+    TestCompileAndRunAlgoly( code, 17, 0, 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, local-local", "[algoly][copy-array]" )
@@ -347,7 +347,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing on left, local-local",
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 11 );
+    TestCompileAndRunAlgoly( code, 17, 0, 10 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, global-global", "[algoly][copy-array]" )
@@ -363,7 +363,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, globa
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 6 );
+    TestCompileAndRunAlgoly( code, 17, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, global-local", "[algoly][copy-array]" )
@@ -379,7 +379,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, globa
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 8 );
+    TestCompileAndRunAlgoly( code, 17, 0, 7 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, local-global", "[algoly][copy-array]" )
@@ -395,7 +395,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, local
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 10 );
+    TestCompileAndRunAlgoly( code, 17, 0, 9 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, local-local", "[algoly][copy-array]" )
@@ -411,7 +411,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing on left, local
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 12 );
+    TestCompileAndRunAlgoly( code, 17, 0, 11 );
 }
 
 //----------
@@ -428,7 +428,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing both, global-global", 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 5 );
+    TestCompileAndRunAlgoly( code, 17, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with indexing both, global-local", "[algoly][copy-array]" )
@@ -443,7 +443,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing both, global-local", "
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 7+2 );
+    TestCompileAndRunAlgoly( code, 17, 0, 6+2 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with indexing both, local-global", "[algoly][copy-array]" )
@@ -458,7 +458,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing both, local-global", "
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 7 + 2 );
+    TestCompileAndRunAlgoly( code, 17, 0, 6 + 2 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with indexing both, local-local", "[algoly][copy-array]" )
@@ -473,7 +473,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with indexing both, local-local", "[
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 11+2 );
+    TestCompileAndRunAlgoly( code, 17, 0, 10+2 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, global-global", "[algoly][copy-array]" )
@@ -489,7 +489,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, global-g
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 6 );
+    TestCompileAndRunAlgoly( code, 17, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, global-local", "[algoly][copy-array]" )
@@ -505,7 +505,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, global-l
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 8+2 );
+    TestCompileAndRunAlgoly( code, 17, 0, 7+2 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, local-global", "[algoly][copy-array]" )
@@ -521,7 +521,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, local-gl
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 8 + 2 );
+    TestCompileAndRunAlgoly( code, 17, 0, 7 + 2 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, local-local", "[algoly][copy-array]" )
@@ -537,7 +537,7 @@ TEST_CASE( "Algoly: CopyArray: assign array with dynamic indexing both, local-lo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 12+2 );
+    TestCompileAndRunAlgoly( code, 17, 0, 11+2 );
 }
 
 
@@ -559,7 +559,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array assignment 3", "[algoly][cop
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 9, 0, 7 );
+    TestCompileAndRunAlgoly( code, 9, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array assignment 3", "[algoly][copy-array]" )
@@ -576,7 +576,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array assignment 3", "[algoly][copy
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 9, 0, 7 + 6 );
+    TestCompileAndRunAlgoly( code, 9, 0, 5 + 6 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing on right", "[algoly][copy-array]" )
@@ -593,7 +593,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing on ri
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing on right", "[algoly][copy-array]" )
@@ -610,7 +610,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing on rig
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7+8 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5+8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing in middle", "[algoly][copy-array]" )
@@ -627,7 +627,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing in mi
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing in middle", "[algoly][copy-array]" )
@@ -644,7 +644,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing in mid
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7 + 8 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5 + 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing on left", "[algoly][copy-array]" )
@@ -661,7 +661,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing on le
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing on left", "[algoly][copy-array]" )
@@ -678,7 +678,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing on lef
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7 + 8 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5 + 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing on left and right", "[algoly][copy-array]" )
@@ -695,7 +695,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing on le
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing on left and right", "[algoly][copy-array]" )
@@ -712,7 +712,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing on lef
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7+10 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5+10 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing all 3", "[algoly][copy-array]" )
@@ -729,7 +729,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array assignment 3, indexing all 3
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing all 3", "[algoly][copy-array]" )
@@ -746,7 +746,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array assignment 3, indexing all 3"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 21, 0, 7 + 12 );
+    TestCompileAndRunAlgoly( code, 21, 0, 5 + 12 );
 }
 
 
@@ -779,7 +779,7 @@ TEST_CASE( "Algoly: CopyArray: init array with indexing, global-local", "[algoly
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 7 );
+    TestCompileAndRunAlgoly( code, 17, 0, 6 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init array with indexing, local-local", "[algoly][copy-array]" )
@@ -793,7 +793,7 @@ TEST_CASE( "Algoly: CopyArray: init array with indexing, local-local", "[algoly]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 11 );
+    TestCompileAndRunAlgoly( code, 17, 0, 10 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init array with dynamic indexing, global-local", "[algoly][copy-array]" )
@@ -808,7 +808,7 @@ TEST_CASE( "Algoly: CopyArray: init array with dynamic indexing, global-local", 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 7 );
+    TestCompileAndRunAlgoly( code, 17, 0, 6 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init array with dynamic indexing, local-local", "[algoly][copy-array]" )
@@ -823,7 +823,7 @@ TEST_CASE( "Algoly: CopyArray: init array with dynamic indexing, local-local", "
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 11 );
+    TestCompileAndRunAlgoly( code, 17, 0, 10 );
 }
 
 
@@ -841,7 +841,7 @@ TEST_CASE( "Algoly: CopyArray: global copy self", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 10, 0, 5 );
+    TestCompileAndRunAlgoly( code, 10, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local copy self", "[algoly][copy-array]" )
@@ -854,7 +854,7 @@ TEST_CASE( "Algoly: CopyArray: local copy self", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 10, 0, 5 + 4 );
+    TestCompileAndRunAlgoly( code, 10, 0, 4 + 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global copy self slice", "[algoly][copy-array]" )
@@ -867,7 +867,7 @@ TEST_CASE( "Algoly: CopyArray: global copy self slice", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 14, 0, 5 );
+    TestCompileAndRunAlgoly( code, 14, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local copy self slice", "[algoly][copy-array]" )
@@ -880,7 +880,7 @@ TEST_CASE( "Algoly: CopyArray: local copy self slice", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 14, 0, 5 + 4 );
+    TestCompileAndRunAlgoly( code, 14, 0, 4 + 4 );
 }
 
 
@@ -902,7 +902,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array assignment 3 slices, indexin
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 1000+770+710, 0, 7 );
+    TestCompileAndRunAlgoly( code, 1000+770+710, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array assignment 3 slices, indexing on right", "[algoly][copy-array]" )
@@ -919,7 +919,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array assignment 3 slices, indexing
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 1000+770+710, 0, 7 + 14 );
+    TestCompileAndRunAlgoly( code, 1000+770+710, 0, 5 + 14 );
 }
 
 
@@ -948,7 +948,7 @@ TEST_CASE( "Algoly: CopyArray: init array with slice, global-local", "[algoly][c
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 9 );
+    TestCompileAndRunAlgoly( code, 17, 0, 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init array with slice, local-local", "[algoly][copy-array]" )
@@ -962,7 +962,7 @@ TEST_CASE( "Algoly: CopyArray: init array with slice, local-local", "[algoly][co
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 17, 0, 13 );
+    TestCompileAndRunAlgoly( code, 17, 0, 12 );
 }
 
 
@@ -981,7 +981,7 @@ TEST_CASE( "Algoly: CopyArray: global copy 2x2 elems", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 22, 0, 5 );
+    TestCompileAndRunAlgoly( code, 22, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local copy 2x2 elems", "[algoly][copy-array]" )
@@ -995,7 +995,7 @@ TEST_CASE( "Algoly: CopyArray: local copy 2x2 elems", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 22, 0, 5 + 8 );
+    TestCompileAndRunAlgoly( code, 22, 0, 4 + 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global to local copy 2x2 elems", "[algoly][copy-array]" )
@@ -1009,7 +1009,7 @@ TEST_CASE( "Algoly: CopyArray: global to local copy 2x2 elems", "[algoly][copy-a
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 22, 0, 9 );
+    TestCompileAndRunAlgoly( code, 22, 0, 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local to global copy 2x2 elems", "[algoly][copy-array]" )
@@ -1023,7 +1023,7 @@ TEST_CASE( "Algoly: CopyArray: local to global copy 2x2 elems", "[algoly][copy-a
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 22, 0, 9 );
+    TestCompileAndRunAlgoly( code, 22, 0, 8 );
 }
 
 //---
@@ -1051,7 +1051,7 @@ TEST_CASE( "Algoly: CopyArray: init local array 2x2 with local", "[algoly][copy-
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 22, 0, 13 );
+    TestCompileAndRunAlgoly( code, 22, 0, 12 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init local array 2x2 with global", "[algoly][copy-array]" )
@@ -1064,7 +1064,7 @@ TEST_CASE( "Algoly: CopyArray: init local array 2x2 with global", "[algoly][copy
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 22, 0, 9 );
+    TestCompileAndRunAlgoly( code, 22, 0, 8 );
 }
 
 
@@ -1081,7 +1081,7 @@ TEST_CASE( "Algoly: CopyArray: assign shorter array 2x2 to longer global-global"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 45, 0, 5 );
+    TestCompileAndRunAlgoly( code, 45, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: assign shorter array 2x2 to longer local-local", "[algoly][copy-array]" )
@@ -1095,7 +1095,7 @@ TEST_CASE( "Algoly: CopyArray: assign shorter array 2x2 to longer local-local", 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 45, 0, 5+10 );
+    TestCompileAndRunAlgoly( code, 45, 0, 4+10 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init array with shorter array 2x2 global-global", "[algoly][copy-array]" )
@@ -1123,7 +1123,7 @@ TEST_CASE( "Algoly: CopyArray: init array with shorter array 2x2 local-local", "
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 34*2, 0, 15 );
+    TestCompileAndRunAlgoly( code, 34*2, 0, 14 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3", "[algoly][copy-array]" )
@@ -1140,7 +1140,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3", "[algoly]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3", "[algoly][copy-array]" )
@@ -1157,7 +1157,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3", "[algoly][
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 + 12 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 + 12 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing on right", "[algoly][copy-array]" )
@@ -1174,7 +1174,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing o
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing on right", "[algoly][copy-array]" )
@@ -1191,7 +1191,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing on
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 + 16 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 + 16 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing in middle", "[algoly][copy-array]" )
@@ -1208,7 +1208,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing i
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing in middle", "[algoly][copy-array]" )
@@ -1225,7 +1225,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing in
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 + 16 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 + 16 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing on left", "[algoly][copy-array]" )
@@ -1242,7 +1242,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing o
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing on left", "[algoly][copy-array]" )
@@ -1259,7 +1259,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing on
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 + 16 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 + 16 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing on left and right", "[algoly][copy-array]" )
@@ -1276,7 +1276,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing o
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing on left and right", "[algoly][copy-array]" )
@@ -1293,7 +1293,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing on
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 + 20 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 + 20 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing all 3", "[algoly][copy-array]" )
@@ -1310,7 +1310,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3, indexing a
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing all 3", "[algoly][copy-array]" )
@@ -1327,7 +1327,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3, indexing al
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 7 + 24 );
+    TestCompileAndRunAlgoly( code, 30, 0, 5 + 24 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init array 2x2 with indexing, global-global", "[algoly][copy-array]" )
@@ -1355,7 +1355,7 @@ TEST_CASE( "Algoly: CopyArray: init array 2x2 with indexing, local-local", "[alg
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 20, 0, 5 + 12 );
+    TestCompileAndRunAlgoly( code, 20, 0, 4 + 12 );
 }
 
 
@@ -1373,7 +1373,7 @@ TEST_CASE( "Algoly: CopyArray: global copy self 2x2", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 36, 0, 5 );
+    TestCompileAndRunAlgoly( code, 36, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local copy self 2x2", "[algoly][copy-array]" )
@@ -1386,7 +1386,7 @@ TEST_CASE( "Algoly: CopyArray: local copy self 2x2", "[algoly][copy-array]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 36, 0, 5 + 8 );
+    TestCompileAndRunAlgoly( code, 36, 0, 4 + 8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global copy self slice 2x2", "[algoly][copy-array]" )
@@ -1399,7 +1399,7 @@ TEST_CASE( "Algoly: CopyArray: global copy self slice 2x2", "[algoly][copy-array
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 52, 0, 5 );
+    TestCompileAndRunAlgoly( code, 52, 0, 4 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local copy self slice 2x2", "[algoly][copy-array]" )
@@ -1412,7 +1412,7 @@ TEST_CASE( "Algoly: CopyArray: local copy self slice 2x2", "[algoly][copy-array]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 52, 0, 5 + 8 );
+    TestCompileAndRunAlgoly( code, 52, 0, 4 + 8 );
 }
 
 
@@ -1434,7 +1434,7 @@ TEST_CASE( "Algoly: CopyArray: global chained array 2x2 assignment 3 slices, ind
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 1000 + 770 + 710, 0, 7 );
+    TestCompileAndRunAlgoly( code, 1000 + 770 + 710, 0, 5 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3 slices, indexing on right", "[algoly][copy-array]" )
@@ -1451,7 +1451,7 @@ TEST_CASE( "Algoly: CopyArray: local chained array 2x2 assignment 3 slices, inde
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 1000 + 770 + 710, 0, 7 + 14 );
+    TestCompileAndRunAlgoly( code, 1000 + 770 + 710, 0, 5 + 14 );
 }
 
 
@@ -1480,7 +1480,7 @@ TEST_CASE( "Algoly: CopyArray: init array 2x2 with slice, global-local", "[algol
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 36+26, 0, 5+8 );
+    TestCompileAndRunAlgoly( code, 36+26, 0, 4+8 );
 }
 
 TEST_CASE( "Algoly: CopyArray: init array 2x2 with slice, local-local", "[algoly][copy-array]" )
@@ -1494,7 +1494,7 @@ TEST_CASE( "Algoly: CopyArray: init array 2x2 with slice, local-local", "[algoly
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 36+26, 0, 5+16 );
+    TestCompileAndRunAlgoly( code, 36+26, 0, 4+16 );
 }
 
 

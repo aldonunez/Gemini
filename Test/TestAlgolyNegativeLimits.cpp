@@ -251,7 +251,7 @@ TEST_CASE( "Algoly: max params with open array for func", "[algoly][limit]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 7750 + 10 + 100, {}, 131 + 3 );
+    TestCompileAndRunAlgoly( code, 7750 + 10 + 100, {}, 132 + 3 );
 }
 
 TEST_CASE( "Algoly: too many params with open array", "[algoly][limit][negative]" )

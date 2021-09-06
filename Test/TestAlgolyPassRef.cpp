@@ -829,7 +829,7 @@ TEST_CASE( "Algoly: PassRef: global modify open array", "[algoly][pass-ref]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 13, 0, 10 );
+    TestCompileAndRunAlgoly( code, 13, 0, 11 );
 }
 
 TEST_CASE( "Algoly: PassRef: local modify open array", "[algoly][pass-ref]" )
@@ -845,7 +845,7 @@ TEST_CASE( "Algoly: PassRef: local modify open array", "[algoly][pass-ref]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 13, 0, 13 );
+    TestCompileAndRunAlgoly( code, 13, 0, 14 );
 }
 
 TEST_CASE( "Algoly: PassRef: global modify open array, var index", "[algoly][pass-ref]" )
@@ -862,7 +862,7 @@ TEST_CASE( "Algoly: PassRef: global modify open array, var index", "[algoly][pas
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 13, 0, 10 );
+    TestCompileAndRunAlgoly( code, 13, 0, 11 );
 }
 
 TEST_CASE( "Algoly: PassRef: local modify open array, var index", "[algoly][pass-ref]" )
@@ -879,7 +879,7 @@ TEST_CASE( "Algoly: PassRef: local modify open array, var index", "[algoly][pass
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 13, 0, 13 );
+    TestCompileAndRunAlgoly( code, 13, 0, 14 );
 }
 
 TEST_CASE( "Algoly: PassRef: global modify open array passed to fptr, var index", "[algoly][pass-ref]" )
@@ -897,7 +897,7 @@ TEST_CASE( "Algoly: PassRef: global modify open array passed to fptr, var index"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 13, 0, 9 );
+    TestCompileAndRunAlgoly( code, 13, 0, 10 );
 }
 
 TEST_CASE( "Algoly: PassRef: global modify open array of slice", "[algoly][pass-ref]" )
@@ -913,7 +913,7 @@ TEST_CASE( "Algoly: PassRef: global modify open array of slice", "[algoly][pass-
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 13, 0, 10 );
+    TestCompileAndRunAlgoly( code, 13, 0, 11 );
 }
 
 // TODO: change all of these so that they read and write the reference array in the callees
@@ -931,7 +931,7 @@ TEST_CASE( "Algoly: PassRef: local modify open array of slice", "[algoly][pass-r
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 13, 0, 13 );
+    TestCompileAndRunAlgoly( code, 13, 0, 14 );
 }
 
 TEST_CASE( "Algoly: PassRef: global modify open array of 2x2", "[algoly][pass-ref]" )
@@ -949,7 +949,7 @@ TEST_CASE( "Algoly: PassRef: global modify open array of 2x2", "[algoly][pass-re
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 99+2, 0, 9 );
+    TestCompileAndRunAlgoly( code, 99+2, 0, 10 );
 }
 
 TEST_CASE( "Algoly: PassRef: local modify open array of 2x2", "[algoly][pass-ref]" )
@@ -967,7 +967,7 @@ TEST_CASE( "Algoly: PassRef: local modify open array of 2x2", "[algoly][pass-ref
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 99+2, 0, 9 + 4 );
+    TestCompileAndRunAlgoly( code, 99+2, 0, 10 + 4 );
 }
 
 
@@ -994,7 +994,7 @@ TEST_CASE( "Algoly: PassRef: global pass closed array open array", "[algoly][pas
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 12, 0, 12 );
+    TestCompileAndRunAlgoly( code, 12, 0, 13 );
 }
 
 TEST_CASE( "Algoly: PassRef: local pass closed array open array", "[algoly][pass-ref]" )
@@ -1016,7 +1016,7 @@ TEST_CASE( "Algoly: PassRef: local pass closed array open array", "[algoly][pass
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 12, 0, 12 + 3 );
+    TestCompileAndRunAlgoly( code, 12, 0, 13 + 3 );
 }
 
 TEST_CASE( "Algoly: PassRef: global pass open array open array", "[algoly][pass-ref]" )
@@ -1038,7 +1038,7 @@ TEST_CASE( "Algoly: PassRef: global pass open array open array", "[algoly][pass-
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 12, 0, 13 );
+    TestCompileAndRunAlgoly( code, 12, 0, 14 );
 }
 
 TEST_CASE( "Algoly: PassRef: local pass open array open array", "[algoly][pass-ref]" )
@@ -1060,7 +1060,7 @@ TEST_CASE( "Algoly: PassRef: local pass open array open array", "[algoly][pass-r
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 12, 0, 13+3 );
+    TestCompileAndRunAlgoly( code, 12, 0, 14+3 );
 }
 
 TEST_CASE( "Algoly: PassRef: global pass open array slice open array", "[algoly][pass-ref]" )
@@ -1082,7 +1082,7 @@ TEST_CASE( "Algoly: PassRef: global pass open array slice open array", "[algoly]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 11, 0, 13 );
+    TestCompileAndRunAlgoly( code, 11, 0, 14 );
 }
 
 TEST_CASE( "Algoly: PassRef: local pass open array slice open array", "[algoly][pass-ref]" )
@@ -1104,7 +1104,7 @@ TEST_CASE( "Algoly: PassRef: local pass open array slice open array", "[algoly][
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 11, 0, 13 + 3 );
+    TestCompileAndRunAlgoly( code, 11, 0, 14 + 3 );
 }
 
 
@@ -1131,7 +1131,7 @@ TEST_CASE( "Algoly: PassRef: global pass whole part to closed array open array",
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 12 );
+    TestCompileAndRunAlgoly( code, 30, 0, 13 );
 }
 
 TEST_CASE( "Algoly: PassRef: local pass whole part to closed array open array", "[algoly][pass-ref]" )
@@ -1153,7 +1153,7 @@ TEST_CASE( "Algoly: PassRef: local pass whole part to closed array open array", 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 18 + 3 );
+    TestCompileAndRunAlgoly( code, 30, 0, 19 + 3 );
 }
 
 TEST_CASE( "Algoly: PassRef: global pass whole part to open array open array", "[algoly][pass-ref]" )
@@ -1175,7 +1175,7 @@ TEST_CASE( "Algoly: PassRef: global pass whole part to open array open array", "
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 13 );
+    TestCompileAndRunAlgoly( code, 30, 0, 14 );
 }
 
 TEST_CASE( "Algoly: PassRef: local pass whole part to open array open array", "[algoly][pass-ref]" )
@@ -1197,7 +1197,7 @@ TEST_CASE( "Algoly: PassRef: local pass whole part to open array open array", "[
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 19 + 3 );
+    TestCompileAndRunAlgoly( code, 30, 0, 20 + 3 );
 }
 
 TEST_CASE( "Algoly: PassRef: global pass whole part to open array slice open array", "[algoly][pass-ref]" )
@@ -1219,7 +1219,7 @@ TEST_CASE( "Algoly: PassRef: global pass whole part to open array slice open arr
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 29, 0, 13 );
+    TestCompileAndRunAlgoly( code, 29, 0, 14 );
 }
 
 TEST_CASE( "Algoly: PassRef: local pass whole part to open array slice open array", "[algoly][pass-ref]" )
@@ -1241,7 +1241,7 @@ TEST_CASE( "Algoly: PassRef: local pass whole part to open array slice open arra
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 29, 0, 13 + 9 );
+    TestCompileAndRunAlgoly( code, 29, 0, 14 + 9 );
 }
 
 
@@ -1268,7 +1268,7 @@ TEST_CASE( "Algoly: PassRef: global pass whole to closed array open array", "[al
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 12 );
+    TestCompileAndRunAlgoly( code, 30, 0, 13 );
 }
 
 TEST_CASE( "Algoly: PassRef: local pass whole to closed array open array", "[algoly][pass-ref]" )
@@ -1290,7 +1290,7 @@ TEST_CASE( "Algoly: PassRef: local pass whole to closed array open array", "[alg
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 18 + 3 );
+    TestCompileAndRunAlgoly( code, 30, 0, 19 + 3 );
 }
 
 TEST_CASE( "Algoly: PassRef: global pass whole to open array open array", "[algoly][pass-ref]" )
@@ -1312,7 +1312,7 @@ TEST_CASE( "Algoly: PassRef: global pass whole to open array open array", "[algo
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 13 );
+    TestCompileAndRunAlgoly( code, 30, 0, 14 );
 }
 
 TEST_CASE( "Algoly: PassRef: local pass whole to open array open array", "[algoly][pass-ref]" )
@@ -1334,7 +1334,7 @@ TEST_CASE( "Algoly: PassRef: local pass whole to open array open array", "[algol
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 30, 0, 19 + 3 );
+    TestCompileAndRunAlgoly( code, 30, 0, 20 + 3 );
 }
 
 TEST_CASE( "Algoly: PassRef: global pass whole to open array slice open array", "[algoly][pass-ref]" )
@@ -1356,7 +1356,7 @@ TEST_CASE( "Algoly: PassRef: global pass whole to open array slice open array", 
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 29, 0, 13 );
+    TestCompileAndRunAlgoly( code, 29, 0, 14 );
 }
 
 TEST_CASE( "Algoly: PassRef: local pass whole to open array slice open array", "[algoly][pass-ref]" )
@@ -1378,7 +1378,7 @@ TEST_CASE( "Algoly: PassRef: local pass whole to open array slice open array", "
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 29, 0, 13 + 9 );
+    TestCompileAndRunAlgoly( code, 29, 0, 14 + 9 );
 }
 
 TEST_CASE( "Algoly: PassRef: countof global pass whole to open array slice open array", "[algoly][pass-ref]" )
@@ -1492,7 +1492,7 @@ TEST_CASE( "Algoly: PassRef: in bounds, global open array, var index", "[algoly]
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 13, 0, 10 );
+    TestCompileAndRunAlgoly( code, 13, 0, 11 );
 }
 
 TEST_CASE( "Algoly: PassRef: in bounds, global open array, const index", "[algoly][pass-ref][bounds]" )
@@ -1509,7 +1509,7 @@ TEST_CASE( "Algoly: PassRef: in bounds, global open array, const index", "[algol
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 13, 0, 10 );
+    TestCompileAndRunAlgoly( code, 13, 0, 11 );
 }
 
 TEST_CASE( "Algoly: PassRef: out of bounds, global closed array, var index", "[algoly][pass-ref][bounds][negative]" )
