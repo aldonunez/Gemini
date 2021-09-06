@@ -361,6 +361,11 @@ void WhileStatement::Accept( Visitor* visitor )
     visitor->VisitWhileStatement( this );
 }
 
+void YieldStatement::Accept( Visitor* visitor )
+{
+    visitor->VisitYieldStatement( this );
+}
+
 
 std::optional<int32_t> GetFinalOptionalSyntaxValue( Syntax* node )
 {
@@ -557,6 +562,10 @@ void Visitor::VisitVarDecl( VarDecl* varDecl )
 }
 
 void Visitor::VisitWhileStatement( WhileStatement* whileStmt )
+{
+}
+
+void Visitor::VisitYieldStatement( YieldStatement* yieldStmt )
 {
 }
 

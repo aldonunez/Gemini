@@ -767,6 +767,17 @@ int Machine::Run()
             }
             break;
 
+        case OP_YIELD:
+            {
+                if ( mNativeNestingLevel > 0 )
+                    return ERR_BAD_STATE;
+
+                mPC = static_cast<U32>(codePtr - mMod->CodeBase);
+
+                return ERR_YIELDED;
+            }
+            break;
+
         default:
             return ERR_BAD_OPCODE;
         }

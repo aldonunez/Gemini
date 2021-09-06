@@ -44,6 +44,7 @@ enum OpCode : uint8_t
     OP_BOUND,
     OP_BOUNDOPEN,
     OP_BOUNDOPENSLICE,
+    OP_YIELD,
     OP_MAXOPCODE,
 
     // Having each module end with this unsupported opcode ensures that:

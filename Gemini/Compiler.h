@@ -479,6 +479,7 @@ private:
     virtual void VisitUnit( Unit* unit ) override;
     virtual void VisitVarDecl( VarDecl* varDecl ) override;
     virtual void VisitWhileStatement( WhileStatement* whileStmt ) override;
+    virtual void VisitYieldStatement( YieldStatement* whileStmt ) override;
 };
 
 }

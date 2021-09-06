@@ -1461,6 +1461,11 @@ void BinderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
     whileStmt->Type = mIntType;
 }
 
+void BinderVisitor::VisitYieldStatement( YieldStatement* yieldStmt )
+{
+    yieldStmt->Type = mIntType;
+}
+
 
 void BinderVisitor::BindLambdas( Unit* unit )
 {

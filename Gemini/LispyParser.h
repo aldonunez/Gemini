@@ -111,6 +111,7 @@ private:
     Unique<Syntax> ParseDo();
     Unique<Syntax> ParseBreak();
     Unique<Syntax> ParseNext();
+    Unique<Syntax> ParseYield();
     Unique<Syntax> ParseCase();
     Unique<CaseWhen> ParseCaseWhen();
     Unique<Syntax> ParseProgn();

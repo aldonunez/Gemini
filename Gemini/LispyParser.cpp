@@ -97,6 +97,7 @@ LispyParser::LispyParser( const char* codeText, size_t codeTextLen, const char* 
         { "do", &LispyParser::ParseDo },
         { "break", &LispyParser::ParseBreak },
         { "next", &LispyParser::ParseNext },
+        { "yield", &LispyParser::ParseYield },
         { "case", &LispyParser::ParseCase },
         { "progn", &LispyParser::ParseProgn },
         { "defun", &LispyParser::ParseGlobalError },
@@ -1003,6 +1004,16 @@ Unique<Syntax> LispyParser::ParseNext()
     ScanRParen();
 
     return nextStmt;
+}
+
+Unique<Syntax> LispyParser::ParseYield()
+{
+    auto yieldStmt = Make<YieldStatement>();
+
+    ScanToken();
+    ScanRParen();
+
+    return yieldStmt;
 }
 
 Unique<Syntax> LispyParser::ParseCase()

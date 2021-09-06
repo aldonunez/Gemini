@@ -81,6 +81,7 @@ static const char* gTokenNames[] =
     "var",
     "when",
     "while",
+    "yield",
 };
 
 
@@ -507,6 +508,7 @@ void AlgolyParser::ReadSymbolOrKeyword()
         { "var",    TokenCode::Var },
         { "when",   TokenCode::When },
         { "while",  TokenCode::While },
+        { "yield",  TokenCode::Yield },
     };
 
     while ( IsIdentifierCoda( PeekChar() ) )
@@ -793,6 +795,10 @@ Unique<Syntax> AlgolyParser::ParseStatement()
 
     case TokenCode::Next:
         elem = ParseNext();
+        break;
+
+    case TokenCode::Yield:
+        elem = ParseYield();
         break;
 
     default:
@@ -1872,6 +1878,12 @@ Unique<Syntax> AlgolyParser::ParseNext()
 {
     ScanToken();
     return Make<NextStatement>();
+}
+
+Unique<Syntax> AlgolyParser::ParseYield()
+{
+    ScanToken();
+    return Make<YieldStatement>();
 }
 
 Unique<NumberExpr> AlgolyParser::ParseNumber()

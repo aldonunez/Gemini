@@ -2313,6 +2313,88 @@ TEST_CASE( "Algoly: mod array 1", "[algoly]" )
 }
 
 
+//----------------------------------------------------------------------------
+//  Yield
+//----------------------------------------------------------------------------
+
+// TODO: prove that it yielded the right number of times; maybe also the value at each point
+
+TEST_CASE( "Algoly: yield discard", "[algoly]" )
+{
+    const char code[] =
+        "var n := 0\n"
+        "def a\n"
+        "  B(1)\n"
+        "  yield\n"
+        "  B(2)\n"
+        "  yield\n"
+        "  B(3)\n"
+        "  n\n"
+        "end\n"
+        "def B(x) n := n + x end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: yield end", "[algoly]" )
+{
+    const char code[] =
+        "var n := 0\n"
+        "def a\n"
+        "  B(1)\n"
+        "  yield\n"
+        "  B(2)\n"
+        "  yield\n"
+        "end\n"
+        "def B(x) n := n + x end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 0 );
+}
+
+
+//------------------------
+
+int NatCallFailManagedYield( Machine* machine, U8 argc, CELL* args, UserContext context )
+{
+    if ( argc != 1 )
+        return ERR_BAD_ARG;
+
+    machine->Start( args[0], 0 );
+
+    return machine->Run();
+}
+
+static NativePair gNestedManagedYieldNatives[] =
+{
+    { 0, NatCallFailManagedYield },
+    { 0, nullptr }
+};
+
+TEST_CASE( "Algoly: fail nested managed yield", "[algoly][negative]" )
+{
+    const char* mainCode[] =
+    {
+        "def a\n"
+        "  Call(&A)\n"
+        "end\n"
+        "def A() yield end\n"
+        "native Call(callback: &proc)\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, Emplace<ResultKind::Vm>( ERR_BAD_STATE ), ParamSpan(), 0, gNestedManagedYieldNatives );
+}
+
+
 // TODO:
 //TEST_CASE( "For ??? 1", "[algoly]" )
 //{

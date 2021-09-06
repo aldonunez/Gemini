@@ -46,6 +46,7 @@ static const char* gOpCodes[] =
     "BOUND",
     "BOUNDOPEN",
     "BOUNDOPENSLICE",
+    "YIELD",
 };
 
 static const char* gPrimitives[] = 
@@ -123,6 +124,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_STOREI:
     case OP_RET:
     case OP_COPYBLOCK:
+    case OP_YIELD:
         break;
 
     case OP_PUSH:

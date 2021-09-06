@@ -1383,6 +1383,13 @@ void Compiler::VisitNextStatement( NextStatement* nextStmt )
     GenerateNext( nextStmt, Config(), Status() );
 }
 
+void Compiler::VisitYieldStatement( YieldStatement* nextStmt )
+{
+    Emit( OP_YIELD );
+
+    GenerateNilIfNeeded( Config(), Status() );
+}
+
 void Compiler::GenerateCase( CaseExpr* caseExpr, const GenConfig& config, GenStatus& status )
 {
     GenerateGeneralCase( caseExpr, config, status );

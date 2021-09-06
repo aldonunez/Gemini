@@ -87,6 +87,7 @@ class AlgolyParser
         Var,
         When,
         While,
+        Yield,
     };
 
     typedef bool (AlgolyParser::*TestOpFunc)();
@@ -182,6 +183,7 @@ private:
     Unique<Syntax> ParseWhile();
     Unique<Syntax> ParseBreak();
     Unique<Syntax> ParseNext();
+    Unique<Syntax> ParseYield();
     Unique<Syntax> ParseCase();
     Unique<CaseWhen> ParseCaseWhen();
     Unique<CaseElse> ParseCaseElse();

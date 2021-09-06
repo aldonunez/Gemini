@@ -540,6 +540,12 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
+class YieldStatement : public Syntax
+{
+public:
+    virtual void Accept( Visitor* visitor ) override;
+};
+
 class ProcDeclBase : public DeclSyntax
 {
 public:
@@ -648,6 +654,7 @@ public:
     virtual void VisitUnit( Unit* unit );
     virtual void VisitVarDecl( VarDecl* varDecl );
     virtual void VisitWhileStatement( WhileStatement* whileStmt );
+    virtual void VisitYieldStatement( YieldStatement* yieldStmt );
 };
 
 
