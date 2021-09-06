@@ -20,7 +20,7 @@ typedef int16_t I16;
 typedef int32_t I32;
 
 
-constexpr uint8_t SENTINEL_SIZE = 6;
+constexpr uint8_t SENTINEL_SIZE = 7;
 constexpr uint8_t MODULE_CODE_ALIGNMENT = 4;
 constexpr uint8_t FRAME_WORDS = 2;
 

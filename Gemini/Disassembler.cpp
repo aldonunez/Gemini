@@ -40,8 +40,6 @@ static const char* gOpCodes[] =
     "CALLM",
     "CALLNATIVE",
     "CALLNATIVE.S",
-    "INDEX",
-    "INDEX.S",
     "COPYBLOCK",
     "COPYARRAY",
     "BOUND",
@@ -126,9 +124,6 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LOADI:
     case OP_STOREI:
     case OP_RET:
-    case OP_BOUNDOPEN:
-    case OP_BOUNDOPENSLICE:
-    case OP_BOUNDOPENCLOSEDSLICE:
     case OP_YIELD:
         break;
 
@@ -139,7 +134,6 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LDLOCA:
     case OP_LDLOC:
     case OP_STLOC:
-    case OP_INDEX_S:
         {
             int value = *(U8*) mCodePtr++;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u", value );
@@ -162,11 +156,11 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         }
         break;
 
-    case OP_INDEX:
     case OP_COPYBLOCK:
     case OP_COPYARRAY:
-    case OP_BOUND:
-    case OP_BOUNDSLICE:
+    case OP_BOUNDOPEN:
+    case OP_BOUNDOPENSLICE:
+    case OP_BOUNDOPENCLOSEDSLICE:
         {
             int value = ReadU24( mCodePtr );
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u", value );
@@ -244,6 +238,15 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
             int offset = BranchInst::ReadOffset( mCodePtr );
             int target = static_cast<int32_t>(mCodePtr - mCodeBin) + offset;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " $%06X", target );
+        }
+        break;
+
+    case OP_BOUND:
+    case OP_BOUNDSLICE:
+        {
+            int stride = ReadU24( mCodePtr );
+            int bound = ReadU24( mCodePtr );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u, %u", stride, bound );
         }
         break;
 

@@ -38,8 +38,6 @@ enum OpCode : uint8_t
     OP_CALLM,
     OP_CALLNATIVE,
     OP_CALLNATIVE_S,
-    OP_INDEX,
-    OP_INDEX_S,
     OP_COPYBLOCK,
     OP_COPYARRAY,
     OP_BOUND,

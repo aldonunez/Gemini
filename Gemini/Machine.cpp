@@ -647,50 +647,6 @@ int Machine::Run()
             }
             break;
 
-        case OP_INDEX:
-            {
-                if ( WouldUnderflow( 2 ) )
-                    return ERR_STACK_UNDERFLOW;
-
-                U32  base = mSP[1];
-                CELL index = mSP[0];
-                U32  stride = ReadU24( codePtr );
-
-                if ( index < 0 )
-                    return ERR_BAD_ADDRESS;
-
-                auto newAddr = base + (static_cast<U64>(index) * stride);
-
-                if ( newAddr > CodeAddr::ToModuleMax( base ) )
-                    return ERR_BAD_ADDRESS;
-
-                mSP[1] = static_cast<CELL>(newAddr);
-                mSP++;
-            }
-            break;
-
-        case OP_INDEX_S:
-            {
-                if ( WouldUnderflow( 2 ) )
-                    return ERR_STACK_UNDERFLOW;
-
-                U32  base = mSP[1];
-                CELL index = mSP[0];
-                U8   stride = ReadU8( codePtr );
-
-                if ( index < 0 )
-                    return ERR_BAD_ADDRESS;
-
-                auto newAddr = base + (static_cast<U64>(index) * stride);
-
-                if ( newAddr > CodeAddr::ToModuleMax( base ) )
-                    return ERR_BAD_ADDRESS;
-
-                mSP[1] = static_cast<CELL>(newAddr);
-                mSP++;
-            }
-            break;
-
         case OP_COPYBLOCK:
             {
                 if ( WouldUnderflow( 2 ) )
@@ -751,14 +707,24 @@ int Machine::Run()
 
         case OP_BOUND:
             {
-                if ( WouldUnderflow() )
+                if ( WouldUnderflow( 2 ) )
                     return ERR_STACK_UNDERFLOW;
 
+                U32  base = mSP[1];
                 CELL index = mSP[0];
-                CELL bound = ReadU24( codePtr );
+                U32  stride = ReadU24( codePtr );
+                U32  bound = ReadU24( codePtr );
 
-                if ( index < 0 || index >= bound )
+                if ( index < 0 || static_cast<U32>(index) >= bound )
                     return ERR_BOUND;
+
+                auto newAddr = base + (static_cast<U64>(index) * stride);
+
+                if ( newAddr > CodeAddr::ToModuleMax( base ) )
+                    return ERR_BAD_ADDRESS;
+
+                mSP[1] = static_cast<CELL>(newAddr);
+                mSP++;
             }
             break;
 
@@ -768,15 +734,20 @@ int Machine::Run()
                     return ERR_STACK_UNDERFLOW;
 
                 CELL bound = mSP[2];
-                CELL addr = mSP[1];
+                U32  base = mSP[1];
                 CELL index = mSP[0];
+                U32  stride = ReadU24( codePtr );
 
-                if ( index < 0 || index >= bound )
+                if ( index < 0 || index >= bound || bound < 1 )
                     return ERR_BOUND;
 
-                mSP[2] = addr;
-                mSP[1] = index;
-                mSP++;
+                auto newAddr = base + (static_cast<U64>(index) * stride);
+
+                if ( newAddr > CodeAddr::ToModuleMax( base ) )
+                    return ERR_BAD_ADDRESS;
+
+                mSP[2] = static_cast<CELL>(newAddr);
+                mSP += 2;
             }
             break;
 
@@ -786,18 +757,23 @@ int Machine::Run()
                     return ERR_STACK_UNDERFLOW;
 
                 CELL bound = mSP[3];
-                CELL addr = mSP[2];
+                U32  base = mSP[2];
                 CELL index = mSP[1];
                 CELL end = mSP[0];
+                U32  stride = ReadU24( codePtr );
 
-                if ( index < 0 || index >= bound
+                if ( index < 0 || index >= bound || bound < 1
                     || end <= index || end > bound )
                     return ERR_BOUND;
 
+                auto newAddr = base + (static_cast<U64>(index) * stride);
+
+                if ( newAddr > CodeAddr::ToModuleMax( base ) )
+                    return ERR_BAD_ADDRESS;
+
                 mSP[3] = end - index;
-                mSP[2] = addr;
-                mSP[1] = index;
-                mSP++;
+                mSP[2] = static_cast<CELL>(newAddr);
+                mSP += 2;
             }
             break;
 
@@ -807,17 +783,22 @@ int Machine::Run()
                     return ERR_STACK_UNDERFLOW;
 
                 CELL bound = mSP[3];
-                CELL addr = mSP[2];
+                U32  base = mSP[2];
                 CELL index = mSP[1];
                 CELL end = mSP[0];
+                U32  stride = ReadU24( codePtr );
 
-                if ( index < 0 || index >= bound
+                if ( index < 0 || index >= bound || bound < 1
                     || end <= index || end > bound )
                     return ERR_BOUND;
 
-                mSP[3] = addr;
-                mSP[2] = index;
-                mSP += 2;
+                auto newAddr = base + (static_cast<U64>(index) * stride);
+
+                if ( newAddr > CodeAddr::ToModuleMax( base ) )
+                    return ERR_BAD_ADDRESS;
+
+                mSP[3] = static_cast<CELL>(newAddr);
+                mSP += 3;
             }
             break;
 
@@ -826,18 +807,24 @@ int Machine::Run()
                 if ( WouldUnderflow( 3 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                CELL addr = mSP[2];
+                U32  base = mSP[2];
                 CELL index = mSP[1];
                 CELL end = mSP[0];
-                CELL bound = ReadU24( codePtr );
+                U32  stride = ReadU24( codePtr );
+                U32  bound = ReadU24( codePtr );
 
-                if ( index < 0 || index >= bound
-                    || end <= index || end > bound )
+                if ( index < 0 || static_cast<U32>(index) >= bound
+                    || end <= index || static_cast<U32>(end) > bound )
                     return ERR_BOUND;
 
+                auto newAddr = base + (static_cast<U64>(index) * stride);
+
+                if ( newAddr > CodeAddr::ToModuleMax( base ) )
+                    return ERR_BAD_ADDRESS;
+
                 mSP[2] = end - index;
-                mSP[1] = addr;
-                mSP[0] = index;
+                mSP[1] = static_cast<CELL>(newAddr);
+                mSP++;
             }
             break;
 

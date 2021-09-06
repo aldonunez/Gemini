@@ -401,7 +401,7 @@ void Compiler::EmitSpilledAddrOffset( int32_t offset )
     // TODO: Consider adding an OFFSET instruction that safely adds a constant offset to an address
 
     EmitLoadConstant( offset );
-    EmitU8( OP_INDEX_S, 1 );
+    EmitU8( OP_PRIM, PRIM_ADD );
 
     DecreaseExprDepth();
 }
@@ -1978,7 +1978,7 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
     {
         if ( fullExpr->Kind == SyntaxKind::Index )
         {
-            Emit( OP_BOUNDOPEN );
+            EmitU24( OP_BOUNDOPEN, arrayType.ElemType->GetSize() );
             DecreaseExprDepth();
         }
         else
@@ -1990,12 +1990,12 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
 
             if ( firstVal.has_value() && lastVal.has_value() )
             {
-                Emit( OP_BOUNDOPENCLOSEDSLICE );
+                EmitU24( OP_BOUNDOPENCLOSEDSLICE, arrayType.ElemType->GetSize() );
                 DecreaseExprDepth( 2 );
             }
             else
             {
-                Emit( OP_BOUNDOPENSLICE );
+                EmitU24( OP_BOUNDOPENSLICE, arrayType.ElemType->GetSize() );
                 DecreaseExprDepth( 1 );
             }
         }
@@ -2004,23 +2004,14 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
     {
         if ( fullExpr->Kind == SyntaxKind::Index )
         {
-            EmitU24( OP_BOUND, arrayType.Count );
+            EmitOpenIndex( OP_BOUND, arrayType.ElemType->GetSize(), arrayType.Count );
         }
         else
         {
             Generate( ((SliceExpr*) fullExpr)->LastIndex.get() );
 
-            EmitU24( OP_BOUNDSLICE, arrayType.Count );
+            EmitOpenIndex( OP_BOUNDSLICE, arrayType.ElemType->GetSize(), arrayType.Count );
         }
-    }
-
-    if ( arrayType.ElemType->GetSize() > UINT8_MAX )
-    {
-        EmitU24( OP_INDEX, arrayType.ElemType->GetSize() );
-    }
-    else
-    {
-        EmitU8( OP_INDEX_S, static_cast<U8>(arrayType.ElemType->GetSize()) );
     }
 
     DecreaseExprDepth();
@@ -2669,6 +2660,18 @@ void Compiler::EmitU32( OpCode opcode, U32 operand )
     StoreU32( &mCodeBin.at( curIndex + 1 ), operand );
 
     DISASSEMBLE( &mCodeBin[curIndex], 5 );
+}
+
+void Compiler::EmitOpenIndex( OpCode opcode, U32 stride, U32 bound )
+{
+    size_t curIndex = ReserveCode( 7 );
+
+    mCodeBin[curIndex] = opcode;
+
+    StoreU24( &mCodeBin.at( curIndex + 1 ), stride );
+    StoreU24( &mCodeBin.at( curIndex + 4 ), bound );
+
+    DISASSEMBLE( &mCodeBin[curIndex], 7 );
 }
 
 void Compiler::EmitModAccess( OpCode opcode, U8 mod, U16 addr )
