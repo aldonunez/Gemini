@@ -139,6 +139,14 @@ CELL* Machine::Start( U8 modIndex, U32 address, U8 argCount )
     return args;
 }
 
+CELL* Machine::Start( CELL addrWord, U8 argCount )
+{
+    U8 modIndex = CodeAddr::GetModule( addrWord );
+    U32 address = CodeAddr::GetAddress( addrWord );
+
+    return Start( modIndex, address, argCount );
+}
+
 void Machine::Reset()
 {
     mSP = &mStack[mStackSize];
@@ -833,6 +841,15 @@ int Machine::PushCell( CELL value )
         return ERR_STACK_OVERFLOW;
 
     Push( value );
+    return ERR_NONE;
+}
+
+int Machine::PopCell( CELL& value )
+{
+    if ( WouldUnderflow() )
+        return ERR_STACK_UNDERFLOW;
+
+    value = Pop();
     return ERR_NONE;
 }
 

@@ -106,10 +106,12 @@ public:
     U8 GetModIndex() const;
 
     CELL* Start( U8 modIndex, U32 address, U8 argCount );
+    CELL* Start( CELL addrWord, U8 argCount );
     void Reset();
     int Run();
     int Yield( NativeFunc proc, UserContext context );
     int PushCell( CELL value );
+    int PopCell( CELL& value );
 
 private:
     void Init( CELL* stack, U16 stackSize, UserContext scriptCtx );

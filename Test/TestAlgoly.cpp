@@ -1755,33 +1755,70 @@ TEST_CASE( "Algoly: native yield", "[algoly]" )
     TestCompileAndRun( Language::Gema, modSources, 150, 0, 0, gYieldNatives );
 }
 
-#if 0
-int NatCall( Machine* machine, U8 argc, CELL* args, UserContext context )
+
+int NatCallA( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( machine == nullptr || argc != 2 || args == nullptr )
+    if ( argc != 2 )
         return ERR_BAD_ARG;
 
-    machine->
-    machine->PushCell( args[0] + args[1] );
+    CELL* subArgs = machine->Start( args[0], 1 );
+
+    subArgs[0] = args[1] + 4;
+
+    int err = machine->Run();
+    if ( err != ERR_NONE )
+        return err;
+
+    // Leave the return value from the managed call on the stack
+
     return ERR_NONE;
 }
 
-NativeFunc gCallbackNatives[] =
+int NatCallB( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    nullptr
+    if ( argc != 2 )
+        return ERR_BAD_ARG;
+
+    CELL* subArgs = machine->Start( args[0], 1 );
+
+    subArgs[0] = args[1] + 5;
+
+    int err = machine->Run();
+    if ( err != ERR_NONE )
+        return err;
+
+    CELL retVal;
+
+    err = machine->PopCell( retVal );
+    if ( err != ERR_NONE )
+        return err;
+
+    err = machine->PushCell( retVal );
+    if ( err != ERR_NONE )
+        return err;
+
+    return ERR_NONE;
+}
+
+static NativePair gNestedNatives[] =
+{
+    { 0, NatCallA },
+    { 1, NatCallB },
+    { 0, nullptr }
 };
 
-TEST_CASE( "Algoly: native call back", "[algoly]" )
+TEST_CASE( "Algoly: native call back nested", "[algoly]" )
 {
     const char* mainCode[] =
     {
         "def a\n"
-        "  Call(&B, 3)\n"
+        "  CallA(&A, 1)\n"
         "end\n"
-        "def B(x) 30+x end\n"
-        "native Call(callback: &proc(int), addend: int)\n"
+        "def A(x) CallB(&B, 10+x) end\n"
+        "def B(x) 20+x end\n"
+        "native CallA(callback: &proc(int), addend: int)\n"
+        "native CallB(callback: &proc(int), addend: int)\n"
         ,
-
         nullptr
     };
 
@@ -1791,9 +1828,53 @@ TEST_CASE( "Algoly: native call back", "[algoly]" )
         { },
     };
 
-    TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gNatives );
+    TestCompileAndRun( Language::Gema, modSources, 40, 0, 0, gNestedNatives );
 }
-#endif
+
+
+int NatCallFail( Machine* machine, U8 argc, CELL* args, UserContext context )
+{
+    return ERR_NATIVE_ERROR;
+}
+
+int NatCallYield( Machine* machine, U8 argc, CELL* args, UserContext context )
+{
+    if ( argc != 2 )
+        return ERR_BAD_ARG;
+
+    return machine->Yield( NatCallFail, 0 );
+}
+
+static NativePair gNestedYieldNatives[] =
+{
+    { 0, NatCallA },
+    { 1, NatCallYield },
+    { 0, nullptr }
+};
+
+TEST_CASE( "Algoly: native call back nested yield", "[algoly][negative]" )
+{
+    const char* mainCode[] =
+    {
+        "def a\n"
+        "  CallA(&A, 1)\n"
+        "end\n"
+        "def A(x) CallB(&B, 10+x) end\n"
+        "def B(x) 20+x end\n"
+        "native CallA(callback: &proc(int), addend: int)\n"
+        "native CallB(callback: &proc(int), addend: int)\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    TestCompileAndRun( Language::Gema, modSources, Emplace<ResultKind::Vm>( ERR_NATIVE_ERROR ), ParamSpan(), 0, gNestedYieldNatives );
+}
 
 
 //----------------------------------------------------------------------------
