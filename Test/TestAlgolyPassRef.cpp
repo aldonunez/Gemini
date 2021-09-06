@@ -847,6 +847,38 @@ TEST_CASE( "Algoly: PassRef: local countof open array", "[algoly][pass-ref]" )
     TestCompileAndRunAlgoly( code, 3, 0, 7+3 );
 }
 
+TEST_CASE( "Algoly: PassRef: global countof open range of open array", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "var ar: [4] := [1, 2, 3, 4]\n"
+        "def a\n"
+        "  B( ar )\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  var i := 1, j := 3\n"
+        "  countof( array[i..j] )\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 2 );
+}
+
+TEST_CASE( "Algoly: PassRef: local countof open range of open array", "[algoly][pass-ref]" )
+{
+    const char code[] =
+        "def a\n"
+        "  var ar: [3] := [1, 2, 3]\n"
+        "  B( ar )\n"
+        "end\n"
+        "def B(var array: [])\n"
+        "  var i := 1, j := 3\n"
+        "  countof( array[i..j] )\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 2 );
+}
+
 TEST_CASE( "Algoly: PassRef: global modify open array", "[algoly][pass-ref]" )
 {
     const char code[] =

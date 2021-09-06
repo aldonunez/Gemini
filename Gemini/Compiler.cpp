@@ -525,17 +525,22 @@ void Compiler::EmitCountofArray( Syntax* arrayNode )
 
         CalcAddress( arrayNode, decl, offset );
 
-        if ( decl->Kind != DeclKind::Param )
+        if ( decl->Kind == DeclKind::Param )
+        {
+            auto param = (ParamStorage*) decl;
+
+            EmitU8( OP_LDARG, param->Offset + 1 );
+            IncreaseExprDepth();
+        }
+        else if ( decl->Kind == DeclKind::LoadedAddress )
+        {
+            Emit( OP_POP );
+            DecreaseExprDepth();
+        }
+        else
+        {
             THROW_INTERNAL_ERROR( "" );
-
-        // Only ref params are allowed to take open array types
-        // Because of this, the address calculation above won't spill
-
-        auto param = (ParamStorage*) decl;
-
-        EmitU8( OP_LDARG, param->Offset + 1 );
-
-        IncreaseExprDepth();
+        }
     }
 }
 
