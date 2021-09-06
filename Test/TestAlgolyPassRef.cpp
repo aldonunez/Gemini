@@ -1461,7 +1461,7 @@ TEST_CASE( "Algoly: open slice index complex expr", "[algoly][pass-ref]" )
 //  Compare bounds checking
 //----------------------------------------------------------------------------
 
-TEST_CASE( "Algoly: PassRef: in bounds, global closed array, var index", "[algoly][pass-ref]" )
+TEST_CASE( "Algoly: PassRef: in bounds, global closed array, var index", "[algoly][pass-ref][bounds]" )
 {
     const char code[] =
         "var two := 2\n"
@@ -1478,7 +1478,7 @@ TEST_CASE( "Algoly: PassRef: in bounds, global closed array, var index", "[algol
     TestCompileAndRunAlgoly( code, 13, 0, 9 );
 }
 
-TEST_CASE( "Algoly: PassRef: in bounds, global open array, var index", "[algoly][pass-ref]" )
+TEST_CASE( "Algoly: PassRef: in bounds, global open array, var index", "[algoly][pass-ref][bounds]" )
 {
     const char code[] =
         "var two := 2\n"
@@ -1495,7 +1495,7 @@ TEST_CASE( "Algoly: PassRef: in bounds, global open array, var index", "[algoly]
     TestCompileAndRunAlgoly( code, 13, 0, 10 );
 }
 
-TEST_CASE( "Algoly: PassRef: in bounds, global open array, const index", "[algoly][pass-ref]" )
+TEST_CASE( "Algoly: PassRef: in bounds, global open array, const index", "[algoly][pass-ref][bounds]" )
 {
     const char code[] =
         "var two := 2\n"
@@ -1512,7 +1512,7 @@ TEST_CASE( "Algoly: PassRef: in bounds, global open array, const index", "[algol
     TestCompileAndRunAlgoly( code, 13, 0, 10 );
 }
 
-TEST_CASE( "Algoly: PassRef: out of bounds, global closed array, var index", "[algoly][pass-ref][negative]" )
+TEST_CASE( "Algoly: PassRef: out of bounds, global closed array, var index", "[algoly][pass-ref][bounds][negative]" )
 {
     const char code[] =
         "var three := 3\n"
@@ -1529,7 +1529,7 @@ TEST_CASE( "Algoly: PassRef: out of bounds, global closed array, var index", "[a
     TestCompileAndRunAlgoly( code, ERR_BOUND );
 }
 
-TEST_CASE( "Algoly: PassRef: out of bounds, global open array, var index", "[algoly][pass-ref][negative]" )
+TEST_CASE( "Algoly: PassRef: out of bounds, global open array, var index", "[algoly][pass-ref][bounds][negative]" )
 {
     const char code[] =
         "var three := 3\n"
@@ -1546,7 +1546,7 @@ TEST_CASE( "Algoly: PassRef: out of bounds, global open array, var index", "[alg
     TestCompileAndRunAlgoly( code, ERR_BOUND );
 }
 
-TEST_CASE( "Algoly: PassRef: out of bounds, global open array, const index", "[algoly][pass-ref][negative]" )
+TEST_CASE( "Algoly: PassRef: out of bounds, global open array, const index", "[algoly][pass-ref][bounds][negative]" )
 {
     const char code[] =
         "var ar: [3] := [1, 2, 3]\n"
@@ -1562,7 +1562,7 @@ TEST_CASE( "Algoly: PassRef: out of bounds, global open array, const index", "[a
     TestCompileAndRunAlgoly( code, ERR_BOUND );
 }
 
-TEST_CASE( "Algoly: PassRef: global array in record, var index", "[algoly][pass-ref]" )
+TEST_CASE( "Algoly: PassRef: global array in record, var index", "[algoly][pass-ref][bounds]" )
 {
     const char code[] =
         "var three := 3\n"
@@ -1572,27 +1572,6 @@ TEST_CASE( "Algoly: PassRef: global array in record, var index", "[algoly][pass-
         "  B( r.b[1..3] )\n"
         "  r.b[three] := 30\n"
         "  r.a + r.b[0] + r.b[1] + r.b[2] + r.b[3]\n"
-        "end\n"
-        "def B(var array: [])\n"
-        "  array[0] := 10\n"
-        "  array[1] := 20\n"
-        "end\n"
-        ;
-
-    TestCompileAndRunAlgoly( code, 65 );
-}
-
-TEST_CASE( "Algoly: PassRef: global array in record in array, var index", "[algoly][pass-ref]" )
-{
-    const char code[] =
-        "var three := 3\n"
-        "type R = record a, b: [4] end\n"
-        "var r: [2] of R := [ {}, { a: 2, b: [3, 4, 5, 6] } ]\n"
-        "var one := 1\n"
-        "def a\n"
-        "  B( r[one].b[1..3] )\n"
-        "  r[one].b[three] := 30\n"
-        "  r[1].a + r[1].b[0] + r[1].b[1] + r[1].b[2] + r[1].b[3]\n"
         "end\n"
         "def B(var array: [])\n"
         "  array[0] := 10\n"

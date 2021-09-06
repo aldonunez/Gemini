@@ -693,14 +693,14 @@ int Machine::Run()
 
         case OP_COPYBLOCK:
             {
-                if ( WouldUnderflow( 3 ) )
+                if ( WouldUnderflow( 2 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                CELL size = mSP[2];
                 CELL source = mSP[1];
                 CELL dest = mSP[0];
+                U32  size = ReadU24( codePtr );
 
-                mSP += 3;
+                mSP += 2;
 
                 auto [err, pDst] = GetSizedDataPtr( dest, size );
                 if ( err != ERR_NONE )
@@ -729,41 +729,39 @@ int Machine::Run()
 
         case OP_BOUNDOPEN:
             {
-                if ( WouldUnderflow() )
+                if ( WouldUnderflow( 3 ) )
                     return ERR_STACK_UNDERFLOW;
 
+                CELL bound = mSP[2];
+                CELL addr = mSP[1];
                 CELL index = mSP[0];
-                int  iArg = ReadU8( codePtr );
-                long offset = mFramePtr + FRAME_WORDS + iArg;
-
-                if ( offset >= mStackSize )
-                    return ERR_BAD_ADDRESS;
-
-                CELL bound = mStack[offset];
 
                 if ( index < 0 || index >= bound )
                     return ERR_BOUND;
+
+                mSP[2] = addr;
+                mSP[1] = index;
+                mSP++;
             }
             break;
 
-        case OP_BOUNDOPENSLICE:
+        case OP_BOUNDOPENCLOSEDSLICE:
             {
-                if ( WouldUnderflow( 2 ) )
+                if ( WouldUnderflow( 4 ) )
                     return ERR_STACK_UNDERFLOW;
 
+                CELL bound = mSP[3];
+                CELL addr = mSP[2];
                 CELL index = mSP[1];
-                CELL end = Pop();
-                int  iArg = ReadU8( codePtr );
-                long offset = mFramePtr + FRAME_WORDS + iArg;
-
-                if ( offset >= mStackSize )
-                    return ERR_BAD_ADDRESS;
-
-                CELL bound = mStack[offset];
+                CELL end = mSP[0];
 
                 if ( index < 0 || index >= bound
                     || end <= index || end > bound )
                     return ERR_BOUND;
+
+                mSP[3] = addr;
+                mSP[2] = index;
+                mSP += 2;
             }
             break;
 

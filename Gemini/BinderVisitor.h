@@ -172,5 +172,6 @@ private:
 
 bool IsScalarType( TypeKind kind );
 bool IsIntegralType( TypeKind kind );
+bool IsOpenArrayType( Type& type );
 
 }

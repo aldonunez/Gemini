@@ -361,8 +361,6 @@ private:
     void EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset );
     void EmitSpilledAddrOffset( int32_t offset );
-    void EmitLoadAggregateCopySource( Syntax* node );
-    void EmitLoadAggregateCopySource( Syntax* node, Type* type );
     void EmitCopyPartOfAggregate( Syntax* partNode, Type* partType );
     void EmitCountofArray( Syntax* arrayNode );
 

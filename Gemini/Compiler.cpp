@@ -315,7 +315,7 @@ void Compiler::GenerateValue( Syntax* node, Declaration* decl, const GenConfig& 
     }
     else
     {
-        EmitLoadAggregateCopySource( node );
+        EmitLoadAddress( node, decl, 0 );
     }
 }
 
@@ -404,23 +404,6 @@ void Compiler::EmitSpilledAddrOffset( int32_t offset )
     EmitU8( OP_INDEX_S, 1 );
 
     DecreaseExprDepth();
-}
-
-void Compiler::EmitLoadAggregateCopySource( Syntax* node )
-{
-    EmitLoadAggregateCopySource( node, node->Type.get() );
-}
-
-void Compiler::EmitLoadAggregateCopySource( Syntax* node, Type* type )
-{
-    int32_t         offset = 0;
-    Declaration*    decl = nullptr;
-
-    EmitLoadConstant( type->GetSize() );
-
-    CalcAddress( node, decl, offset );
-
-    EmitLoadAddress( node, decl, offset );
 }
 
 void Compiler::GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status )
@@ -789,9 +772,7 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
     }
     else
     {
-        Emit( OP_OVER );
-        Emit( OP_OVER );
-        IncreaseExprDepth();
+        Emit( OP_DUP );
         IncreaseExprDepth();
     }
 
@@ -802,11 +783,9 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
 
     EmitLoadAddress( assignment->Left.get(), baseDecl, offset );
 
-    Emit( OP_COPYBLOCK );
+    EmitU24( OP_COPYBLOCK, assignment->Right->Type->GetSize() );
 
-    DecreaseExprDepth( 3 );
-
-    // Generating a return value or argument value would need PUSHBLOCK
+    DecreaseExprDepth( 2 );
 }
 
 void Compiler::VisitAssignmentExpr( AssignmentExpr* assignment )
@@ -969,10 +948,10 @@ void Compiler::EmitLocalAggregateCopyBlock( LocalSize offset, Syntax* valueElem 
     Generate( valueElem );
 
     EmitU8( OP_LDLOCA, offset );
-    Emit( OP_COPYBLOCK );
+    EmitU24( OP_COPYBLOCK, valueElem->Type->GetSize() );
 
     IncreaseExprDepth();
-    DecreaseExprDepth( 3 );
+    DecreaseExprDepth( 2 );
 }
 
 void Compiler::EmitLocalArrayInitializer( LocalSize offset, InitList* initList, size_t size )
@@ -1050,7 +1029,8 @@ void Compiler::EmitLocalRecordInitializer( LocalSize offset, RecordInitializer* 
 void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
 {
     if ( paramSpec.Type->GetKind() == TypeKind::Array
-        && ((ArrayType&) *paramSpec.Type).Count == 0 )
+        && ((ArrayType&) *paramSpec.Type).Count == 0
+        && ((ArrayType&) *node.Type).Count != 0 )
     {
         EmitCountofArray( &node );
     }
@@ -1847,7 +1827,14 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
             {
                 auto param = (ParamStorage*) baseDecl;
 
-                if ( param->Mode == ParamMode::Value )
+                if ( IsOpenArrayType( *param->Type ) )
+                {
+                    EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + 1) );
+                    EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + 0) );
+                    IncreaseExprDepth();
+                    IncreaseExprDepth();
+                }
+                else if ( param->Mode == ParamMode::Value )
                 {
                     assert( offset >= 0 && offset < ParamSizeMax );
                     assert( offset < (ParamSizeMax - param->Offset) );
@@ -1922,29 +1909,17 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
 
     if ( arrayType.Count == 0 )
     {
-        Declaration*    decl = nullptr;
-        int32_t         offset = 0;
-
-        CalcAddress( head, decl, offset );
-
-        if ( decl->Kind != DeclKind::Param )
-            THROW_INTERNAL_ERROR( "" );
-
-        // Only ref params are allowed to take open array types
-        // Because of this, the address calculation above won't spill
-
-        auto param = (ParamStorage*) decl;
-
         if ( fullExpr->Kind == SyntaxKind::Index )
         {
-            EmitU8( OP_BOUNDOPEN, param->Offset + 1 );
+            Emit( OP_BOUNDOPEN );
+            DecreaseExprDepth();
         }
         else
         {
             Generate( ((SliceExpr*) fullExpr)->LastIndex.get() );
 
-            EmitU8( OP_BOUNDOPENSLICE, param->Offset + 1 );
-            DecreaseExprDepth();
+            Emit( OP_BOUNDOPENCLOSEDSLICE );
+            DecreaseExprDepth( 2 );
         }
     }
     else
@@ -2005,7 +1980,12 @@ void Compiler::EmitCopyPartOfAggregate( Syntax* partNode, Type* partType )
     }
     else
     {
-        EmitLoadAggregateCopySource( partNode, partType );
+        Declaration* baseDecl = nullptr;
+        int32_t      offset = 0;
+
+        CalcAddress( partNode, baseDecl, offset );
+
+        EmitLoadAddress( partNode, baseDecl, offset );
     }
 }
 
@@ -2043,7 +2023,12 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
         return;
     }
 
-    EmitLoadAggregateCopySource( sliceExpr );
+    Declaration*    baseDecl = nullptr;
+    int32_t         offset = 0;
+
+    CalcAddress( sliceExpr, baseDecl, offset );
+
+    EmitLoadAddress( sliceExpr, baseDecl, offset );
 }
 
 void Compiler::GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status )

@@ -45,7 +45,7 @@ static const char* gOpCodes[] =
     "COPYBLOCK",
     "BOUND",
     "BOUNDOPEN",
-    "BOUNDOPENSLICE",
+    "BOUNDOPENCLOSEDSLICE",
     "YIELD",
 };
 
@@ -123,7 +123,8 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LOADI:
     case OP_STOREI:
     case OP_RET:
-    case OP_COPYBLOCK:
+    case OP_BOUNDOPEN:
+    case OP_BOUNDOPENCLOSEDSLICE:
     case OP_YIELD:
         break;
 
@@ -135,8 +136,6 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LDLOC:
     case OP_STLOC:
     case OP_INDEX_S:
-    case OP_BOUNDOPEN:
-    case OP_BOUNDOPENSLICE:
         {
             int value = *(U8*) mCodePtr++;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u", value );
@@ -160,6 +159,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
         break;
 
     case OP_INDEX:
+    case OP_COPYBLOCK:
     case OP_BOUND:
         {
             int value = ReadU24( mCodePtr );

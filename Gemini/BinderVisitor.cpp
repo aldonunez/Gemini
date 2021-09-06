@@ -171,6 +171,11 @@ static bool IsStorageType( TypeKind kind )
         ;
 }
 
+bool IsOpenArrayType( Type& type )
+{
+    return type.GetKind() == TypeKind::Array && ((ArrayType&) type).Count == 0;
+}
+
 static bool IsLValue( const Syntax& node )
 {
     if ( node.Kind != SyntaxKind::Name
