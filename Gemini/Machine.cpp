@@ -828,6 +828,23 @@ int Machine::Run()
             }
             break;
 
+        case OP_OFFSET:
+            {
+                if ( WouldUnderflow() )
+                    return ERR_STACK_UNDERFLOW;
+
+                U32  base = mSP[0];
+                U32  offset = ReadU24( codePtr );
+
+                auto newAddr = base + static_cast<U64>(offset);
+
+                if ( newAddr > CodeAddr::ToModuleMax( base ) )
+                    return ERR_BAD_ADDRESS;
+
+                mSP[0] = static_cast<CELL>(newAddr);
+            }
+            break;
+
         case OP_YIELD:
             {
                 if ( mNativeNestingLevel > 0 )

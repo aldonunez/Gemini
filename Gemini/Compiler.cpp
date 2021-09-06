@@ -398,12 +398,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
 
 void Compiler::EmitSpilledAddrOffset( int32_t offset )
 {
-    // TODO: Consider adding an OFFSET instruction that safely adds a constant offset to an address
-
-    EmitLoadConstant( offset );
-    EmitU8( OP_PRIM, PRIM_ADD );
-
-    DecreaseExprDepth();
+    EmitU24( OP_OFFSET, offset );
 }
 
 void Compiler::GenerateEvalStar( CallOrSymbolExpr* callOrSymbol, const GenConfig& config, GenStatus& status )

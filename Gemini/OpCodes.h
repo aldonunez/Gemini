@@ -45,6 +45,7 @@ enum OpCode : uint8_t
     OP_RANGEOPEN,
     OP_RANGEOPENCLOSED,
     OP_RANGE,
+    OP_OFFSET,
     OP_YIELD,
     OP_MAXOPCODE,
 

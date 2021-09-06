@@ -47,6 +47,7 @@ static const char* gOpCodes[] =
     "RANGEOPEN",
     "RANGEOPENCLOSED",
     "RANGE",
+    "OFFSET",
     "YIELD",
 };
 
@@ -161,6 +162,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_INDEXOPEN:
     case OP_RANGEOPEN:
     case OP_RANGEOPENCLOSED:
+    case OP_OFFSET:
         {
             int value = ReadU24( mCodePtr );
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u", value );
