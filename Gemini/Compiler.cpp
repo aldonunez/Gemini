@@ -1967,6 +1967,20 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
         status.offset = 0;
     }
 
+    // A slice of [..] only passes thru to the head of the expression
+
+    if ( fullExpr->Kind == SyntaxKind::Slice )
+    {
+        auto firstVal = GetFinalOptionalSyntaxValue( index );
+        auto lastVal = GetFinalOptionalSyntaxValue( ((SliceExpr*) fullExpr)->LastIndex.get() );
+
+        if ( firstVal.has_value() && firstVal == 0
+            && lastVal.has_value() && lastVal == -1 )
+        {
+            return;
+        }
+    }
+
     Generate( index );
 
     if ( arrayType.Count == 0 )
@@ -1983,7 +1997,7 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
             auto firstVal = GetFinalOptionalSyntaxValue( index );
             auto lastVal = GetFinalOptionalSyntaxValue( ((SliceExpr*) fullExpr)->LastIndex.get() );
 
-            if ( firstVal.has_value() && lastVal.has_value() )
+            if ( firstVal.has_value() && lastVal.has_value() && lastVal != -1 )
             {
                 EmitU24( OP_RANGEOPENCLOSED, arrayType.ElemType->GetSize() );
                 DecreaseExprDepth( 2 );

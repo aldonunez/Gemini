@@ -1112,11 +1112,15 @@ Unique<Syntax> AlgolyParser::ParseCall( Unique<Syntax>&& head, bool indirect, bo
 
 Unique<Syntax> AlgolyParser::ParseIndexing( Unique<Syntax>&& head )
 {
+    // '[' index ']' | '[' [first] .. [last] ']'
+
     Unique<Syntax> expr;
+    Unique<Syntax> index;
 
     ScanToken();
 
-    auto index = ParseExpr();
+    if ( mCurToken != TokenCode::DotDot )
+        index = ParseExpr();
 
     if ( mCurToken == TokenCode::DotDot )
     {
@@ -1124,9 +1128,16 @@ Unique<Syntax> AlgolyParser::ParseIndexing( Unique<Syntax>&& head )
 
         ScanToken();
 
+        if ( !index )
+            index = MakeNumber( 0 );
+
         slice->Head = std::move( head );
         slice->FirstIndex = std::move( index );
-        slice->LastIndex = ParseExpr();
+
+        if ( mCurToken != TokenCode::RBracket )
+            slice->LastIndex = ParseExpr();
+        else
+            slice->LastIndex = MakeNumber( -1 );
 
         expr = std::move( slice );
     }

@@ -11,7 +11,7 @@
 
 enum OpCode : uint8_t
 {
-    OP_POP,     // TODO: Can this be removed?
+    OP_POP,
     OP_DUP,
     OP_OVER,
     OP_PUSH,

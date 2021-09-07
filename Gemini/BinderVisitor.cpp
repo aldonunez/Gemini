@@ -1392,7 +1392,14 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
     std::optional<int32_t> firstVal = GetOptionalSyntaxValue( sliceExpr->FirstIndex.get() );
     std::optional<int32_t> lastVal = GetOptionalSyntaxValue( sliceExpr->LastIndex.get() );
 
-    if ( firstVal.has_value() && lastVal.has_value() )
+    // Immediately substitute the end marker with the known end index, if applied to a closed array
+
+    if ( lastVal.has_value() && lastVal == -1 && arrayType->Count > 0 )
+        lastVal = arrayType->Count;
+
+    // Note that if lastVal is -1, then this is an open slice
+
+    if ( firstVal.has_value() && lastVal.has_value() && lastVal != -1 )
     {
         if ( firstVal >= lastVal )
             mRep.ThrowSemanticsError( sliceExpr->LastIndex.get(), "Range is not in increasing order" );

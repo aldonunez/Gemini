@@ -762,6 +762,9 @@ int Machine::Run()
                 CELL end = mSP[0];
                 U32  stride = ReadU24( codePtr );
 
+                if ( end == -1 )
+                    end = bound;
+
                 if ( index < 0 || index >= bound || bound < 1
                     || end <= index || end > bound )
                     return ERR_BOUND;
@@ -788,6 +791,9 @@ int Machine::Run()
                 CELL end = mSP[0];
                 U32  stride = ReadU24( codePtr );
 
+                if ( end == -1 )
+                    end = bound;
+
                 if ( index < 0 || index >= bound || bound < 1
                     || end <= index || end > bound )
                     return ERR_BOUND;
@@ -812,6 +818,9 @@ int Machine::Run()
                 CELL end = mSP[0];
                 U32  stride = ReadU24( codePtr );
                 U32  bound = ReadU24( codePtr );
+
+                if ( end == -1 )
+                    end = bound;
 
                 if ( index < 0 || static_cast<U32>(index) >= bound
                     || end <= index || static_cast<U32>(end) > bound )
