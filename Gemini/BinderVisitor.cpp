@@ -153,22 +153,27 @@ static bool IsAllowedPointerTarget( TypeKind kind )
     return kind == TypeKind::Func;
 }
 
-static bool IsAllowedParamType( TypeKind kind, ParamMode mode )
+static bool IsAllowedParamType( Type& type, ParamMode mode )
 {
-    if ( kind == TypeKind::Array
-        || kind == TypeKind::Record )
+    if ( type.GetKind() == TypeKind::Array
+        || type.GetKind() == TypeKind::Record )
         return mode == ParamMode::InOutRef;
 
-    return IsScalarType( kind )
+    return IsScalarType( type.GetKind() )
         ;
 }
 
-static bool IsStorageType( TypeKind kind )
+static bool IsStorageType( Type& type )
 {
-    return IsScalarType( kind )
-        || kind == TypeKind::Array
-        || kind == TypeKind::Record
+    return IsScalarType( type.GetKind() )
+        || IsClosedArrayType( type )
+        || type.GetKind() == TypeKind::Record
         ;
+}
+
+bool IsClosedArrayType( Type& type )
+{
+    return type.GetKind() == TypeKind::Array && ((ArrayType&) type).Count != 0;
 }
 
 bool IsOpenArrayType( Type& type )
@@ -286,8 +291,8 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
     }
     // Else, it's an open array
 
-    if ( !IsStorageType( elemType->GetKind() ) )
-        mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Element type is not allowed" );
+    if ( !IsStorageType( *elemType ) )
+        mRep.ThrowSemanticsError( typeRef, "Element type is not allowed" );
 
     typeRef->Type = mTypeType;
     typeRef->ReferentType = Make<ArrayType>( size, elemType );
@@ -707,6 +712,9 @@ void BinderVisitor::VisitFieldDecl( FieldDecl* fieldDecl )
     {
         fieldDecl->TypeRef->Accept( this );
 
+        if ( !IsStorageType( *fieldDecl->TypeRef->ReferentType ) )
+            mRep.ThrowSemanticsError( fieldDecl->TypeRef.get(), "Field type is not allowed" );
+
         type = fieldDecl->TypeRef->ReferentType;
     }
     else
@@ -902,6 +910,8 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
             type = mIntType;
         else
             type = varDecl->Initializer->Type;
+
+        CheckStorageType( type, declKind, varDecl );
     }
     else
     {
@@ -909,14 +919,13 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
         type = varDecl->TypeRef->ReferentType;
 
+        CheckStorageType( type, declKind, varDecl->TypeRef.get() );
+
         if ( varDecl->Initializer != nullptr )
             CheckInitializer( type, varDecl->Initializer );
         else
             CheckAllDescendantsHaveDefault( type.get(), varDecl );
     }
-
-    if ( !IsStorageType( type->GetKind() ) )
-        mRep.ThrowSemanticsError( varDecl, "Variables cannot take this type" );
 
     DataSize size = type->GetSize();
 
@@ -925,6 +934,15 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
     varDecl->Decl = AddStorage( varDecl, type, size, declKind );
     varDecl->Type = type;
+}
+
+void BinderVisitor::CheckStorageType(
+    const std::shared_ptr<Type>& type,
+    DeclKind declKind,
+    Syntax* node )
+{
+    if ( !IsStorageType( *type ) )
+        mRep.ThrowSemanticsError( node, "Variables cannot take this type" );
 }
 
 void BinderVisitor::CheckInitializer(
@@ -1190,7 +1208,7 @@ std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef
     {
         typeRef->Accept( this );
 
-        if ( !IsAllowedParamType( typeRef->ReferentType->GetKind(), mode ) )
+        if ( !IsAllowedParamType( *typeRef->ReferentType, mode ) )
             mRep.ThrowSemanticsError( typeRef.get(), "This type is not allowed for parameters" );
 
         type = typeRef->ReferentType;

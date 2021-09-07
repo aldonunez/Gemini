@@ -5,6 +5,37 @@
 using namespace Gemini;
 
 
+TEST_CASE( "Algoly: fail open array element", "[algoly][pass-ref][negative]" )
+{
+    const char code[] =
+        "type A = [2] of []\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: fail open array field", "[algoly][pass-ref][negative]" )
+{
+    const char code[] =
+        "type R = record a: [] end\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: fail open array global", "[algoly][pass-ref][negative]" )
+{
+    const char code[] =
+        "var ar2 := [1, 2]\n"
+        "var ar1: [] := ar2\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
 TEST_CASE( "Algoly: PassRef: global pass int by ref", "[algoly][pass-ref]" )
 {
     const char code[] =

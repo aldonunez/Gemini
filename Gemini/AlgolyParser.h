@@ -164,12 +164,12 @@ private:
     void ParseTypeDecls( Unit* unit );
 
     Unique<TypeRef> ParseTypeDef();
-    Unique<TypeRef> ParseTypeRef( bool allowOpenArray = false );
+    Unique<TypeRef> ParseTypeRef();
     Unique<TypeRef> ParseRecordTypeDef();
     Unique<TypeRef> ParseEnumTypeDef();
     Unique<TypeRef> ParseNameTypeRef();
     Unique<TypeRef> ParsePtrFuncTypeRef();
-    Unique<TypeRef> ParseArrayTypeRef( bool allowOpenArray );
+    Unique<TypeRef> ParseArrayTypeRef();
     Unique<Syntax> ParseArrayInitializer();
     Unique<Syntax> ParseRecordInitializer();
     Unique<Syntax> ParseInitExpr();

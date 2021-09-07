@@ -136,6 +136,10 @@ private:
         Syntax* argNode );
     void CheckAndConsolidateClauseType( StatementList& clause, std::shared_ptr<Type>& bodyType );
     void CheckAndConsolidateClauseType( Syntax* clause, std::shared_ptr<Type>& bodyType );
+    void CheckStorageType(
+        const std::shared_ptr<Type>& type,
+        DeclKind declKind,
+        Syntax* node );
     void CheckInitializer(
         const std::shared_ptr<Type>& type,
         const Unique<Syntax>& initializer );
@@ -172,6 +176,7 @@ private:
 
 bool IsScalarType( TypeKind kind );
 bool IsIntegralType( TypeKind kind );
+bool IsClosedArrayType( Type& type );
 bool IsOpenArrayType( Type& type );
 
 }
