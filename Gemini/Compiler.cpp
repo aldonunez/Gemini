@@ -977,7 +977,28 @@ void Compiler::GenerateLetBinding( DataDecl* binding )
 {
     auto local = (LocalStorage*) binding->GetDecl();
 
-    GenerateLocalInit( local->Offset, local->Type.get(), binding->Initializer.get() );
+    if ( IsOpenArrayType( *local->GetType() ) )
+    {
+        auto initArrayType = (ArrayType&) *binding->Initializer->Type;
+
+        if ( IsClosedArrayType( initArrayType ) )
+            EmitLoadConstant( initArrayType.Count );
+
+        Generate( binding->Initializer.get() );
+
+        //assert( offset >= 0 && offset < LocalSizeMax );
+        //assert( (offset + 1) < (LocalSizeMax - local->Offset) );
+        int32_t offset = 0;
+
+        EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + offset) );
+        EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + offset - 1) );
+
+        DecreaseExprDepth( 2 );
+    }
+    else
+    {
+        GenerateLocalInit( local->Offset, local->Type.get(), binding->Initializer.get() );
+    }
 }
 
 void Compiler::GenerateLocalInit( LocalSize offset, Type* localType, Syntax* initializer )
@@ -1901,11 +1922,24 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
             break;
 
         case DeclKind::Local:
-            assert( offset >= 0 && offset < LocalSizeMax );
-            assert( offset <= ((LocalStorage*) baseDecl)->Offset );
+            {
+                auto local = (LocalStorage*) baseDecl;
 
-            EmitU8( OP_LDLOCA, static_cast<uint8_t>(((LocalStorage*) baseDecl)->Offset - offset) );
-            IncreaseExprDepth();
+                assert( offset >= 0 && offset < LocalSizeMax );
+                assert( offset <= ((LocalStorage*) baseDecl)->Offset );
+
+                if ( IsOpenArrayType( *baseDecl->GetType() ) )
+                {
+                    EmitU8( OP_LDLOC, static_cast<uint8_t>(local->Offset - 1) );
+                    EmitU8( OP_LDLOC, static_cast<uint8_t>(local->Offset + 0) );
+                    IncreaseExprDepth( 2 );
+                }
+                else
+                {
+                    EmitU8( OP_LDLOCA, static_cast<uint8_t>(((LocalStorage*) baseDecl)->Offset - offset) );
+                    IncreaseExprDepth();
+                }
+            }
             break;
 
         case DeclKind::LoadedAddress:
