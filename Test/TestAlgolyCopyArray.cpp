@@ -1561,7 +1561,26 @@ TEST_CASE( "Algoly: CopyArray: write sliced assigned array", "[algoly][copy-arra
 //  Open array
 //----------------------------------------------------------------------------
 
-TEST_CASE( "Algoly: CopyArray: global copy open to open", "[algoly][copy-array]" )
+TEST_CASE( "Algoly: CopyArray: global capture open to open", "[algoly][copy-array][x]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [5, 6]\n"
+        "var n := 0\n"
+        "def a\n"
+        "  n := B( ar1, ar2 )\n"
+        "  ar1[0] + ar1[1] + ar2[0] + ar2[1] + n\n"
+        "end\n"
+        "def B(array1: [], array2: [])\n"
+        "  array1 := array2\n"
+        "  array1[0] + array1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 22+3 );
+}
+
+TEST_CASE( "Algoly: CopyArray: global copy open to open", "[algoly][copy-array][x]" )
 {
     const char code[] =
         "var ar1: [2] := [1, 2]\n"
@@ -1571,7 +1590,7 @@ TEST_CASE( "Algoly: CopyArray: global copy open to open", "[algoly][copy-array]"
         "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
         "end\n"
         "def B(array1: [], array2: [])\n"
-        "  array1 := array2\n"
+        "  array1[..] := array2\n"
         "end\n"
         ;
 

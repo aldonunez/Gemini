@@ -800,6 +800,18 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
                 }
                 break;
 
+            case DeclKind::Local:
+                {
+                    auto local = (LocalStorage*) baseDecl;
+
+                    assert( offset >= 0 && offset < LocalSizeMax );
+                    assert( (offset + 1) < (LocalSizeMax - local->Offset) );
+
+                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + offset) );
+                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + offset + 1) );
+                }
+                break;
+
             default:
                 THROW_INTERNAL_ERROR( "" );
             }

@@ -179,6 +179,14 @@ static bool IsStorageType( Type& type )
         ;
 }
 
+static bool IsAllowedLocalType( Type& type )
+{
+    return IsScalarType( type.GetKind() )
+        || type.GetKind() == TypeKind::Array
+        || type.GetKind() == TypeKind::Record
+        ;
+}
+
 bool IsClosedArrayType( Type& type )
 {
     return type.GetKind() == TypeKind::Array && ((ArrayType&) type).Count != 0;
@@ -975,7 +983,8 @@ void BinderVisitor::CheckStorageType(
     const std::shared_ptr<Type>& type,
     Syntax* node )
 {
-    if ( !IsStorageType( *type ) )
+    if ( (declKind == DeclKind::Local && !IsAllowedLocalType( *type ))
+        || (declKind != DeclKind::Local && !IsStorageType( *type )) )
         mRep.ThrowSemanticsError( node, "Variables cannot take this type" );
 }
 
