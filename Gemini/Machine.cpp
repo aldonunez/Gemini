@@ -738,7 +738,7 @@ int Machine::Run()
                 CELL index = mSP[0];
                 U32  stride = ReadU24( codePtr );
 
-                if ( index < 0 || index >= bound || bound < 1 )
+                if ( index < 0 || index >= bound || bound < 0 )
                     return ERR_BOUND;
 
                 auto newAddr = base + (static_cast<U64>(index) * stride);
@@ -765,7 +765,7 @@ int Machine::Run()
                 if ( end == -1 )
                     end = bound;
 
-                if ( index < 0 || index >= bound || bound < 1
+                if ( index < 0 || index >= bound || bound < 0
                     || end <= index || end > bound )
                     return ERR_BOUND;
 
@@ -794,7 +794,7 @@ int Machine::Run()
                 if ( end == -1 )
                     end = bound;
 
-                if ( index < 0 || index >= bound || bound < 1
+                if ( index < 0 || index >= bound || bound < 0
                     || end <= index || end > bound )
                     return ERR_BOUND;
 
