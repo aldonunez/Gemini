@@ -782,8 +782,7 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
         {
             Emit( OP_OVER );
             Emit( OP_OVER );
-            IncreaseExprDepth();
-            IncreaseExprDepth();
+            IncreaseExprDepth( 2 );
         }
 
         if ( IsClosedArrayType( leftArrayType ) )
