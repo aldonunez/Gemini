@@ -1831,8 +1831,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 {
                     EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + 1) );
                     EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + 0) );
-                    IncreaseExprDepth();
-                    IncreaseExprDepth();
+                    IncreaseExprDepth( 2 );
                 }
                 else if ( param->Mode == ParamMode::Value )
                 {
@@ -2354,12 +2353,12 @@ I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
         mRep.ThrowSemanticsError( node, "Expected a constant value" );
 }
 
-void Compiler::IncreaseExprDepth()
+void Compiler::IncreaseExprDepth( LocalSize amount )
 {
-    if ( mCurExprDepth == LocalSizeMax )
+    if ( amount > (LocalSizeMax - mCurExprDepth) )
         mRep.ThrowSemanticsError( NULL, "Expression is too deep" );
 
-    mCurExprDepth++;
+    mCurExprDepth += amount;
 
     if ( mMaxExprDepth < mCurExprDepth )
         mMaxExprDepth = mCurExprDepth;

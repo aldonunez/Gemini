@@ -430,7 +430,7 @@ private:
     I32 GetSyntaxValue( Syntax* node, const char* message = nullptr );
 
     // Stack usage
-    void IncreaseExprDepth();
+    void IncreaseExprDepth( LocalSize amount = 1 );
     void DecreaseExprDepth( LocalSize amount = 1 );
     void CalculateStackDepth();
     void CalculateStackDepth( Function* func );
