@@ -9,7 +9,7 @@ TEST_CASE( "Algoly: simple const fptr", "[algoly][ptr-const]" )
         "def C -> int 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: global const lambda", "[algoly][ptr-const]" )
@@ -21,7 +21,7 @@ TEST_CASE( "Algoly: global const lambda", "[algoly][ptr-const]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: local const lambda", "[algoly][ptr-const]" )
@@ -33,7 +33,7 @@ TEST_CASE( "Algoly: local const lambda", "[algoly][ptr-const]" )
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 3, 0, 3 );
+    TestCompileAndRunAlgoly( code, 3, 0, 3 );
 }
 
 TEST_CASE( "Algoly: const &proc no typeref, &proc(int) typeref, copy const, call", "[algoly][ptr-const]" )
@@ -48,7 +48,7 @@ TEST_CASE( "Algoly: const &proc no typeref, &proc(int) typeref, copy const, call
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 8, 0, 5 );
+    TestCompileAndRunAlgoly( code, 8, 0, 5 );
 }
 
 TEST_CASE( "Algoly: complex ptr-const", "[algoly][ptr-const]" )
@@ -72,5 +72,5 @@ TEST_CASE( "Algoly: complex ptr-const", "[algoly][ptr-const]" )
         "def C 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, sizeof code, 22, 0, 5 );
+    TestCompileAndRunAlgoly( code, 22, 0, 5 );
 }
