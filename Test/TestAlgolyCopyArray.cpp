@@ -1561,47 +1561,7 @@ TEST_CASE( "Algoly: CopyArray: write sliced assigned array", "[algoly][copy-arra
 //  Open array
 //----------------------------------------------------------------------------
 
-#if 0
-TEST_CASE( "Algoly: CopyArray: 1", "[algoly][copy-array][x]" )
-{
-    const char code[] =
-        "var ar1: [2] := [1, 2]\n"
-        "var ar2: [2] := [5, 6]\n"
-        "var n := 0\n"
-        "def a\n"
-        "  var i := 0, j := 0\n"
-        "  n := B( ar1[i..j], ar2 )\n"
-        "  ar1[0] + ar1[1] + ar2[0] + ar2[1] + n\n"
-        "end\n"
-        "def B(array1: [], array2: [])\n"
-        "  array1[0]\n"
-        "end\n"
-        ;
-
-    TestCompileAndRunAlgoly( code, 22 + 3 );
-}
-#endif
-
-TEST_CASE( "Algoly: CopyArray: global capture open to open", "[algoly][copy-array][x]" )
-{
-    const char code[] =
-        "var ar1: [2] := [1, 2]\n"
-        "var ar2: [2] := [5, 6]\n"
-        "var n := 0\n"
-        "def a\n"
-        "  n := B( ar1, ar2 )\n"
-        "  ar1[0] + ar1[1] + ar2[0] + ar2[1] + n\n"
-        "end\n"
-        "def B(array1: [], array2: [])\n"
-        "  array1 := array2\n"
-        "  array1[0] + array1[1]\n"
-        "end\n"
-        ;
-
-    TestCompileAndRunAlgoly( code, 22+3 );
-}
-
-TEST_CASE( "Algoly: CopyArray: global copy open to open", "[algoly][copy-array][x]" )
+TEST_CASE( "Algoly: CopyArray: global copy open to open", "[algoly][copy-array]" )
 {
     const char code[] =
         "var ar1: [2] := [1, 2]\n"
@@ -1610,31 +1570,12 @@ TEST_CASE( "Algoly: CopyArray: global copy open to open", "[algoly][copy-array][
         "  B( ar1, ar2 )\n"
         "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
         "end\n"
-        "def B(array1: [], array2: [])\n"
-        "  array1[..] := array2\n"
+        "def B(var array1: [], var array2: [])\n"
+        "  array1 := array2\n"
         "end\n"
         ;
 
     TestCompileAndRunAlgoly( code, 22 );
-}
-
-TEST_CASE( "Algoly: CopyArray: local capture open param", "[algoly][copy-array][x]" )
-{
-    const char code[] =
-        "var ar1: [2] := [1, 2]\n"
-        "var ar2: [2] := [5, 6]\n"
-        "def a\n"
-        "  B( ar1, ar2 )\n"
-        "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
-        "end\n"
-        "def B(array1: [], array2: [])\n"
-        "  var array3: [] := array2\n"
-        "  array3[0] := 3\n"
-        "  array3[1] := 4\n"
-        "end\n"
-        ;
-
-    TestCompileAndRunAlgoly( code, 10 );
 }
 
 TEST_CASE( "Algoly: CopyArray: global copy open to closed", "[algoly][copy-array]" )
@@ -1760,4 +1701,150 @@ TEST_CASE( "Algoly: CopyArray: local copy slice of open of slice", "[algoly][cop
         ;
 
     TestCompileAndRunAlgoly( code, 46 );
+}
+
+
+//----------------------------------------------------------------------------
+//  Open array values (capture)
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: CopyArray: global capture open to open", "[algoly][open-array-value]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [5, 6]\n"
+        "var n := 0\n"
+        "def a\n"
+        "  n := B( ar1, ar2 )\n"
+        "  ar1[0] + ar1[1] + ar2[0] + ar2[1] + n\n"
+        "end\n"
+        "def B(array1: [], array2: [])\n"
+        "  array1 := array2\n"
+        "  array1[0] + array1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 22 + 3 );
+}
+
+TEST_CASE( "Algoly: CopyArray: local capture open param, init", "[algoly][open-array-value]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [5, 6]\n"
+        "def a\n"
+        "  B( ar1, ar2 )\n"
+        "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
+        "end\n"
+        "def B(array1: [], array2: [])\n"
+        "  var array3: [] := array2\n"
+        "  array3[0] := 3\n"
+        "  array3[1] := 4\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: CopyArray: local capture open param, assignment", "[algoly][open-array-value]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [5, 6]\n"
+        "def a\n"
+        "  B( ar1, ar2 )\n"
+        "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
+        "end\n"
+        "def B(array1: [], array2: [])\n"
+        "  var array3: [] := array1\n"
+        "  array3 := array2\n"
+        "  array3[0] := 3\n"
+        "  array3[1] := 4\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: CopyArray: local capture open local, init", "[algoly][open-array-value]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [5, 6]\n"
+        "def a\n"
+        "  B( ar1, ar2 )\n"
+        "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
+        "end\n"
+        "def B(array1: [], array2: [])\n"
+        "  var array3: [] := array2\n"
+        "  var array4: [] := array3\n"
+        "  array4 := array3\n"
+        "  array4[0] := 3\n"
+        "  array4[1] := 4\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: CopyArray: local capture open local, assignment", "[algoly][open-array-value]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [5, 6]\n"
+        "def a\n"
+        "  B( ar1, ar2 )\n"
+        "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
+        "end\n"
+        "def B(array1: [], array2: [])\n"
+        "  var array3: [] := array2\n"
+        "  var array4: [] := array1\n"
+        "  array4 := array3\n"
+        "  array4[0] := 3\n"
+        "  array4[1] := 4\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: CopyArray: local capture closed local, init", "[algoly][open-array-value]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [5, 6]\n"
+        "def a\n"
+        "  B( ar1, ar2 )\n"
+        "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
+        "end\n"
+        "def B(array1: [], array2: [])\n"
+        "  var array3: [] := ar2\n"
+        "  var array4: [] := array3\n"
+        "  array4[0] := 3\n"
+        "  array4[1] := 4\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: CopyArray: local capture closed local, assignment", "[algoly][open-array-value]" )
+{
+    const char code[] =
+        "var ar1: [2] := [1, 2]\n"
+        "var ar2: [2] := [5, 6]\n"
+        "def a\n"
+        "  B( ar1, ar2 )\n"
+        "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
+        "end\n"
+        "def B(array1: [], array2: [])\n"
+        "  var array3: [] := ar2\n"
+        "  var array4: [] := array1\n"
+        "  array4 := array3\n"
+        "  array4[0] := 3\n"
+        "  array4[1] := 4\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
 }

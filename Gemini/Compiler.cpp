@@ -986,12 +986,8 @@ void Compiler::GenerateLetBinding( DataDecl* binding )
 
         Generate( binding->Initializer.get() );
 
-        //assert( offset >= 0 && offset < LocalSizeMax );
-        //assert( (offset + 1) < (LocalSizeMax - local->Offset) );
-        int32_t offset = 0;
-
-        EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + offset) );
-        EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + offset - 1) );
+        EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset) );
+        EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset - 1) );
 
         DecreaseExprDepth( 2 );
     }
