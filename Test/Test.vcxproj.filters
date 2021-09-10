@@ -45,6 +45,9 @@
     <ClCompile Include="TestAlgolyPassRef.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestAlgolyPtrConst.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="TestAlgolyRecord.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
