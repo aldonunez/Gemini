@@ -506,3 +506,95 @@ TEST_CASE( "Algoly: duplicate func", "[algoly][negative]" )
 
 // TODO: all unary and binary operators
 // TODO: const, const folding
+
+
+//----------------------------------------------------------------------------
+//  Other Const
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: const fptr", "[algoly][negative]" )
+{
+    const char code[] =
+        "const f = &B\n"
+        "def a end\n"
+        "def B end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: const array, explicit", "[algoly][array][negative]" )
+{
+    const char code[] =
+        "type Array = [2]\n"
+        "const ar1: Array = [1, 2]\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: const array", "[algoly][array][negative]" )
+{
+    const char code[] =
+        "const ar1 = [1, 2]\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: const record", "[algoly][record][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "const r1: R = { a: 1, b: 2 }\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: const record, inferred", "[algoly][record][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "const r1 = { a: 1, b: 2 }\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: const record, inferred, nested", "[algoly][record][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "const r1 = [{ a: 1, b: 2 }, { a: 3, b: 4 }]\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: var record, inferred", "[algoly][record][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "var r1 := { a: 1, b: 2 }\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: var record, inferred, nested", "[algoly][record][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "var r1 := [{ a: 1, b: 2 }, { a: 3, b: 4 }]\n"
+        "def a end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}

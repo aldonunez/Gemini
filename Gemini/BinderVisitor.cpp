@@ -153,6 +153,11 @@ static bool IsAllowedPointerTarget( TypeKind kind )
     return kind == TypeKind::Func;
 }
 
+static bool IsAllowedConstType( Type& type )
+{
+    return IsIntegralType( type.GetKind() );
+}
+
 static bool IsAllowedParamType( Type& type, ParamMode mode )
 {
     if ( type.GetKind() == TypeKind::Array
@@ -562,6 +567,8 @@ void BinderVisitor::VisitConstDecl( ConstDecl* constDecl )
 
 void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind )
 {
+    std::shared_ptr<Type> type;
+
     if ( !constDecl->Initializer )
         THROW_INTERNAL_ERROR( "Missing constant initializer" );
 
@@ -571,28 +578,36 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
     {
         constDecl->TypeRef->Accept( this );
 
-        CheckType( constDecl->TypeRef->ReferentType, constDecl->Initializer->Type, constDecl->Initializer.get() );
-    }
+        type = constDecl->TypeRef->ReferentType;
 
-    std::shared_ptr<Type> type = constDecl->Initializer->Type;
+        CheckConstType( *type, constDecl->TypeRef.get() );
 
-    if ( IsIntegralType( type->GetKind() ) )
-    {
-        int32_t value = Evaluate( constDecl->Initializer.get(), "Constant initializer is not constant" );
-
-        std::shared_ptr<Constant> constant;
-
-        if ( scopeKind == ScopeKind::Global )
-            constant = AddConst( constDecl, type, value, true );
-        else
-            constant = AddConst( constDecl, type, value, *mSymStack.back() );
-
-        constDecl->Decl = constant;
+        CheckType( type, constDecl->Initializer->Type, constDecl->Initializer.get() );
     }
     else
     {
-        mRep.ThrowSemanticsError( constDecl, "Only integer constants are supported" );
+        type = constDecl->Initializer->Type;
+
+        CheckMissingRecordInitializer( constDecl->Initializer );
+        CheckConstType( *type, constDecl->Initializer.get() );
     }
+
+    int32_t value = Evaluate( constDecl->Initializer.get(), "Constant initializer is not constant" );
+
+    std::shared_ptr<Constant> constant;
+
+    if ( scopeKind == ScopeKind::Global )
+        constant = AddConst( constDecl, type, value, true );
+    else
+        constant = AddConst( constDecl, type, value, *mSymStack.back() );
+
+    constDecl->Decl = constant;
+}
+
+void BinderVisitor::CheckConstType( Type& type, Syntax* node )
+{
+    if ( !IsAllowedConstType( type ) )
+        mRep.ThrowSemanticsError( node, "Only integer constants are supported" );
 }
 
 void BinderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
@@ -906,6 +921,9 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
         if ( varDecl->Initializer != nullptr )
             Visit( varDecl->Initializer );
 
+        if ( varDecl->Initializer )
+            CheckMissingRecordInitializer( varDecl->Initializer );
+
         if ( varDecl->Initializer == nullptr )
             type = mIntType;
         else
@@ -1033,6 +1051,23 @@ void BinderVisitor::CheckInitializer(
         initializer->Accept( this );
 
         CheckType( type, initializer->Type, initializer.get() );
+    }
+}
+
+void BinderVisitor::CheckMissingRecordInitializer( const Unique<Syntax>& initializer )
+{
+    if ( initializer->Kind == SyntaxKind::ArrayInitializer )
+    {
+        auto& arrayInit = (InitList&) *initializer;
+
+        for ( auto& value : arrayInit.Values )
+        {
+            CheckMissingRecordInitializer( value );
+        }
+    }
+    else if ( initializer->Kind == SyntaxKind::RecordInitializer )
+    {
+        mRep.ThrowSemanticsError( initializer.get(), "Record initializer requires the declaration have a type" );
     }
 }
 

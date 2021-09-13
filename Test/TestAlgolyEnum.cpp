@@ -258,3 +258,25 @@ TEST_CASE( "Algoly: if expr has enum type", "[algoly][enum]" )
 
     TestCompileAndRunAlgoly( code, 2, 0 );
 }
+
+TEST_CASE( "Algoly: const enum", "[algoly][enum]" )
+{
+    const char code[] =
+        "type E = enum E1, E2, E3 end\n"
+        "const X: E = E.E2\n"
+        "def a->E X end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 1 );
+}
+
+TEST_CASE( "Algoly: const enum, inferred", "[algoly][enum]" )
+{
+    const char code[] =
+        "type E = enum E1, E2, E3 end\n"
+        "const X = E.E2\n"
+        "def a->E X end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 1 );
+}
