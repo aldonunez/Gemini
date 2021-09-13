@@ -17,6 +17,11 @@ namespace Gemini
 class FolderVisitor final : public Visitor
 {
     std::optional<int32_t>  mLastValue;
+
+    bool                    mCalcOffset = false;
+    std::optional<int32_t>  mBufOffset;
+    std::shared_ptr<std::vector<int32_t>> mBuffer;
+
     bool                    mFoldNodes;
     Reporter                mRep;
 
@@ -65,6 +70,7 @@ public:
 private:
     void VisitProc( ProcDecl* procDecl );
     void VisitLetBinding( DataDecl* varDecl );
+    void VisitFieldAccess( DotExpr* dotExpr );
 
     void Fold( Unique<Syntax>& child );
 };

@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "TestBase.h"
 
+using namespace Gemini;
+
 
 TEST_CASE( "Algoly: simple const fptr", "[algoly][ptr-const]" )
 {
@@ -73,4 +75,121 @@ TEST_CASE( "Algoly: complex ptr-const", "[algoly][ptr-const]" )
         ;
 
     TestCompileAndRunAlgoly( code, 22, 0, 5 );
+}
+
+
+//----------------------------------------------------------------------------
+// Const array
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: simple const array", "[algoly][ptr-const][x]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2, 3]\n"
+        "def a\n"
+        "  AR1[2]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: const array, var index", "[algoly][ptr-const][x]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2, 3]\n"
+        "var i := 2\n"
+        "def a\n"
+        "  AR1[i]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: simple const array of array", "[algoly][ptr-const][x]" )
+{
+    const char code[] =
+        "const AR1 = [[1, 2], [3, 4]]\n"
+        "def a\n"
+        "  AR1[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 4 );
+}
+
+TEST_CASE( "Algoly: TODO1 simple const array of array", "[algoly][ptr-const][x]" )
+{
+    const char code[] =
+        "const AR1 = [[1, 2], [3, 4]]\n"
+        "def a\n"
+        "  AR1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 0 );
+}
+
+
+//----------------------------------------------------------------------------
+// Const record
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: const record", "[algoly][ptr-const][x]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const R1: R = { a: 1, b: 2, c: 3 }\n"
+        "def a\n"
+        "  R1.c\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: const record in record", "[algoly][ptr-const][x]" )
+{
+    const char code[] =
+        "type Q = record a: R, b: R end\n"
+        "type R = record c, d end\n"
+        "const Q1: Q = { a: { c: 1, d: 2 }, b: { c: 3, d: 4 } }\n"
+        "def a\n"
+        "  Q1.b.d\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 4 );
+}
+
+
+//----------------------------------------------------------------------------
+// Const nested record and arrays
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: const record in array", "[algoly][ptr-const][x]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const AR: [2] of R = [{ a: 1, b: 2 }, { a: 3, b: 4 }]\n"
+        "def a\n"
+        "  AR[1].b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 4 );
+}
+
+TEST_CASE( "Algoly: const array in record", "[algoly][ptr-const][x]" )
+{
+    const char code[] =
+        "type R = record a: [2], b: [2] end\n"
+        "const R1: R = { a: [1, 2], b: [3, 4] }\n"
+        "def a\n"
+        "  R1.b[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 4 );
 }

@@ -721,11 +721,12 @@ enum class ValueKind
 {
     Integer,
     Function,
+    Aggregate,
 };
 
 struct Function;
 
-using ValueVariant = std::variant<int32_t, std::shared_ptr<Function>>;
+using ValueVariant = std::variant<int32_t, std::shared_ptr<Function>, std::shared_ptr<std::vector<int32_t>>>;
 
 inline bool Is( const ValueVariant& variant, ValueKind kind )
 {

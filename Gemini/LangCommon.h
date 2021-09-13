@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <functional>
+
 
 namespace Gemini
 {
@@ -59,5 +61,51 @@ public:
 
 #define THROW_INTERNAL_ERROR( ... ) \
     do { assert( false ); mRep.ThrowInternalError( __FILE__, __LINE__, __VA_ARGS__ ); } while ( 0 )
+
+
+struct Function;
+class InitList;
+class RecordInitializer;
+
+class GlobalDataGenerator
+{
+public:
+    using GlobalSize = uint16_t;
+
+    using EmitFuncAddressFunctor = std::function<void( Function*, GlobalSize )>;
+    using CopyAggregateFunctor = std::function<void( GlobalSize, Syntax* )>;
+    using GetSyntaxValueFunctor = std::function<int32_t( Syntax*, const char* )>;
+
+private:
+    std::vector<int32_t>&   mGlobals;
+    EmitFuncAddressFunctor  mEmitFuncAddressFunctor;
+    CopyAggregateFunctor    mCopyAggregateFunctor;
+    GetSyntaxValueFunctor   mGetSyntaxValueFunctor;
+    Reporter&               mRep;
+
+public:
+    GlobalDataGenerator(
+        std::vector<int32_t>& globals,
+        EmitFuncAddressFunctor emitFuncAddressFunctor,
+        CopyAggregateFunctor copyAggregateFunctor,
+        GetSyntaxValueFunctor getSyntaxValueFunctor,
+        Reporter& reporter );
+
+    void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );
+
+private:
+    void EmitGlobalScalar( GlobalSize offset, Syntax* valueElem );
+    void EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size );
+    void EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit );
+};
+
+
+enum class TypeKind;
+class Type;
+
+bool IsScalarType( TypeKind kind );
+bool IsIntegralType( TypeKind kind );
+bool IsClosedArrayType( Type& type );
+bool IsOpenArrayType( Type& type );
 
 }

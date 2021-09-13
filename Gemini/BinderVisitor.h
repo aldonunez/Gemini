@@ -176,10 +176,4 @@ private:
     ParamSize GetParamSize( Type* type, ParamMode mode );
 };
 
-
-bool IsScalarType( TypeKind kind );
-bool IsIntegralType( TypeKind kind );
-bool IsClosedArrayType( Type& type );
-bool IsOpenArrayType( Type& type );
-
 }

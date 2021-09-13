@@ -588,7 +588,7 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
 
         CheckConstType( *type, constDecl->TypeRef.get() );
 
-        CheckType( type, constDecl->Initializer->Type, constDecl->Initializer.get() );
+        CheckInitializer( type, constDecl->Initializer );
     }
     else
     {
@@ -1666,6 +1666,11 @@ int32_t BinderVisitor::Evaluate( Syntax* node, const char* message )
 
 ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 {
+    // TODO: change test for Int below into IsIntegral. Constants should support enums
+    // TODO: can we initialize a scalar or a scalar part of an aggregate with part of an aggregate?
+    //       global and local
+    // TODO: in open-array-value, can you capture an array initializer? should it be allowed?
+
     ValueVariant value;
 
     std::shared_ptr<Type> type = node->Type;
@@ -1692,6 +1697,31 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
         {
             mRep.ThrowSemanticsError( node, "Only pointers to functions are allowed" );
         }
+    }
+    else if ( IsClosedArrayType( *type )
+        || type->GetKind() == TypeKind::Record )
+    {
+        auto sharedBuffer = std::make_shared<std::vector<int32_t>>( type->GetSize() );
+
+        GlobalDataGenerator globalDataGenerator
+        (
+            *sharedBuffer,
+            [=]( Function* func, GlobalSize offset )
+            {
+                // TODO:
+            },
+            //std::bind( &Compiler::EmitGlobalAggregateCopyBlock, this, std::placeholders::_1, std::placeholders::_2 ),
+            [=]( GlobalSize offset, Syntax* valueNode )
+            {
+                // TODO:
+            },
+            std::bind( &BinderVisitor::Evaluate, this, std::placeholders::_1, std::placeholders::_2 ),
+            mRep
+        );
+
+        globalDataGenerator.GenerateGlobalInit( 0, node );
+
+        value = sharedBuffer;
     }
     else
     {

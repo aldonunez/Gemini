@@ -2158,10 +2158,25 @@ void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenSta
 {
     auto global = (GlobalStorage*) varDecl->GetDecl();
 
-    GenerateGlobalInit( global->Offset, varDecl->Initializer.get() );
+    mGlobalDataGenerator.GenerateGlobalInit( global->Offset, varDecl->Initializer.get() );
 }
 
-void Compiler::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
+GlobalDataGenerator::GlobalDataGenerator(
+    std::vector<I32>& globals,
+    EmitFuncAddressFunctor emitFuncAddressFunctor,
+    CopyAggregateFunctor copyAggregateFunctor,
+    GetSyntaxValueFunctor getSyntaxValueFunctor,
+    Reporter& reporter )
+    :
+    mGlobals( globals ),
+    mEmitFuncAddressFunctor( emitFuncAddressFunctor ),
+    mCopyAggregateFunctor( copyAggregateFunctor ),
+    mGetSyntaxValueFunctor( getSyntaxValueFunctor ),
+    mRep( reporter )
+{
+}
+
+void GlobalDataGenerator::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
 {
     if ( initializer == nullptr )
         return;
@@ -2184,7 +2199,7 @@ void Compiler::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
     }
     else
     {
-        EmitGlobalAggregateCopyBlock( offset, initializer );
+        mCopyAggregateFunctor( offset, initializer );
     }
 }
 
@@ -2193,7 +2208,7 @@ void Compiler::VisitVarDecl( VarDecl* varDecl )
     GenerateDefvar( varDecl, Config(), Status() );
 }
 
-void Compiler::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
+void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
 {
     if ( valueElem->Type->GetKind() == TypeKind::Pointer )
     {
@@ -2205,7 +2220,7 @@ void Compiler::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
 
             std::shared_ptr<Function> func = visitor.Evaluate( valueElem );
 
-            EmitFuncAddress( func.get(), { CodeRefKind::Data, offset } );
+            mEmitFuncAddressFunctor( func.get(), offset );
         }
         else
         {
@@ -2214,7 +2229,7 @@ void Compiler::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
     }
     else
     {
-        mGlobals[offset] = GetSyntaxValue( valueElem, "Globals must be initialized with constant data" );
+        mGlobals[offset] = mGetSyntaxValueFunctor( valueElem, "Globals must be initialized with constant data" );
     }
 }
 
@@ -2233,7 +2248,7 @@ void Compiler::EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueEle
     mDeferredGlobals.push_back( transfer );
 }
 
-void Compiler::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size )
+void GlobalDataGenerator::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size )
 {
     GlobalSize  i = 0;
     GlobalSize  globalIndex = offset;
@@ -2280,7 +2295,7 @@ void Compiler::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList
     }
 }
 
-void Compiler::EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit )
+void GlobalDataGenerator::EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit )
 {
     for ( auto& fieldInit : recordInit->Fields )
     {

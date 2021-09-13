@@ -290,6 +290,19 @@ private:
     AddrRefVec      mLocalAddrRefs;
     MemTransferVec  mDeferredGlobals;
 
+    GlobalDataGenerator mGlobalDataGenerator
+    {
+        mGlobals,
+        [=]( Function* func, GlobalSize offset )
+        {
+            EmitFuncAddress( func, { CodeRefKind::Data, offset } );
+        },
+        std::bind( &Compiler::EmitGlobalAggregateCopyBlock, this, std::placeholders::_1, std::placeholders::_2 ),
+        std::bind( &Compiler::GetSyntaxValue, this, std::placeholders::_1, std::placeholders::_2 ),
+        mRep
+    };
+
+
     bool            mInFunc = false;
     Function*       mCurFunc = nullptr;
     LocalSize       mCurExprDepth = 0;
@@ -352,13 +365,9 @@ private:
     void GenerateAref( IndexExpr* indexExpr, const GenConfig& config, GenStatus& status );
     void GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status );
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
-    void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );
 
     CalculatedAddress CalcAddress( Syntax* expr );
 
-    void EmitGlobalScalar( GlobalSize offset, Syntax* valueElem );
-    void EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size );
-    void EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit );
     void EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem );
 
     void EmitLoadConstant( int32_t value );
