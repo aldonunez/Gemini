@@ -155,7 +155,10 @@ static bool IsAllowedPointerTarget( TypeKind kind )
 
 static bool IsAllowedConstType( Type& type )
 {
-    return IsIntegralType( type.GetKind() );
+    return IsScalarType( type.GetKind() )
+        || IsClosedArrayType( type )
+        || type.GetKind() == TypeKind::Record
+        ;
 }
 
 static bool IsAllowedParamType( Type& type, ParamMode mode )
@@ -1666,7 +1669,6 @@ int32_t BinderVisitor::Evaluate( Syntax* node, const char* message )
 
 ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 {
-    // TODO: change test for Int below into IsIntegral. Constants should support enums
     // TODO: can we initialize a scalar or a scalar part of an aggregate with part of an aggregate?
     //       global and local
     // TODO: in open-array-value, can you capture an array initializer? should it be allowed?
@@ -1675,7 +1677,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 
     std::shared_ptr<Type> type = node->Type;
 
-    if ( type->GetKind() == TypeKind::Int )
+    if ( IsIntegralType( type->GetKind() ) )
     {
         int32_t iValue = Evaluate( node, "Expected constant value" );
 
