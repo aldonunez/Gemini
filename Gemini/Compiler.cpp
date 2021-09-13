@@ -2197,11 +2197,15 @@ void Compiler::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
 {
     if ( valueElem->Type->GetKind() == TypeKind::Pointer )
     {
-        if ( valueElem->Kind == SyntaxKind::AddrOfExpr )
-        {
-            auto addrOf = (AddrOfExpr*) valueElem;
+        auto& ptrType = (PointerType&) *valueElem->Type;
 
-            EmitFuncAddress( (Function*) addrOf->Inner->GetDecl(), { CodeRefKind::Data, offset } );
+        if ( ptrType.TargetType->GetKind() == TypeKind::Func )
+        {
+            FuncAddrVisitor visitor( mRep.GetLog() );
+
+            std::shared_ptr<Function> func = visitor.Evaluate( valueElem );
+
+            EmitFuncAddress( func.get(), { CodeRefKind::Data, offset } );
         }
         else
         {
