@@ -1920,7 +1920,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
             break;
 
         default:
-            mRep.ThrowSemanticsError( node, "'aref' supports only globals and locals" );
+            mRep.ThrowSemanticsError( node, "Can't take address of declaration" );
         }
     }
 }

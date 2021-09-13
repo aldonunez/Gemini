@@ -929,7 +929,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
         else
             type = varDecl->Initializer->Type;
 
-        CheckStorageType( type, declKind, varDecl );
+        CheckStorageType( type, varDecl );
     }
     else
     {
@@ -937,7 +937,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
         type = varDecl->TypeRef->ReferentType;
 
-        CheckStorageType( type, declKind, varDecl->TypeRef.get() );
+        CheckStorageType( type, varDecl->TypeRef.get() );
 
         if ( varDecl->Initializer != nullptr )
             CheckInitializer( type, varDecl->Initializer );
@@ -956,7 +956,6 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
 void BinderVisitor::CheckStorageType(
     const std::shared_ptr<Type>& type,
-    DeclKind declKind,
     Syntax* node )
 {
     if ( !IsStorageType( *type ) )

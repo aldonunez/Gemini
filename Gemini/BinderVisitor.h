@@ -138,7 +138,6 @@ private:
     void CheckAndConsolidateClauseType( Syntax* clause, std::shared_ptr<Type>& bodyType );
     void CheckStorageType(
         const std::shared_ptr<Type>& type,
-        DeclKind declKind,
         Syntax* node );
     void CheckConstType( Type& type, Syntax* node );
     void CheckInitializer(

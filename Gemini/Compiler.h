@@ -9,9 +9,9 @@
 #include "LangCommon.h"
 #include "Syntax.h"
 #include "VmCommon.h"
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 
 enum OpCode : uint8_t;

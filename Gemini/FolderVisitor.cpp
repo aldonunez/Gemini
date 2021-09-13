@@ -200,6 +200,8 @@ void FolderVisitor::VisitDotExpr( DotExpr* dotExpr )
     }
     else
     {
+        Fold( dotExpr->Head );
+
         mLastValue.reset();
     }
 }
