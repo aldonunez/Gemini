@@ -12,8 +12,8 @@
 #include "OpCodes.h"
 #include <algorithm>
 #include <stdarg.h>
-#include <string.h>
 #include <stdexcept>
+#include <string.h>
 
 #define ENABLE_DISASSEMBLY 0
 

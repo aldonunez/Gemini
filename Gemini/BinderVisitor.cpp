@@ -1363,6 +1363,16 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
     procTypeRef->ReferentType = funcType;
 }
 
+void BinderVisitor::VisitRecordInitializer( RecordInitializer* recordInitializer )
+{
+    // Normally, initializers will be checked recursively in CheckInitializer, where record
+    // initializers will be compared to a declared type. This function should only be called
+    // for variable declarations without a type reference. But in that case, the declaration
+    // visitor will look for record initializers, and signal an error if any are found.
+
+    recordInitializer->Type = mErrorType;
+}
+
 void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 {
     auto recordType = Make<RecordType>();
