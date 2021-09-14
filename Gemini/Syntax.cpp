@@ -693,40 +693,12 @@ DataSize Type::GetSize() const
 }
 
 
-ErrorType::ErrorType() :
-    Type( TypeKind::Error )
-{
-}
-
-
-TypeType::TypeType() :
-    Type( TypeKind::Type )
-{
-}
-
-
-ModuleType::ModuleType() :
-    Type( TypeKind::Module )
-{
-}
-
-
-XferType::XferType() :
-    Type( TypeKind::Xfer )
-{
-}
-
 bool XferType::IsEqual( Type* other ) const
 {
     return other != nullptr
         && other->GetKind() == TypeKind::Xfer;
 }
 
-
-IntType::IntType() :
-    Type( TypeKind::Int )
-{
-}
 
 bool IntType::IsEqual( Type* other ) const
 {

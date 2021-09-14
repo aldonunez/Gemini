@@ -872,41 +872,41 @@ public:
     virtual DataSize GetSize() const;
 };
 
-class ErrorType : public Type
+
+template <typename Derived, TypeKind kind>
+class SimpleType : public Type
 {
 public:
-    ErrorType();
+    SimpleType() : Type( kind ) {}
 };
 
-class TypeType : public Type
+
+class ErrorType : public SimpleType<ErrorType, TypeKind::Error>
 {
-public:
-    TypeType();
 };
 
-class ModuleType : public Type
+class TypeType : public SimpleType<TypeType, TypeKind::Type>
 {
-public:
-    ModuleType();
 };
 
-class XferType : public Type
+class ModuleType : public SimpleType<ModuleType, TypeKind::Module>
+{
+};
+
+class XferType : public SimpleType<XferType, TypeKind::Xfer>
 {
 public:
-    XferType();
-
     virtual bool IsEqual( Type* other ) const override;
 };
 
-class IntType : public Type
+class IntType : public SimpleType<IntType, TypeKind::Int>
 {
 public:
-    IntType();
-
     virtual bool IsEqual( Type* other ) const override;
     virtual bool IsAssignableFrom( Type* other ) const override;
     virtual DataSize GetSize() const override;
 };
+
 
 class ArrayType : public Type
 {
