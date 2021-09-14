@@ -586,10 +586,10 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
     if ( !constDecl->Initializer )
         THROW_INTERNAL_ERROR( "Missing constant initializer" );
 
-    Visit( constDecl->Initializer );
-
     if ( constDecl->TypeRef )
     {
+        // CheckInitializer will visit the initializer
+
         constDecl->TypeRef->Accept( this );
 
         type = constDecl->TypeRef->ReferentType;
@@ -600,6 +600,8 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
     }
     else
     {
+        Visit( constDecl->Initializer );
+
         type = constDecl->Initializer->Type;
 
         CheckMissingRecordInitializer( constDecl->Initializer );
