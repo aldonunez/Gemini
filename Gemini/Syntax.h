@@ -954,12 +954,20 @@ public:
 
 class RecordType : public Type
 {
+public:
+    using FieldVec = std::vector<std::shared_ptr<FieldStorage>>;
+
+private:
     mutable DataSize mSize = 0;
 
-public:
+    FieldVec    OrderedFields;
     SymTable    Fields;
 
+public:
     RecordType();
+
+    SymTable& GetFields();
+    FieldVec& GetOrderedFields();
 
     virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;
@@ -968,10 +976,12 @@ public:
 
 class EnumType : public Type
 {
-public:
     SymTable    MembersByName;
 
+public:
     EnumType();
+
+    SymTable& GetMembersByName();
 
     virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;

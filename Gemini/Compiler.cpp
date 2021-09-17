@@ -1081,7 +1081,7 @@ void Compiler::EmitLocalRecordInitializer( LocalSize offset, RecordType* localTy
 
         assert( offset >= fieldDecl->Offset );
 
-        auto itLocalField = localType->Fields.find( fieldInit->Name );
+        auto itLocalField = localType->GetFields().find( fieldInit->Name );
         auto localFieldType = itLocalField->second->GetType();
 
         GenerateLocalInit( static_cast<LocalSize>(offset - fieldDecl->Offset), localFieldType.get(), fieldInit->Initializer.get() );

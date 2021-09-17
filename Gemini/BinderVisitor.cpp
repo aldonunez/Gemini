@@ -652,9 +652,9 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
 
         auto enumType = (EnumType*) ((TypeDeclaration*) decl)->ReferentType.get();
 
-        auto it = enumType->MembersByName.find( dotExpr->Member );
+        auto it = enumType->GetMembersByName().find( dotExpr->Member );
 
-        if ( it == enumType->MembersByName.end() )
+        if ( it == enumType->GetMembersByName().end() )
             mRep.ThrowSemanticsError( dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
 
         dotExpr->Decl = it->second;
@@ -667,9 +667,9 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
 
         auto& recType = (RecordType&) *dotExpr->Head->Type;
 
-        auto it = recType.Fields.find( dotExpr->Member );
+        auto it = recType.GetFields().find( dotExpr->Member );
 
-        if ( it == recType.Fields.end() )
+        if ( it == recType.GetFields().end() )
             mRep.ThrowSemanticsError( dotExpr, "Member not found: %s", dotExpr->Member.c_str() );
 
         dotExpr->Decl = it->second;
@@ -685,13 +685,13 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 {
     auto enumType = Make<EnumType>();
 
-    BorrowedScope scope( *this, enumType->MembersByName );
+    BorrowedScope scope( *this, enumType->GetMembersByName() );
 
     int32_t value = -1;
 
     for ( auto& memberDef : enumTypeRef->Members )
     {
-        CheckDuplicateSymbol( memberDef.get(), enumType->MembersByName );
+        CheckDuplicateSymbol( memberDef.get(), enumType->GetMembersByName() );
 
         if ( memberDef->Initializer )
         {
@@ -712,7 +712,7 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
 
         auto member = Make<EnumMember>( value, enumType );
 
-        enumType->MembersByName.insert( SymTable::value_type( memberDef->Name, member ) );
+        enumType->GetMembersByName().insert( SymTable::value_type( memberDef->Name, member ) );
     }
 
     enumTypeRef->Type = mTypeType;
@@ -1016,7 +1016,7 @@ void BinderVisitor::CheckInitializer(
         auto& recordType = (RecordType&) *type;
 
         std::set<std::string> alreadyInit;
-        SymTable notInit = recordType.Fields;
+        SymTable notInit = recordType.GetFields();
 
         for ( auto& fieldInit : recordInit.Fields )
         {
@@ -1082,7 +1082,7 @@ void BinderVisitor::CheckAllDescendantsHaveDefault( Type* type, Syntax* node )
     {
         auto recordType = (RecordType*) type;
 
-        for ( auto& [_, decl] : recordType->Fields )
+        for ( auto& [_, decl] : recordType->GetFields() )
         {
             CheckAllDescendantsHaveDefault( decl->GetType().get(), node );
         }
@@ -1381,7 +1381,7 @@ void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 
     for ( auto& fieldDef : recordTypeRef->Fields )
     {
-        CheckDuplicateSymbol( fieldDef.get(), recordType->Fields );
+        CheckDuplicateSymbol( fieldDef.get(), recordType->GetFields() );
 
         fieldDef->Accept( this );
 
@@ -1395,7 +1395,8 @@ void BinderVisitor::VisitRecordTypeRef( RecordTypeRef* recordTypeRef )
 
         offset += field->Type->GetSize();
 
-        recordType->Fields.insert( SymTable::value_type( fieldDef->Name, field ) );
+        recordType->GetFields().insert( SymTable::value_type( fieldDef->Name, field ) );
+        recordType->GetOrderedFields().push_back( field );
     }
 
     recordTypeRef->Type = mTypeType;

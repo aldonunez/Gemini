@@ -859,6 +859,16 @@ DataSize RecordType::GetSize() const
     return mSize;
 }
 
+SymTable& RecordType::GetFields()
+{
+    return Fields;
+}
+
+RecordType::FieldVec& RecordType::GetOrderedFields()
+{
+    return OrderedFields;
+}
+
 
 EnumType::EnumType() :
     Type( TypeKind::Enum )
@@ -873,6 +883,11 @@ bool EnumType::IsEqual( Type* other ) const
 DataSize EnumType::GetSize() const
 {
     return 1;
+}
+
+SymTable& EnumType::GetMembersByName()
+{
+    return MembersByName;
 }
 
 }
