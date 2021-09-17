@@ -340,6 +340,10 @@ void BinderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
 
     CheckType( assignment->Left->Type, assignment->Right->Type, assignment );
 
+    if ( IsClosedArrayType( *assignment->Left->Type )
+        && assignment->Left->Kind != SyntaxKind::Slice )
+        mRep.ThrowSemanticsError( assignment->Left.get(), "Closed arrays can't capture arrays" );
+
     assignment->Type = assignment->Left->Type;
 }
 

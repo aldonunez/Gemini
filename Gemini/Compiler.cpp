@@ -784,13 +784,38 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
 
         auto addr = CalcAddress( assignment->Left.get() );
 
-        EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
+        if ( IsOpenArrayType( *assignment->Left->Type ) && assignment->Left->Kind != SyntaxKind::Slice )
+        {
+            switch ( addr.decl->Kind )
+            {
+            case DeclKind::Param:
+                {
+                    auto param = (ParamStorage*) addr.decl;
 
-        EmitU24( OP_COPYARRAY, rightArrayType.ElemType->GetSize() );
+                    assert( addr.offset >= 0 && addr.offset < ParamSizeMax );
+                    assert( (addr.offset + 1) < (ParamSizeMax - param->Offset) );
 
-        DecreaseExprDepth( 4 );
+                    EmitU8( OP_STARG, static_cast<uint8_t>(param->Offset + addr.offset) );
+                    EmitU8( OP_STARG, static_cast<uint8_t>(param->Offset + addr.offset + 1) );
+                }
+                break;
 
-        // Generating a return value or argument value would need PUSHBLOCK
+            default:
+                THROW_INTERNAL_ERROR( "" );
+            }
+
+            DecreaseExprDepth( 2 );
+        }
+        else
+        {
+            EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
+
+            EmitU24( OP_COPYARRAY, rightArrayType.ElemType->GetSize() );
+
+            DecreaseExprDepth( 4 );
+
+            // Generating a return value or argument value would need PUSHBLOCK
+        }
     }
     else
     {
