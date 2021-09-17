@@ -612,6 +612,7 @@ UndefinedDeclaration::UndefinedDeclaration() :
 Constant::Constant() :
     Declaration( DeclKind::Const )
 {
+    IsConstant = true;
 }
 
 GlobalStorage::GlobalStorage() :

@@ -138,7 +138,7 @@ TEST_CASE( "Algoly: const array of fptr, var index", "[algoly][ptr-const]" )
     TestCompileAndRunAlgoly( code, 3 );
 }
 
-TEST_CASE( "Algoly: simple const array of array", "[algoly][ptr-const]" )
+TEST_CASE( "Algoly: const array of array", "[algoly][ptr-const]" )
 {
     const char code[] =
         "const AR1 = [[1, 2], [3, 4]]\n"
@@ -150,16 +150,115 @@ TEST_CASE( "Algoly: simple const array of array", "[algoly][ptr-const]" )
     TestCompileAndRunAlgoly( code, 4 );
 }
 
-TEST_CASE( "Algoly: TODO1 simple const array of array", "[algoly][ptr-const]" )
+TEST_CASE( "Algoly: assign to const array, const index", "[algoly][ptr-const]" )
 {
     const char code[] =
-        "const AR1 = [[1, 2], [3, 4]]\n"
+        "const AR1 = [1, 2]\n"
         "def a\n"
-        "  AR1[1]\n"
+        "  AR1[1] := 10\n"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 0 );
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: assign to const array, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2]\n"
+        "var i := 1\n"
+        "def a\n"
+        "  AR1[i] := 10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: assign var array to const", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2]\n"
+        "var ar1: [2] := []\n"
+        "def a\n"
+        "  AR1 := ar1\n"
+        "  ar1[0] + ar1[1] + AR1[0] + AR1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: assign var array in array to const", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2]\n"
+        "var ar1: [2] of [2] := []\n"
+        "def a\n"
+        "  AR1 := ar1[1]\n"
+        "  ar1[0] + ar1[1] + AR1[0] + AR1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: assign var array in array to const, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2]\n"
+        "var ar1: [2] of [2] := []\n"
+        "var i := 1\n"
+        "def a\n"
+        "  AR1 := ar1[i]\n"
+        "  ar1[0] + ar1[1] + AR1[0] + AR1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: assign const array to var", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2]\n"
+        "var ar1: [2] := []\n"
+        "def a\n"
+        "  ar1 := AR1\n"
+        "  ar1[0] + ar1[1] + AR1[0] + AR1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: assign const array in array to var", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [[1, 2], [3, 4]]\n"
+        "var ar1: [2] := []\n"
+        "def a\n"
+        "  ar1 := AR1[1]\n"
+        "  ar1[0] + ar1[1] + AR1[0][0] + AR1[0][1] + AR1[1][0] + AR1[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 17 );
+}
+
+TEST_CASE( "Algoly: assign const array in array to var, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [[1, 2], [3, 4]]\n"
+        "var ar1: [2] := []\n"
+        "var i := 1\n"
+        "def a\n"
+        "  ar1 := AR1[i]\n"
+        "  ar1[0] + ar1[1] + AR1[0][0] + AR1[0][1] + AR1[1][0] + AR1[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 17 );
 }
 
 
@@ -208,6 +307,49 @@ TEST_CASE( "Algoly: const record in record", "[algoly][ptr-const]" )
         ;
 
     TestCompileAndRunAlgoly( code, 4 );
+}
+
+TEST_CASE( "Algoly: assign to const record field", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const R1: R = { a: 1, b: 2, c: 3 }\n"
+        "def a\n"
+        "  R1.c := 10\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: assign const record to var record", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const R1: R = { a: 1, b: 2, c: 3 }\n"
+        "var r1: R := {}\n"
+        "def a\n"
+        "  r1 := R1\n"
+        "  r1.a + r1.b + r1.c +\n"
+        "  R1.a + R1.b + R1.c\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 12 );
+}
+
+TEST_CASE( "Algoly: assign var record to const record", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const R1: R = { a: 1, b: 2, c: 3 }\n"
+        "var r1: R := {}\n"
+        "def a\n"
+        "  R1 := r1\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 

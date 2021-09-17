@@ -326,6 +326,7 @@ private:
     std::shared_ptr<ModuleType>     mModuleType{ new ModuleType() };
 
     std::shared_ptr<LoadedAddressDeclaration>   mLoadedAddrDecl;
+    std::shared_ptr<LoadedAddressDeclaration>   mLoadedAddrDeclConst;
 
 public:
     Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex = 0 );
@@ -372,7 +373,7 @@ private:
     void SpillConstant( Constant* constant );
     void SpillConstPart( Type* type, GlobalSize offset, GlobalVec& buffer, GlobalSize bufOffset );
 
-    CalculatedAddress CalcAddress( Syntax* expr );
+    CalculatedAddress CalcAddress( Syntax* expr, bool writable = false );
 
     void EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem );
 

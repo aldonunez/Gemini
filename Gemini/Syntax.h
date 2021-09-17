@@ -685,6 +685,8 @@ enum class DeclKind
 struct Declaration
 {
     const DeclKind          Kind;
+    // TODO: try to make this const
+    bool                    IsConstant = false;
 
     virtual ~Declaration() { }
     virtual std::shared_ptr<Type> GetType() const = 0;
@@ -738,6 +740,9 @@ inline decltype(auto) Get( const ValueVariant& variant )
 {
     return std::get<(size_t) kind>( variant );
 }
+
+// TODO: Use Declaration::IsConstant instead of deriving from this.
+//       So, make EnumMember derive from Declaration, and merge SimpleConstant into Constant.
 
 struct Constant : public Declaration
 {

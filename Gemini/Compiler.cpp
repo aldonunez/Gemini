@@ -46,6 +46,10 @@ Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
 
     mLoadedAddrDecl.reset( new LoadedAddressDeclaration() );
     mLoadedAddrDecl->Type = mErrorType;
+
+    mLoadedAddrDeclConst.reset( new LoadedAddressDeclaration() );
+    mLoadedAddrDeclConst->Type = mErrorType;
+    mLoadedAddrDeclConst->IsConstant = true;
 }
 
 void Compiler::AddUnit( Unique<Unit>&& unit )
@@ -698,6 +702,9 @@ void Compiler::GenerateSetScalar( AssignmentExpr* assignment, const GenConfig& c
 
 void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset )
 {
+    if ( decl->IsConstant )
+        mRep.ThrowSemanticsError( node, "Constants can't be changed" );
+
     switch ( decl->Kind )
     {
     case DeclKind::Global:
@@ -799,7 +806,7 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
         if ( IsClosedArrayType( leftArrayType ) )
             EmitLoadConstant( leftArrayType.Count );
 
-        auto addr = CalcAddress( assignment->Left.get() );
+        auto addr = CalcAddress( assignment->Left.get(), true );
 
         EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
 
@@ -824,7 +831,7 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
             IncreaseExprDepth();
         }
 
-        auto addr = CalcAddress( assignment->Left.get() );
+        auto addr = CalcAddress( assignment->Left.get(), true );
 
         EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
 
@@ -1124,7 +1131,7 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
         {
             GenerateDopeVector( node, paramSpec );
 
-            auto addr = CalcAddress( &node );
+            auto addr = CalcAddress( &node, true );
 
             if ( !addr.spilled )
             {
@@ -1987,7 +1994,11 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
         EmitLoadAddress( fullExpr, status.baseDecl, status.offset );
 
         // Set this after emitting the original decl's address above
-        status.baseDecl = mLoadedAddrDecl.get();
+        if ( status.baseDecl->IsConstant )
+            status.baseDecl = mLoadedAddrDeclConst.get();
+        else
+            status.baseDecl = mLoadedAddrDecl.get();
+
         status.offset = 0;
         status.spilledAddr = true;
     }
@@ -2107,7 +2118,7 @@ void Compiler::VisitIndexExpr( IndexExpr* indexExpr )
     GenerateAref( indexExpr, Config(), Status() );
 }
 
-Compiler::CalculatedAddress Compiler::CalcAddress( Syntax* expr )
+Compiler::CalculatedAddress Compiler::CalcAddress( Syntax* expr, bool writable )
 {
     GenConfig config{};
     GenStatus status{};
@@ -2118,6 +2129,9 @@ Compiler::CalculatedAddress Compiler::CalcAddress( Syntax* expr )
 
     if ( status.baseDecl == nullptr )
         mRep.ThrowSemanticsError( expr, "Expression has no address" );
+
+    if ( writable && status.baseDecl->IsConstant )
+        mRep.ThrowSemanticsError( expr, "Constants cannot be changed" );
 
     CalculatedAddress addr{};
 
