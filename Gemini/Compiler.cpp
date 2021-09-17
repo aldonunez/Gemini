@@ -160,11 +160,12 @@ void Compiler::BindAttributes()
         binder.BindFunctionBodies( unit.get() );
 
     mGlobals.resize( binder.GetDataSize() );
+    mConstIndexFuncMap = binder.GetConstIndexFuncMap();
 }
 
 void Compiler::FoldConstants()
 {
-    FolderVisitor folder( mRep.GetLog() );
+    FolderVisitor folder( mRep.GetLog(), &mConstIndexFuncMap );
 
     for ( auto& unit : mUnits )
         folder.Fold( unit.get() );
@@ -2220,7 +2221,7 @@ void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem
 
             std::shared_ptr<Function> func = visitor.Evaluate( valueElem );
 
-            mEmitFuncAddressFunctor( func.get(), offset );
+            mEmitFuncAddressFunctor( func, offset, &mGlobals[0] );
         }
         else
         {

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <functional>
+#include <map>
 
 
 namespace Gemini
@@ -67,12 +68,16 @@ struct Function;
 class InitList;
 class RecordInitializer;
 
+
+using ConstIndexFuncMap = std::map<int32_t, std::shared_ptr<Function>>;
+
+
 class GlobalDataGenerator
 {
 public:
     using GlobalSize = uint16_t;
 
-    using EmitFuncAddressFunctor = std::function<void( Function*, GlobalSize )>;
+    using EmitFuncAddressFunctor = std::function<void( std::shared_ptr<Function>, GlobalSize, int32_t* )>;
     using CopyAggregateFunctor = std::function<void( GlobalSize, Syntax* )>;
     using GetSyntaxValueFunctor = std::function<int32_t( Syntax*, const char* )>;
 
@@ -107,5 +112,6 @@ bool IsScalarType( TypeKind kind );
 bool IsIntegralType( TypeKind kind );
 bool IsClosedArrayType( Type& type );
 bool IsOpenArrayType( Type& type );
+bool IsPtrFuncType( Type& type );
 
 }

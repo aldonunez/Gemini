@@ -259,6 +259,11 @@ size_t BinderVisitor::GetDataSize()
     return mGlobalSize;
 }
 
+ConstIndexFuncMap BinderVisitor::GetConstIndexFuncMap()
+{
+    return std::move( mConstIndexFuncMap );
+}
+
 void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 {
     Visit( addrOf->Inner );
@@ -1705,13 +1710,12 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     {
         auto sharedBuffer = std::make_shared<std::vector<int32_t>>( type->GetSize() );
 
+        using namespace std::placeholders;
+
         GlobalDataGenerator globalDataGenerator
         (
             *sharedBuffer,
-            [=]( Function* func, GlobalSize offset )
-            {
-                // TODO:
-            },
+            std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3 ),
             //std::bind( &Compiler::EmitGlobalAggregateCopyBlock, this, std::placeholders::_1, std::placeholders::_2 ),
             [=]( GlobalSize offset, Syntax* valueNode )
             {
@@ -1731,6 +1735,26 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     }
 
     return value;
+}
+
+void BinderVisitor::EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer )
+{
+    auto funcIt = mConstFuncIndexMap.find( func.get() );
+    int32_t index;
+
+    if ( funcIt == mConstFuncIndexMap.end() )
+    {
+        index = static_cast<int32_t>(mConstFuncIndexMap.size());
+
+        mConstFuncIndexMap.insert( ConstFuncIndexMap::value_type( func.get(), index ) );
+        mConstIndexFuncMap.insert( ConstIndexFuncMap::value_type( index, func ) );
+    }
+    else
+    {
+        index = funcIt->second;
+    }
+
+    buffer[offset] = index;
 }
 
 std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )

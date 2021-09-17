@@ -27,8 +27,10 @@ class FolderVisitor final : public Visitor
 
     std::shared_ptr<IntType>    mIntType;
 
+    ConstIndexFuncMap*      mConstIndexFuncMap;
+
 public:
-    FolderVisitor( ICompilerLog* log );
+    FolderVisitor( ICompilerLog* log, ConstIndexFuncMap* constIndexFuncMap = nullptr );
 
     std::optional<int32_t> Evaluate( Syntax* node );
     void Fold( Syntax* node );

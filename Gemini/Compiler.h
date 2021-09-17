@@ -290,12 +290,13 @@ private:
     AddrRefVec      mLocalAddrRefs;
     MemTransferVec  mDeferredGlobals;
 
+    ConstIndexFuncMap   mConstIndexFuncMap;
     GlobalDataGenerator mGlobalDataGenerator
     {
         mGlobals,
-        [=]( Function* func, GlobalSize offset )
+        [=]( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer )
         {
-            EmitFuncAddress( func, { CodeRefKind::Data, offset } );
+            EmitFuncAddress( func.get(), { CodeRefKind::Data, offset } );
         },
         std::bind( &Compiler::EmitGlobalAggregateCopyBlock, this, std::placeholders::_1, std::placeholders::_2 ),
         std::bind( &Compiler::GetSyntaxValue, this, std::placeholders::_1, std::placeholders::_2 ),

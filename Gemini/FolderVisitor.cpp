@@ -13,9 +13,10 @@
 namespace Gemini
 {
 
-FolderVisitor::FolderVisitor( ICompilerLog* log ) :
+FolderVisitor::FolderVisitor( ICompilerLog* log, ConstIndexFuncMap* constIndexFuncMap ) :
     mFoldNodes( false ),
-    mRep( log )
+    mRep( log ),
+    mConstIndexFuncMap( constIndexFuncMap )
 {
 }
 
@@ -128,7 +129,7 @@ void FolderVisitor::VisitCallExpr( CallExpr* call )
         Fold( arg );
     }
 
-    call->Head->Accept( this );
+    Fold( call->Head );
 
     mLastValue.reset();
 }
@@ -202,7 +203,7 @@ void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
         {
             auto& recordType = (RecordType&) *dotExpr->Head->Type;
 
-            auto fieldIt = recordType.Fields.find( dotExpr->Member );
+            auto fieldIt = recordType.GetFields().find( dotExpr->Member );
 
             mBufOffset = ((FieldStorage&) *fieldIt->second).Offset + mBufOffset.value();
         }
@@ -497,15 +498,44 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
 {
     child->Accept( this );
 
-    if ( mFoldNodes && mLastValue.has_value() && child->Kind != SyntaxKind::Number )
+    if ( mFoldNodes && mLastValue.has_value() && IsIntegralType( child->Type->GetKind() ) )
     {
-        Unique<NumberExpr> number( new NumberExpr( mLastValue.value() ) );
+        if ( child->Kind != SyntaxKind::Number )
+        {
+            Unique<NumberExpr> number( new NumberExpr( mLastValue.value() ) );
 
-        if ( !mIntType )
-            mIntType = std::shared_ptr<IntType>( new IntType() );
+            if ( !mIntType )
+                mIntType = std::shared_ptr<IntType>( new IntType() );
 
-        child = std::move( number );
-        child->Type = mIntType;
+            child = std::move( number );
+            child->Type = mIntType;
+        }
+    }
+    else if ( mFoldNodes && mLastValue.has_value() && IsPtrFuncType( *child->Type ) )
+    {
+        if ( mConstIndexFuncMap == nullptr )
+            THROW_INTERNAL_ERROR( "" );
+
+        auto funcIt = mConstIndexFuncMap->find( mLastValue.value() );
+
+        if ( funcIt == mConstIndexFuncMap->end() )
+            THROW_INTERNAL_ERROR( "" );
+
+        auto func = funcIt->second;
+
+        auto pointerType = std::shared_ptr<PointerType>( new PointerType( func->Type ) );
+
+        Unique<NameExpr> nameExpr( new NameExpr() );
+        nameExpr->String = "<const>";
+        nameExpr->Decl = func;
+        nameExpr->Type = func->Type;
+
+        Unique<AddrOfExpr> addrOf( new AddrOfExpr() );
+        addrOf->Inner = std::move( nameExpr );
+        addrOf->Type = pointerType;
+        CopyBaseSyntax( *addrOf, *child );
+
+        child = std::move( addrOf );
     }
 }
 

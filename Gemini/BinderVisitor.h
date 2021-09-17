@@ -18,6 +18,7 @@ class BinderVisitor final : public Visitor
     using SymStack = std::vector<SymTable*>;
     using LambdaVec = std::vector<Unique<ProcDecl>>;
     using NatTypeMap = std::map<int32_t, std::shared_ptr<Type>>;
+    using ConstFuncIndexMap = std::map<Function*, int32_t>;
 
     friend class LocalScope;
     friend class BorrowedScope;
@@ -30,6 +31,9 @@ class BinderVisitor final : public Visitor
     SymTable&       mPublicTable;
     NatTypeMap      mNativeTypeMap;
     Reporter        mRep;
+
+    ConstFuncIndexMap   mConstFuncIndexMap;
+    ConstIndexFuncMap   mConstIndexFuncMap;
 
     Function*       mCurFunc = nullptr;
 
@@ -61,6 +65,7 @@ public:
     void BindFunctionBodies( Unit* unit );
 
     size_t GetDataSize();
+    ConstIndexFuncMap GetConstIndexFuncMap();
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
@@ -120,6 +125,7 @@ private:
     ParamSpec VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModifier modifier );
 
     int32_t Evaluate( Syntax* node, const char* message = nullptr );
+    void EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer );
     ValueVariant EvaluateVariant( Syntax* node );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
 
