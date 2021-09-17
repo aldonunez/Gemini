@@ -881,13 +881,18 @@ void Compiler::EmitFuncAddress( Function* func, CodeRef funcRef )
 
     U32 addrWord = CodeAddr::Build( func->Address, func->ModIndex );
 
-    if ( funcRef.Kind == CodeRefKind::Code )
+    switch ( funcRef.Kind )
     {
+    case CodeRefKind::Code:
         StoreU32( &mCodeBin[funcRef.Location], addrWord );
-    }
-    else if ( funcRef.Kind == CodeRefKind::Data )
-    {
+        break;
+
+    case CodeRefKind::Data:
         mGlobals[funcRef.Location] = addrWord;
+        break;
+
+    default:
+        THROW_INTERNAL_ERROR( "EmitFuncAddress: CodeRef::Kind" );
     }
 }
 
@@ -1110,6 +1115,9 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
             }
         }
         break;
+
+    default:
+        THROW_INTERNAL_ERROR( "GenerateArg: ParamMode" );
     }
 }
 
@@ -1709,7 +1717,7 @@ void Compiler::PushFuncPatch( const std::string& name, CodeRef codeRef )
 
     PushBasicPatch( &patchIt->second, codeRef );
 
-    if ( mInFunc )
+    if ( codeRef.Kind == CodeRefKind::Code )
     {
         AddrRef ref = { AddrRefKind::Inst };
         ref.InstIndexPtr = &patchIt->second.First->Ref.Location;

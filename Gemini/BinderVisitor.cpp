@@ -186,6 +186,12 @@ bool IsOpenArrayType( Type& type )
     return type.GetKind() == TypeKind::Array && ((ArrayType&) type).Count == 0;
 }
 
+bool IsPtrFuncType( Type& type )
+{
+    return type.GetKind() == TypeKind::Pointer
+        && ((PointerType&) type).TargetType->GetKind() == TypeKind::Func;
+}
+
 static bool IsLValue( const Syntax& node )
 {
     if ( node.Kind != SyntaxKind::Name
@@ -871,6 +877,8 @@ void BinderVisitor::VisitLambdaExpr( LambdaExpr* lambdaExpr )
     mLambdas.push_back( std::move( lambdaExpr->Proc ) );
     mTotalLambdas++;
 
+    // Replace the lambda expression with an equivalent address-of expression
+
     Unique<NameExpr> nameExpr( new NameExpr() );
     nameExpr->String = name;
     nameExpr->Decl = func;
@@ -933,6 +941,8 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
     }
     else
     {
+        // CheckInitializer will visit the initializer
+
         varDecl->TypeRef->Accept( this );
 
         type = varDecl->TypeRef->ReferentType;
@@ -1612,15 +1622,7 @@ void BinderVisitor::CheckArgument(
         mRep.ThrowSemanticsError( argNode, "Incompatible argument type" );
     }
 
-    if ( mode == ParamMode::InOutRef )
-    {
-        auto decl = argNode->GetDecl();
-
-        if ( argNode->Kind != SyntaxKind::Index
-            && argNode->Kind != SyntaxKind::Slice
-            && (decl == nullptr || !IsVarDeclaration( decl->Kind )) )
-            mRep.ThrowSemanticsError( argNode, "Expression can't be passed by reference" );
-    }
+    // Let the code generator detect whether the expression has an address
 }
 
 void BinderVisitor::CheckAndConsolidateClauseType( StatementList& clause, std::shared_ptr<Type>& bodyType )
@@ -1946,15 +1948,14 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
 
     case ParamMode::InOutRef:
         // Open array: dope vector + address
-        if ( type->GetKind() == TypeKind::Array && ((ArrayType&) *type).Count == 0 )
+        if ( IsOpenArrayType( *type ) )
             return 2;
 
         // Closed array: address
         return 1;
 
     default:
-        assert( false );
-        return 1;
+        THROW_INTERNAL_ERROR( "GetParamSize: ParamMode" );
     }
 }
 

@@ -766,7 +766,7 @@ bool ArrayType::IsPassableFrom( Type* other, ParamMode mode ) const
     if ( other == nullptr || other->GetKind() != TypeKind::Array )
         return false;
 
-    if ( mode != ParamMode::InOutRef )
+    if ( mode == ParamMode::Value )
         return false;
 
     auto otherArray = (ArrayType*) other;

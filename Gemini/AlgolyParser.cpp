@@ -741,7 +741,6 @@ Unique<DataDecl> AlgolyParser::ParseParameter()
     if ( mCurToken == TokenCode::Var )
     {
         ScanToken();
-
         paramDecl->Mode = ParamMode::InOutRef;
     }
 
