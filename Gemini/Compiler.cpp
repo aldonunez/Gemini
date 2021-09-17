@@ -802,13 +802,13 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
 
             case DeclKind::Local:
                 {
-                    auto local = (LocalStorage*) baseDecl;
+                    auto local = (LocalStorage*) addr.decl;
 
-                    assert( offset >= 0 && offset < LocalSizeMax );
-                    assert( (offset + 1) < (LocalSizeMax - local->Offset) );
+                    assert( addr.offset >= 0 && addr.offset < LocalSizeMax );
+                    assert( (addr.offset + 1) < (LocalSizeMax - local->Offset) );
 
-                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + offset) );
-                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + offset + 1) );
+                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + addr.offset) );
+                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + addr.offset + 1) );
                 }
                 break;
 
