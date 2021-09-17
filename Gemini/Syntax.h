@@ -891,9 +891,10 @@ enum class TypeKind
 class Type
 {
     TypeKind    mKind;
+    const bool  mConst = false;
 
 protected:
-    Type( TypeKind kind );
+    Type( TypeKind kind, bool isConst = false );
 
 public:
     virtual ~Type() { }
@@ -903,6 +904,8 @@ public:
     bool IsAssignableFrom( Type* other ) const;
     bool IsPassableFrom( Type* other, ParamMode mode ) const;
     virtual DataSize GetSize() const;
+
+    virtual std::shared_ptr<Type> Copy( bool isConst ) const = 0;
 
 private:
     virtual bool IsEqualImpl( Type* other ) const;
@@ -914,31 +917,45 @@ private:
 template <typename Derived, TypeKind kind>
 class SimpleType : public Type
 {
-public:
-    SimpleType() : Type( kind ) {}
+protected:
+    SimpleType( bool isConst = false ) : Type( kind, isConst ) {}
+
+    virtual std::shared_ptr<Type> Copy( bool isConst ) const override
+    {
+        std::shared_ptr<Derived> result( new Derived( isConst ) );
+
+        return result;
+    }
 };
 
 
 class ErrorType : public SimpleType<ErrorType, TypeKind::Error>
 {
+    using SimpleType::SimpleType;
 };
 
 class TypeType : public SimpleType<TypeType, TypeKind::Type>
 {
+    using SimpleType::SimpleType;
 };
 
 class ModuleType : public SimpleType<ModuleType, TypeKind::Module>
 {
+    using SimpleType::SimpleType;
 };
 
 class XferType : public SimpleType<XferType, TypeKind::Xfer>
 {
+    using SimpleType::SimpleType;
+
 private:
     virtual bool IsEqualImpl( Type* other ) const override;
 };
 
 class IntType : public SimpleType<IntType, TypeKind::Int>
 {
+    using SimpleType::SimpleType;
+
 public:
     virtual DataSize GetSize() const override;
 
@@ -954,9 +971,10 @@ public:
     DataSize Count;
     std::shared_ptr<Type> ElemType;
 
-    ArrayType( DataSize count, std::shared_ptr<Type> elemType );
+    ArrayType( DataSize count, std::shared_ptr<Type> elemType, bool isConst = false );
 
     virtual DataSize GetSize() const override;
+    virtual std::shared_ptr<Type> Copy( bool isConst ) const override;
 
 private:
     virtual bool IsEqualImpl( Type* other ) const override;
@@ -977,7 +995,9 @@ public:
     std::shared_ptr<Type>               ReturnType;
     std::vector<ParamSpec>              Params;
 
-    FuncType( std::shared_ptr<Type> returnType );
+    FuncType( std::shared_ptr<Type> returnType, bool isConst = false );
+
+    virtual std::shared_ptr<Type> Copy( bool isConst ) const override;
 
 private:
     virtual bool IsEqualImpl( Type* other ) const override;
@@ -988,9 +1008,10 @@ class PointerType : public Type
 public:
     std::shared_ptr<Type>   TargetType;
 
-    PointerType( std::shared_ptr<Type> target );
+    PointerType( std::shared_ptr<Type> target, bool isConst = false );
 
     virtual DataSize GetSize() const override;
+    virtual std::shared_ptr<Type> Copy( bool isConst ) const override;
 
 private:
     virtual bool IsEqualImpl( Type* other ) const override;
@@ -1006,7 +1027,7 @@ private:
     mutable DataSize mSize = 0;
 
     FieldVec    OrderedFields;
-    SymTable    Fields;
+    std::shared_ptr<SymTable>   Fields;
 
 public:
     RecordType();
@@ -1015,15 +1036,18 @@ public:
     FieldVec& GetOrderedFields();
 
     virtual DataSize GetSize() const override;
+    virtual std::shared_ptr<Type> Copy( bool isConst ) const override;
 
 private:
+    RecordType( std::shared_ptr<SymTable> fields, bool isConst );
+
     virtual bool IsEqualImpl( Type* other ) const override;
 };
 
 
 class EnumType : public Type
 {
-    SymTable    MembersByName;
+    std::shared_ptr<SymTable>   MembersByName;
 
 public:
     EnumType();
@@ -1031,8 +1055,11 @@ public:
     SymTable& GetMembersByName();
 
     virtual DataSize GetSize() const override;
+    virtual std::shared_ptr<Type> Copy( bool isConst ) const override;
 
 private:
+    EnumType( std::shared_ptr<SymTable> members, bool isConst );
+
     virtual bool IsEqualImpl( Type* other ) const override;
 };
 

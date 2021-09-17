@@ -682,8 +682,9 @@ std::shared_ptr<Type> EnumMember::GetType() const
 //  Types
 //----------------------------------------------------------------------------
 
-Type::Type( TypeKind kind ) :
-    mKind( kind )
+Type::Type( TypeKind kind, bool isConst ) :
+    mKind( kind ),
+    mConst( isConst )
 {
 }
 
@@ -755,8 +756,8 @@ DataSize IntType::GetSize() const
 }
 
 
-ArrayType::ArrayType( DataSize count, std::shared_ptr<Type> elemType ) :
-    Type( TypeKind::Array ),
+ArrayType::ArrayType( DataSize count, std::shared_ptr<Type> elemType, bool isConst ) :
+    Type( TypeKind::Array, isConst ),
     Count( count ),
     ElemType( elemType )
 {
@@ -818,9 +819,16 @@ DataSize ArrayType::GetSize() const
     return Count * ElemType->GetSize();
 }
 
+std::shared_ptr<Type> ArrayType::Copy( bool isConst ) const
+{
+    std::shared_ptr<ArrayType> result( new ArrayType( Count, ElemType, isConst ) );
 
-FuncType::FuncType( std::shared_ptr<Type> returnType ) :
-    Type( TypeKind::Func ),
+    return result;
+}
+
+
+FuncType::FuncType( std::shared_ptr<Type> returnType, bool isConst ) :
+    Type( TypeKind::Func, isConst ),
     ReturnType( returnType )
 {
 }
@@ -848,9 +856,18 @@ bool FuncType::IsEqualImpl( Type* other ) const
     return true;
 }
 
+std::shared_ptr<Type> FuncType::Copy( bool isConst ) const
+{
+    std::shared_ptr<FuncType> result( new FuncType( ReturnType, isConst ) );
 
-PointerType::PointerType( std::shared_ptr<Type> target ) :
-    Type( TypeKind::Pointer ),
+    result->Params = Params;
+
+    return result;
+}
+
+
+PointerType::PointerType( std::shared_ptr<Type> target, bool isConst ) :
+    Type( TypeKind::Pointer, isConst ),
     TargetType( target )
 {
 }
@@ -870,22 +887,37 @@ DataSize PointerType::GetSize() const
     return 1;
 }
 
+std::shared_ptr<Type> PointerType::Copy( bool isConst ) const
+{
+    std::shared_ptr<PointerType> result( new PointerType( TargetType, isConst ) );
+
+    return result;
+}
+
 
 RecordType::RecordType() :
     Type( TypeKind::Record )
+{
+    Fields.reset( new SymTable() );
+}
+
+RecordType::RecordType( std::shared_ptr<SymTable> fields, bool isConst ) :
+    Type( TypeKind::Record, isConst ),
+    Fields( fields )
 {
 }
 
 bool RecordType::IsEqualImpl( Type* other ) const
 {
-    return other == this;
+    return other->GetKind() == TypeKind::Record
+        && ((RecordType*) other)->Fields.get() == this->Fields.get();
 }
 
 DataSize RecordType::GetSize() const
 {
     if ( mSize == 0 )
     {
-        for ( auto& [_, field] : Fields )
+        for ( auto& [_, field] : *Fields )
         {
             mSize += field->GetType()->GetSize();
         }
@@ -894,9 +926,16 @@ DataSize RecordType::GetSize() const
     return mSize;
 }
 
+std::shared_ptr<Type> RecordType::Copy( bool isConst ) const
+{
+    std::shared_ptr<RecordType> result( new RecordType( Fields, isConst ) );
+
+    return result;
+}
+
 SymTable& RecordType::GetFields()
 {
-    return Fields;
+    return *Fields;
 }
 
 RecordType::FieldVec& RecordType::GetOrderedFields()
@@ -908,11 +947,19 @@ RecordType::FieldVec& RecordType::GetOrderedFields()
 EnumType::EnumType() :
     Type( TypeKind::Enum )
 {
+    MembersByName.reset( new SymTable() );
+}
+
+EnumType::EnumType( std::shared_ptr<SymTable> members, bool isConst ) :
+    Type( TypeKind::Enum, isConst ),
+    MembersByName( members )
+{
 }
 
 bool EnumType::IsEqualImpl( Type* other ) const
 {
-    return other == this;
+    return other->GetKind() == TypeKind::Enum
+        && ((EnumType*) other)->MembersByName.get() == this->MembersByName.get();
 }
 
 DataSize EnumType::GetSize() const
@@ -920,9 +967,16 @@ DataSize EnumType::GetSize() const
     return 1;
 }
 
+std::shared_ptr<Type> EnumType::Copy( bool isConst ) const
+{
+    std::shared_ptr<EnumType> result( new EnumType( MembersByName, isConst ) );
+
+    return result;
+}
+
 SymTable& EnumType::GetMembersByName()
 {
-    return MembersByName;
+    return *MembersByName;
 }
 
 }
