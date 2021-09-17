@@ -515,19 +515,16 @@ void Compiler::EmitCountofArray( Syntax* arrayNode )
     }
     else
     {
-        Declaration*    decl = nullptr;
-        int32_t         offset = 0;
+        auto addr = CalcAddress( arrayNode );
 
-        CalcAddress( arrayNode, decl, offset );
-
-        if ( decl->Kind == DeclKind::Param )
+        if ( addr.decl->Kind == DeclKind::Param )
         {
-            auto param = (ParamStorage*) decl;
+            auto param = (ParamStorage*) addr.decl;
 
             EmitU8( OP_LDARG, param->Offset + 1 );
             IncreaseExprDepth();
         }
-        else if ( decl->Kind == DeclKind::LoadedAddress )
+        else if ( addr.decl->Kind == DeclKind::LoadedAddress )
         {
             Emit( OP_POP );
             DecreaseExprDepth();
@@ -677,12 +674,9 @@ void Compiler::GenerateSetScalar( AssignmentExpr* assignment, const GenConfig& c
         IncreaseExprDepth();
     }
 
-    int32_t         offset = 0;
-    Declaration*    decl = nullptr;
+    auto addr = CalcAddress( assignment->Left.get() );
 
-    CalcAddress( assignment->Left.get(), decl, offset );
-
-    EmitStoreScalar( assignment->Left.get(), decl, offset );
+    EmitStoreScalar( assignment->Left.get(), addr.decl, addr.offset );
 }
 
 void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset )
@@ -788,12 +782,9 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
         if ( IsClosedArrayType( leftArrayType ) )
             EmitLoadConstant( leftArrayType.Count );
 
-        Declaration*    baseDecl = nullptr;
-        int32_t         offset = 0;
+        auto addr = CalcAddress( assignment->Left.get() );
 
-        CalcAddress( assignment->Left.get(), baseDecl, offset );
-
-        EmitLoadAddress( assignment->Left.get(), baseDecl, offset );
+        EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
 
         EmitU24( OP_COPYARRAY, rightArrayType.ElemType->GetSize() );
 
@@ -816,12 +807,9 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
             IncreaseExprDepth();
         }
 
-        Declaration*    baseDecl = nullptr;
-        int32_t         offset = 0;
+        auto addr = CalcAddress( assignment->Left.get() );
 
-        CalcAddress( assignment->Left.get(), baseDecl, offset );
-
-        EmitLoadAddress( assignment->Left.get(), baseDecl, offset );
+        EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
 
         EmitU24( OP_COPYBLOCK, assignment->Right->Type->GetSize() );
 
@@ -1100,9 +1088,6 @@ void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
 
 void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
 {
-    GenConfig config{};
-    GenStatus status{};
-
     switch ( paramSpec.Mode )
     {
     case ParamMode::Value:
@@ -1110,19 +1095,19 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
         break;
 
     case ParamMode::InOutRef:
-        GenerateDopeVector( node, paramSpec );
-
-        config.calcAddr = true;
-
-        Generate( &node, config, status );
-
-        if ( !status.spilledAddr )
         {
-            EmitLoadAddress( &node, status.baseDecl, status.offset );
-        }
-        else if ( status.offset > 0 )
-        {
-            EmitSpilledAddrOffset( status.offset );
+            GenerateDopeVector( node, paramSpec );
+
+            auto addr = CalcAddress( &node );
+
+            if ( !addr.spilled )
+            {
+                EmitLoadAddress( &node, addr.decl, addr.offset );
+            }
+            else if ( addr.offset > 0 )
+            {
+                EmitSpilledAddrOffset( addr.offset );
+            }
         }
         break;
     }
@@ -2057,21 +2042,15 @@ void Compiler::EmitCopyPartOfAggregate( Syntax* partNode, Type* partType )
 
     if ( IsScalarType( partType->GetKind() ) )
     {
-        Declaration* baseDecl = nullptr;
-        int32_t      offset = 0;
+        auto addr = CalcAddress( partNode );
 
-        CalcAddress( partNode, baseDecl, offset );
-
-        EmitLoadScalar( partNode, baseDecl, offset );
+        EmitLoadScalar( partNode, addr.decl, addr.offset );
     }
     else
     {
-        Declaration* baseDecl = nullptr;
-        int32_t      offset = 0;
+        auto addr = CalcAddress( partNode );
 
-        CalcAddress( partNode, baseDecl, offset );
-
-        EmitLoadAddress( partNode, baseDecl, offset );
+        EmitLoadAddress( partNode, addr.decl, addr.offset );
     }
 }
 
@@ -2080,7 +2059,7 @@ void Compiler::VisitIndexExpr( IndexExpr* indexExpr )
     GenerateAref( indexExpr, Config(), Status() );
 }
 
-void Compiler::CalcAddress( Syntax* expr, Declaration*& baseDecl, int32_t& offset )
+Compiler::CalculatedAddress Compiler::CalcAddress( Syntax* expr )
 {
     GenConfig config{};
     GenStatus status{};
@@ -2089,8 +2068,16 @@ void Compiler::CalcAddress( Syntax* expr, Declaration*& baseDecl, int32_t& offse
 
     Generate( expr, config, status );
 
-    baseDecl = status.baseDecl;
-    offset = status.offset;
+    if ( status.baseDecl == nullptr )
+        mRep.ThrowSemanticsError( expr, "Expression has no address" );
+
+    CalculatedAddress addr{};
+
+    addr.decl = status.baseDecl;
+    addr.offset = status.offset;
+    addr.spilled = status.spilledAddr;
+
+    return addr;
 }
 
 void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
@@ -2109,12 +2096,9 @@ void Compiler::VisitSliceExpr( SliceExpr* sliceExpr )
         return;
     }
 
-    Declaration*    baseDecl = nullptr;
-    int32_t         offset = 0;
+    auto addr = CalcAddress( sliceExpr );
 
-    CalcAddress( sliceExpr, baseDecl, offset );
-
-    EmitLoadAddress( sliceExpr, baseDecl, offset );
+    EmitLoadAddress( sliceExpr, addr.decl, addr.offset );
 }
 
 void Compiler::GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status )
@@ -2218,13 +2202,11 @@ void Compiler::EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueEle
 {
     // Defer these globals until all function addresses are known and put in source blocks
 
-    Declaration* baseDecl = nullptr;
-    int32_t      srcOffset = 0;
     MemTransfer  transfer;
 
-    CalcAddress( valueElem, baseDecl, srcOffset );
+    auto srcAddr = CalcAddress( valueElem );
 
-    transfer.Src = srcOffset;
+    transfer.Src = srcAddr.offset;
     transfer.Dst = offset;
     transfer.Size = valueElem->Type->GetSize();
 

@@ -272,6 +272,13 @@ private:
         GenStatus& status;
     };
 
+    struct CalculatedAddress
+    {
+        Declaration*    decl;
+        int32_t         offset;
+        bool            spilled;
+    };
+
     CodeVec         mCodeBin;
     GlobalVec       mGlobals;
 
@@ -347,7 +354,7 @@ private:
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
     void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );
 
-    void CalcAddress( Syntax* dotExpr, Declaration*& baseDecl, int32_t& offset );
+    CalculatedAddress CalcAddress( Syntax* expr );
 
     void EmitGlobalScalar( GlobalSize offset, Syntax* valueElem );
     void EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size );
