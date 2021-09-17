@@ -695,32 +695,17 @@ TypeKind Type::GetKind() const
 
 bool Type::IsEqual( Type* other ) const
 {
-    return IsEqualImpl( other );
-}
-
-bool Type::IsEqualImpl( Type* other ) const
-{
     return false;
 }
 
 bool Type::IsAssignableFrom( Type* other ) const
 {
-    return IsAssignableFromImpl( other );
-}
-
-bool Type::IsAssignableFromImpl( Type* other ) const
-{
-    return IsEqualImpl( other );
+    return IsEqual( other );
 }
 
 bool Type::IsPassableFrom( Type* other, ParamMode mode ) const
 {
-    return IsPassableFromImpl( other, mode );
-}
-
-bool Type::IsPassableFromImpl( Type* other, ParamMode mode ) const
-{
-    return IsAssignableFromImpl( other );
+    return IsAssignableFrom( other );
 }
 
 DataSize Type::GetSize() const
@@ -729,20 +714,20 @@ DataSize Type::GetSize() const
 }
 
 
-bool XferType::IsEqualImpl( Type* other ) const
+bool XferType::IsEqual( Type* other ) const
 {
     return other != nullptr
         && other->GetKind() == TypeKind::Xfer;
 }
 
 
-bool IntType::IsEqualImpl( Type* other ) const
+bool IntType::IsEqual( Type* other ) const
 {
     return other != nullptr
         && (other->GetKind() == TypeKind::Int);
 }
 
-bool IntType::IsAssignableFromImpl( Type* other ) const
+bool IntType::IsAssignableFrom( Type* other ) const
 {
     return other != nullptr
         && (other->GetKind() == TypeKind::Int
@@ -763,7 +748,7 @@ ArrayType::ArrayType( DataSize count, std::shared_ptr<Type> elemType ) :
 {
 }
 
-bool ArrayType::IsEqualImpl( Type* other ) const
+bool ArrayType::IsEqual( Type* other ) const
 {
     if ( other == nullptr || other->GetKind() != TypeKind::Array )
         return false;
@@ -776,7 +761,7 @@ bool ArrayType::IsEqualImpl( Type* other ) const
     return Count == otherArray->Count;
 }
 
-bool ArrayType::IsAssignableFromImpl( Type* other ) const
+bool ArrayType::IsAssignableFrom( Type* other ) const
 {
     if ( other == nullptr || other->GetKind() != TypeKind::Array )
         return false;
@@ -792,7 +777,7 @@ bool ArrayType::IsAssignableFromImpl( Type* other ) const
     return Count == 0 || Count >= otherArray->Count;
 }
 
-bool ArrayType::IsPassableFromImpl( Type* other, ParamMode mode ) const
+bool ArrayType::IsPassableFrom( Type* other, ParamMode mode ) const
 {
     if ( mode == ParamMode::Value )
         return IsAssignableFrom( other );
@@ -826,7 +811,7 @@ FuncType::FuncType( std::shared_ptr<Type> returnType ) :
 {
 }
 
-bool FuncType::IsEqualImpl( Type* other ) const
+bool FuncType::IsEqual( Type* other ) const
 {
     if ( other == nullptr || other->GetKind() != TypeKind::Func )
         return false;
@@ -856,7 +841,7 @@ PointerType::PointerType( std::shared_ptr<Type> target ) :
 {
 }
 
-bool PointerType::IsEqualImpl( Type* other ) const
+bool PointerType::IsEqual( Type* other ) const
 {
     if ( other == nullptr || other->GetKind() != TypeKind::Pointer )
         return false;
@@ -877,7 +862,7 @@ RecordType::RecordType() :
 {
 }
 
-bool RecordType::IsEqualImpl( Type* other ) const
+bool RecordType::IsEqual( Type* other ) const
 {
     return other == this;
 }
@@ -911,7 +896,7 @@ EnumType::EnumType() :
 {
 }
 
-bool EnumType::IsEqualImpl( Type* other ) const
+bool EnumType::IsEqual( Type* other ) const
 {
     return other == this;
 }
