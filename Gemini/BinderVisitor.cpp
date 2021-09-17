@@ -259,6 +259,11 @@ size_t BinderVisitor::GetDataSize()
     return mGlobalSize;
 }
 
+size_t BinderVisitor::GetConstSize()
+{
+    return mConstSize;
+}
+
 ConstIndexFuncMap BinderVisitor::GetConstIndexFuncMap()
 {
     return std::move( mConstIndexFuncMap );
@@ -1864,7 +1869,11 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::sh
     std::shared_ptr<SimpleConstant> constant( new SimpleConstant() );
     constant->Type = type;
     constant->Value = value;
+    constant->ModIndex = mModIndex;
     table.insert( SymTable::value_type( declNode->Name, constant ) );
+
+    mConstSize += static_cast<GlobalSize>(type->GetSize());
+
     return constant;
 }
 

@@ -86,6 +86,7 @@ CompilerErr Compiler::Compile()
         CopyDeferredGlobals();
 
         GenerateSentinel();
+        FinalizeConstData();
 
         mStatus = CompilerErr::OK;
     }
@@ -159,7 +160,14 @@ void Compiler::BindAttributes()
     for ( auto& unit : mUnits )
         binder.BindFunctionBodies( unit.get() );
 
+#if 0
     mGlobals.resize( binder.GetDataSize() );
+    mConsts.resize( binder.GetConstSize() );
+#else
+    mGlobals.resize( binder.GetDataSize() + binder.GetConstSize() );
+    mTotalConst = binder.GetDataSize();
+#endif
+
     mConstIndexFuncMap = binder.GetConstIndexFuncMap();
 }
 
@@ -898,6 +906,10 @@ void Compiler::EmitFuncAddress( Function* func, CodeRef funcRef )
 
     case CodeRefKind::Data:
         mGlobals[funcRef.Location] = addrWord;
+        break;
+
+    case CodeRefKind::Const:
+        mConsts[funcRef.Location] = addrWord;
         break;
 
     default:
@@ -1801,8 +1813,9 @@ void Compiler::PatchCalls( FuncPatchChain* chain, U32 addr )
 
         switch ( link->Ref.Kind )
         {
-        case CodeRefKind::Code: refPtr = &mCodeBin[link->Ref.Location]; break;
-        case CodeRefKind::Data: refPtr = &mGlobals[link->Ref.Location]; break;
+        case CodeRefKind::Code:  refPtr = &mCodeBin[link->Ref.Location]; break;
+        case CodeRefKind::Data:  refPtr = &mGlobals[link->Ref.Location]; break;
+        case CodeRefKind::Const: refPtr = &mConsts[link->Ref.Location]; break;
         default:
             THROW_INTERNAL_ERROR( "" );
         }
@@ -1918,6 +1931,24 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 {
                     THROW_INTERNAL_ERROR( "EmitLoadAddress: Bad parameter mode" );
                 }
+            }
+            break;
+
+        case DeclKind::Const:
+            {
+                auto constant = (Constant*) baseDecl;
+
+                if ( !constant->Spilled )
+                    SpillConstant( constant );
+
+                assert( offset >= 0 && offset < GlobalSizeMax );
+                assert( offset < (GlobalSizeMax - constant->Offset) );
+
+                addrWord = CodeAddr::Build(
+                    constant->Offset + offset,
+                    constant->ModIndex );
+                EmitU32( OP_LDC, addrWord );
+                IncreaseExprDepth();
             }
             break;
 
@@ -2306,6 +2337,94 @@ void GlobalDataGenerator::EmitGlobalRecordInitializer( GlobalSize offset, Record
     }
 }
 
+void Compiler::VisitConstDecl( ConstDecl* constDecl )
+{
+    // Constants inside functions are spilled on demand
+    if ( mInFunc )
+        return;
+
+    // All global constants are serialized
+    SpillConstant( (Constant*) constDecl->GetDecl() );
+}
+
+void Compiler::SpillConstant( Constant* constant )
+{
+    // Constants in other modules should have been spilled already
+    assert( constant->ModIndex == mModIndex );
+    assert( !constant->Spilled );
+
+    auto type = constant->GetType();
+
+    assert( type->GetSize() <= (mConsts.size() - mTotalConst) );
+
+    constant->Spilled = true;
+    constant->Offset = static_cast<GlobalSize>(mTotalConst);
+
+    switch ( static_cast<ValueKind>(constant->Value.index()) )
+    {
+    case ValueKind::Integer:
+        mConsts[mTotalConst] = Get<ValueKind::Integer>( constant->Value );
+        break;
+
+    case ValueKind::Function:
+        {
+            auto func = Get<ValueKind::Function>( constant->Value );
+
+            EmitFuncAddress( func.get(), { CodeRefKind::Const, static_cast<int32_t>(mTotalConst) } );
+        }
+        break;
+
+    case ValueKind::Aggregate:
+        SpillConstPart( type.get(), static_cast<GlobalSize>(mTotalConst), *Get<ValueKind::Aggregate>( constant->Value ), 0 );
+        break;
+
+    default:
+        THROW_INTERNAL_ERROR( "SpillConstant: ValueKind" );
+    }
+
+    mTotalConst += type->GetSize();
+}
+
+void Compiler::SpillConstPart( Type* type, GlobalSize constOffset, GlobalVec& buffer, GlobalSize bufOffset )
+{
+    if ( IsIntegralType( type->GetKind() ) )
+    {
+        mConsts[constOffset] = buffer[bufOffset];
+    }
+    else if ( IsPtrFuncType( *type ) )
+    {
+        auto funcIt = mConstIndexFuncMap.find( buffer[bufOffset] );
+
+        EmitFuncAddress( funcIt->second.get(), { CodeRefKind::Const, constOffset }  );
+    }
+    else if ( type->GetKind() == TypeKind::Array )
+    {
+        auto arrayType = (ArrayType*) type;
+        auto elemType = arrayType->ElemType.get();
+
+        for ( GlobalSize i = 0; i < arrayType->Count; i++ )
+        {
+            SpillConstPart( elemType, constOffset, buffer, bufOffset );
+
+            constOffset += elemType->GetSize();
+            bufOffset += elemType->GetSize();
+        }
+    }
+    else if ( type->GetKind() == TypeKind::Record )
+    {
+        auto recordType = (RecordType*) type;
+
+        for ( auto& f : recordType->GetOrderedFields() )
+        {
+            SpillConstPart( f->GetType().get(), constOffset + f->Offset, buffer, bufOffset + f->Offset );
+        }
+    }
+    else
+    {
+        THROW_INTERNAL_ERROR( "SpillConstPart: TypeKind" );
+    }
+}
+
 void Compiler::GenerateProc( ProcDecl* procDecl, Function* func )
 {
     mInFunc = true;
@@ -2443,6 +2562,11 @@ void Compiler::GenerateSentinel()
     {
         mCodeBin[curIndex++] = OP_SENTINEL;
     }
+}
+
+void Compiler::FinalizeConstData()
+{
+    mConsts.resize( mTotalConst );
 }
 
 I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )

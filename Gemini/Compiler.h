@@ -86,6 +86,7 @@ public:
     {
         Code,
         Data,
+        Const,
     };
 
     struct CodeRef
@@ -281,6 +282,8 @@ private:
 
     CodeVec         mCodeBin;
     GlobalVec       mGlobals;
+    GlobalVec&      mConsts = mGlobals;
+    size_t          mTotalConst = 0;
 
     SymTable        mGlobalTable;
     SymTable        mModuleTable;
@@ -302,7 +305,6 @@ private:
         std::bind( &Compiler::GetSyntaxValue, this, std::placeholders::_1, std::placeholders::_2 ),
         mRep
     };
-
 
     bool            mInFunc = false;
     Function*       mCurFunc = nullptr;
@@ -367,6 +369,9 @@ private:
     void GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status );
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
 
+    void SpillConstant( Constant* constant );
+    void SpillConstPart( Type* type, GlobalSize offset, GlobalVec& buffer, GlobalSize bufOffset );
+
     CalculatedAddress CalcAddress( Syntax* expr );
 
     void EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem );
@@ -421,6 +426,7 @@ private:
     void GenerateNilIfNeeded( const GenConfig& config, GenStatus& status );
 
     void GenerateSentinel();
+    void FinalizeConstData();
 
     // And and Or
     void GenerateConj( ConjSpec* spec, BinaryExpr* binary, const GenConfig& config );
@@ -477,6 +483,7 @@ private:
     virtual void VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol ) override;
     virtual void VisitCaseExpr( CaseExpr* caseExpr ) override;
     virtual void VisitCondExpr( CondExpr* condExpr ) override;
+    virtual void VisitConstDecl( ConstDecl* constDecl ) override;
     virtual void VisitCountofExpr( CountofExpr* countofExpr ) override;
     virtual void VisitDotExpr( DotExpr* dotExpr ) override;
     virtual void VisitForStatement( ForStatement* forStmt ) override;

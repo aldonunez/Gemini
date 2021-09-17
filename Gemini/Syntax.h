@@ -741,7 +741,10 @@ inline decltype(auto) Get( const ValueVariant& variant )
 
 struct Constant : public Declaration
 {
-    ValueVariant Value;
+    ValueVariant    Value;
+    GlobalSize      Offset = 0;
+    ModSize         ModIndex = 0;
+    bool            Spilled = false;
 
     Constant();
 };
@@ -1026,8 +1029,8 @@ public:
 private:
     mutable DataSize mSize = 0;
 
-    FieldVec    OrderedFields;
     std::shared_ptr<SymTable>   Fields;
+    std::shared_ptr<FieldVec>   OrderedFields;
 
 public:
     RecordType();
@@ -1039,7 +1042,7 @@ public:
     virtual std::shared_ptr<Type> Copy( bool isConst ) const override;
 
 private:
-    RecordType( std::shared_ptr<SymTable> fields, bool isConst );
+    RecordType( std::shared_ptr<SymTable> fields, std::shared_ptr<FieldVec> orderedFields, bool isConst );
 
     virtual bool IsEqualImpl( Type* other ) const override;
 };

@@ -899,11 +899,13 @@ RecordType::RecordType() :
     Type( TypeKind::Record )
 {
     Fields.reset( new SymTable() );
+    OrderedFields.reset( new FieldVec() );
 }
 
-RecordType::RecordType( std::shared_ptr<SymTable> fields, bool isConst ) :
+RecordType::RecordType( std::shared_ptr<SymTable> fields, std::shared_ptr<FieldVec> orderedFields, bool isConst ) :
     Type( TypeKind::Record, isConst ),
-    Fields( fields )
+    Fields( fields ),
+    OrderedFields( orderedFields )
 {
 }
 
@@ -928,7 +930,7 @@ DataSize RecordType::GetSize() const
 
 std::shared_ptr<Type> RecordType::Copy( bool isConst ) const
 {
-    std::shared_ptr<RecordType> result( new RecordType( Fields, isConst ) );
+    std::shared_ptr<RecordType> result( new RecordType( Fields, OrderedFields, isConst ) );
 
     return result;
 }
@@ -940,7 +942,7 @@ SymTable& RecordType::GetFields()
 
 RecordType::FieldVec& RecordType::GetOrderedFields()
 {
-    return OrderedFields;
+    return *OrderedFields;
 }
 
 

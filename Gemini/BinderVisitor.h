@@ -43,6 +43,7 @@ class BinderVisitor final : public Visitor
     LocalSize       mMaxLocalCount = 0;
     ParamSize       mParamCount = 0;
     GlobalSize      mGlobalSize = 0;
+    GlobalSize      mConstSize = 0;
     size_t          mTotalLambdas = 0;
     int32_t         mPrevNativeId = -1;
 
@@ -65,6 +66,7 @@ public:
     void BindFunctionBodies( Unit* unit );
 
     size_t GetDataSize();
+    size_t GetConstSize();
     ConstIndexFuncMap GetConstIndexFuncMap();
 
     // Visitor

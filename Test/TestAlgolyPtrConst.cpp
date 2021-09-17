@@ -82,7 +82,7 @@ TEST_CASE( "Algoly: complex ptr-const", "[algoly][ptr-const]" )
 // Const array
 //----------------------------------------------------------------------------
 
-TEST_CASE( "Algoly: simple const array", "[algoly][ptr-const]" )
+TEST_CASE( "Algoly: const array of int, const index", "[algoly][ptr-const]" )
 {
     const char code[] =
         "const AR1 = [1, 2, 3]\n"
@@ -94,7 +94,20 @@ TEST_CASE( "Algoly: simple const array", "[algoly][ptr-const]" )
     TestCompileAndRunAlgoly( code, 3 );
 }
 
-TEST_CASE( "Algoly: const array of fptr", "[algoly][ptr-const]" )
+TEST_CASE( "Algoly: const array of int, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2, 3]\n"
+        "var i := 2\n"
+        "def a\n"
+        "  AR1[i]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: const array of fptr, const index", "[algoly][ptr-const]" )
 {
     const char code[] =
         "const AR1 = [&B, &C, &D]\n"
@@ -109,17 +122,20 @@ TEST_CASE( "Algoly: const array of fptr", "[algoly][ptr-const]" )
     TestCompileAndRunAlgoly( code, 3 );
 }
 
-TEST_CASE( "Algoly: const array, var index", "[algoly][ptr-const]" )
+TEST_CASE( "Algoly: const array of fptr, var index", "[algoly][ptr-const]" )
 {
     const char code[] =
-        "const AR1 = [1, 2, 3]\n"
+        "const AR1 = [&B, &C, &D]\n"
         "var i := 2\n"
         "def a\n"
-        "  AR1[i]\n"
+        "  (AR1[i])()\n"
         "end\n"
+        "def B 1 end\n"
+        "def C 2 end\n"
+        "def D 3 end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+    TestCompileAndRunAlgoly( code, 3 );
 }
 
 TEST_CASE( "Algoly: simple const array of array", "[algoly][ptr-const]" )
@@ -223,4 +239,37 @@ TEST_CASE( "Algoly: const array in record", "[algoly][ptr-const]" )
         ;
 
     TestCompileAndRunAlgoly( code, 4 );
+}
+
+TEST_CASE( "Algoly: const record of int and fptr in array, const index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, f: @proc end\n"
+        "const AR: [2] of R = [{ a: 1, b: 2, f: @B }, { a: 3, b: 4, f: @C }]\n"
+        "def a\n"
+        "  AR[0].a + AR[0].b + (AR[0].f)() + \n"
+        "  AR[1].a + AR[1].b + (AR[1].f)() \n"
+        "end\n"
+        "def B 5 end\n"
+        "def C 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 25 );
+}
+
+TEST_CASE( "Algoly: const record of int and fptr in array, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, f: @proc end\n"
+        "const AR: [2] of R = [{ a: 1, b: 2, f: @B }, { a: 3, b: 4, f: @C }]\n"
+        "var i := 0, j := 1\n"
+        "def a\n"
+        "  AR[i].a + AR[i].b + (AR[i].f)() + \n"
+        "  AR[j].a + AR[j].b + (AR[j].f)() \n"
+        "end\n"
+        "def B 5 end\n"
+        "def C 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 25 );
 }
