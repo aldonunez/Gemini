@@ -899,10 +899,15 @@ public:
     virtual ~Type() { }
 
     TypeKind GetKind() const;
-    virtual bool IsEqual( Type* other ) const;
-    virtual bool IsAssignableFrom( Type* other ) const;
-    virtual bool IsPassableFrom( Type* other, ParamMode mode ) const;
+    bool IsEqual( Type* other ) const;
+    bool IsAssignableFrom( Type* other ) const;
+    bool IsPassableFrom( Type* other, ParamMode mode ) const;
     virtual DataSize GetSize() const;
+
+private:
+    virtual bool IsEqualImpl( Type* other ) const;
+    virtual bool IsAssignableFromImpl( Type* other ) const;
+    virtual bool IsPassableFromImpl( Type* other, ParamMode mode ) const;
 };
 
 
@@ -928,16 +933,18 @@ class ModuleType : public SimpleType<ModuleType, TypeKind::Module>
 
 class XferType : public SimpleType<XferType, TypeKind::Xfer>
 {
-public:
-    virtual bool IsEqual( Type* other ) const override;
+private:
+    virtual bool IsEqualImpl( Type* other ) const override;
 };
 
 class IntType : public SimpleType<IntType, TypeKind::Int>
 {
 public:
-    virtual bool IsEqual( Type* other ) const override;
-    virtual bool IsAssignableFrom( Type* other ) const override;
     virtual DataSize GetSize() const override;
+
+private:
+    virtual bool IsEqualImpl( Type* other ) const override;
+    virtual bool IsAssignableFromImpl( Type* other ) const override;
 };
 
 
@@ -949,10 +956,12 @@ public:
 
     ArrayType( DataSize count, std::shared_ptr<Type> elemType );
 
-    virtual bool IsEqual( Type* other ) const override;
-    virtual bool IsAssignableFrom( Type* other ) const override;
-    virtual bool IsPassableFrom( Type* other, ParamMode mode ) const override;
     virtual DataSize GetSize() const override;
+
+private:
+    virtual bool IsEqualImpl( Type* other ) const override;
+    virtual bool IsAssignableFromImpl( Type* other ) const override;
+    virtual bool IsPassableFromImpl( Type* other, ParamMode mode ) const override;
 };
 
 struct ParamSpec
@@ -970,7 +979,8 @@ public:
 
     FuncType( std::shared_ptr<Type> returnType );
 
-    virtual bool IsEqual( Type* other ) const override;
+private:
+    virtual bool IsEqualImpl( Type* other ) const override;
 };
 
 class PointerType : public Type
@@ -980,8 +990,10 @@ public:
 
     PointerType( std::shared_ptr<Type> target );
 
-    virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;
+
+private:
+    virtual bool IsEqualImpl( Type* other ) const override;
 };
 
 
@@ -1002,8 +1014,10 @@ public:
     SymTable& GetFields();
     FieldVec& GetOrderedFields();
 
-    virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;
+
+private:
+    virtual bool IsEqualImpl( Type* other ) const override;
 };
 
 
@@ -1016,8 +1030,10 @@ public:
 
     SymTable& GetMembersByName();
 
-    virtual bool IsEqual( Type* other ) const override;
     virtual DataSize GetSize() const override;
+
+private:
+    virtual bool IsEqualImpl( Type* other ) const override;
 };
 
 }
