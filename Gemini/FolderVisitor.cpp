@@ -124,9 +124,22 @@ void FolderVisitor::VisitBreakStatement( BreakStatement* breakStmt )
 
 void FolderVisitor::VisitCallExpr( CallExpr* call )
 {
+    auto headType = call->Head->Type;
+
+    if ( headType->GetKind() == TypeKind::Pointer )
+        headType = ((PointerType&) *headType).TargetType;
+
+    auto& funcType = (FuncType&) *headType;
+    auto paramIt = funcType.Params.cbegin();
+
     for ( auto& arg : call->Arguments )
     {
-        Fold( arg );
+        if ( paramIt->Mode == ParamMode::Value )
+            Fold( arg );
+        else
+            arg->Accept( this );
+
+        paramIt++;
     }
 
     Fold( call->Head );
