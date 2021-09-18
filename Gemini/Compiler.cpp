@@ -123,7 +123,7 @@ size_t Compiler::GetCodeSize()
 
 I32* Compiler::GetData()
 {
-    return &mGlobals.front();
+    return mGlobals.data();
 }
 
 size_t Compiler::GetDataSize()
@@ -366,7 +366,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             }
             else
             {
-                mRep.ThrowSemanticsError( node, "Bad parameter mode" );
+                THROW_INTERNAL_ERROR( "EmitLoadScalar: Bad parameter mode" );
             }
         }
         break;
@@ -724,7 +724,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
             }
             else
             {
-                mRep.ThrowSemanticsError( node, "Bad parameter mode" );
+                THROW_INTERNAL_ERROR( "EmitStoreScalar: Bad parameter mode" );
             }
         }
         break;
@@ -1907,7 +1907,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 }
                 else
                 {
-                    mRep.ThrowSemanticsError( node, "Bad parameter mode" );
+                    THROW_INTERNAL_ERROR( "EmitLoadAddress: Bad parameter mode" );
                 }
             }
             break;
