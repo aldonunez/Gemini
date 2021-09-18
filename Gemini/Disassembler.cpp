@@ -144,7 +144,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LDC_S:
         {
             int value = *(I8*) mCodePtr++;
-            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d    ; %02X", value, value );
         }
         break;
 
@@ -172,7 +172,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LDC:
         {
             int value = ReadI32( mCodePtr );
-            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d", value );
+            charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %d    ; %08X", value, value );
         }
         break;
 
