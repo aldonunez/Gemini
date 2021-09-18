@@ -160,9 +160,12 @@ static bool IsAllowedConstType( Type& type )
 
 static bool IsAllowedParamType( Type& type, ParamMode mode )
 {
-    if ( type.GetKind() == TypeKind::Array
+    if ( IsClosedArrayType( type )
         || type.GetKind() == TypeKind::Record )
         return mode == ParamMode::RefInOut;
+
+    if ( IsOpenArrayType( type ) )
+        return mode == ParamMode::Value;
 
     return IsScalarType( type.GetKind() )
         ;
@@ -1951,11 +1954,7 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
         }
 
     case ParamMode::RefInOut:
-        // Open array: dope vector + address
-        if ( IsOpenArrayType( *type ) )
-            return 2;
-
-        // Closed array: address
+        // Closed array and other types: address
         return 1;
 
     default:

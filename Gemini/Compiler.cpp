@@ -1096,13 +1096,13 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
     switch ( paramSpec.Mode )
     {
     case ParamMode::Value:
+        GenerateDopeVector( node, paramSpec );
+
         Generate( &node );
         break;
 
     case ParamMode::RefInOut:
         {
-            GenerateDopeVector( node, paramSpec );
-
             auto addr = CalcAddress( &node );
 
             if ( !addr.spilled )

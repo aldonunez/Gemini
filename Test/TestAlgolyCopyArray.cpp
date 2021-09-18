@@ -1570,7 +1570,7 @@ TEST_CASE( "Algoly: CopyArray: global copy open to open", "[algoly][copy-array]"
         "  B( ar1, ar2 )\n"
         "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
         "end\n"
-        "def B(var array1: [], var array2: [])\n"
+        "def B(array1: [], array2: [])\n"
         "  array1 := array2\n"
         "end\n"
         ;
