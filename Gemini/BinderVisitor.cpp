@@ -165,7 +165,10 @@ static bool IsAllowedParamType( Type& type, ParamMode mode )
 {
     if ( type.GetKind() == TypeKind::Array
         || type.GetKind() == TypeKind::Record )
-        return mode == ParamMode::RefInOut;
+    {
+        return mode == ParamMode::RefInOut
+            || mode == ParamMode::InRef;
+    }
 
     return IsScalarType( type.GetKind() )
         ;
@@ -1282,6 +1285,10 @@ ParamSpec BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModif
         paramSpec.Mode = ParamMode::RefInOut;
         break;
 
+    case ParamModifier::Const:
+        paramSpec.Mode = ParamMode::InRef;
+        break;
+
     default:
         THROW_INTERNAL_ERROR( "VisitParamTypeRef: ParamModifier" );
     }
@@ -1802,6 +1809,9 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, Par
     param->Size = static_cast<ParamSize>(paramSpec.Size);
     table.insert( SymTable::value_type( declNode->Name, param ) );
 
+    if ( paramSpec.Mode == ParamMode::InRef )
+        param->IsConstant = true;
+
     mParamCount += static_cast<ParamSize>(paramSpec.Size);
     return param;
 }
@@ -2055,6 +2065,7 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
         }
 
     case ParamMode::RefInOut:
+    case ParamMode::InRef:
         // Open array: dope vector + address
         if ( IsOpenArrayType( *type ) )
             return 2;

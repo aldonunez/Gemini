@@ -367,7 +367,8 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
                 EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + offset) );
                 IncreaseExprDepth();
             }
-            else if ( param->Mode == ParamMode::RefInOut )
+            else if ( param->Mode == ParamMode::RefInOut
+                || param->Mode == ParamMode::InRef )
             {
                 EmitU8( OP_LDARG, param->Offset );
                 IncreaseExprDepth();
@@ -745,6 +746,10 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
 
                 Emit( OP_STOREI );
                 DecreaseExprDepth();
+            }
+            else if ( param->Mode == ParamMode::InRef )
+            {
+                mRep.ThrowSemanticsError( node, "Constants can't be changed" );
             }
             else
             {
@@ -1128,10 +1133,11 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
         break;
 
     case ParamMode::RefInOut:
+    case ParamMode::InRef:
         {
             GenerateDopeVector( node, paramSpec );
 
-            auto addr = CalcAddress( &node, true );
+            auto addr = CalcAddress( &node, (paramSpec.Mode == ParamMode::RefInOut) );
 
             if ( !addr.spilled )
             {
@@ -1925,7 +1931,8 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                     EmitU8( OP_LDARGA, static_cast<uint8_t>(param->Offset + offset) );
                     IncreaseExprDepth();
                 }
-                else if ( param->Mode == ParamMode::RefInOut )
+                else if ( param->Mode == ParamMode::RefInOut
+                    || param->Mode == ParamMode::InRef )
                 {
                     EmitU8( OP_LDARG, param->Offset );
 

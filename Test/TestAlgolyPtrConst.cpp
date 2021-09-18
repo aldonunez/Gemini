@@ -608,3 +608,507 @@ TEST_CASE( "Algoly: pass closed slice of const array in array to var param open 
 
     TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
+
+
+//----------------------------------------------------------------------------
+// Var arguments to const parameters
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: pass var int to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var n := 3\n"
+        "def a\n"
+        "  B(n)\n"
+        "end\n"
+        "def B(const N) N end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass var int in record to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "var r1: R := { a: 1, b: 2, c: 3 }\n"
+        "def a\n"
+        "  B(r1.c)\n"
+        "end\n"
+        "def B(const N) N end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass var int in array to const param, const index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1[2])\n"
+        "end\n"
+        "def B(const N) N end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass var int in array to const param, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [ 1, 2, 3 ]\n"
+        "var i := 2\n"
+        "def a\n"
+        "  B(ar1[i])\n"
+        "end\n"
+        "def B(const N) N end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass var record to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "var r1: R := { a: 1, b: 2, c: 3 }\n"
+        "def a\n"
+        "  B(r1)\n"
+        "end\n"
+        "def B(const RR: R) RR.a + RR.b + RR.c end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: pass var array to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1)\n"
+        "end\n"
+        "def B(const ARRAY: [2]) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass var array to const param open array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1)\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] + ARRAY[2] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: pass closed slice of var array to const param open array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1[1..3])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 5 );
+}
+
+TEST_CASE( "Algoly: pass var array in array to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [[1, 2], [3, 4]]\n"
+        "def a\n"
+        "  B(ar1[1])\n"
+        "end\n"
+        "def B(const ARRAY: [2]) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 7 );
+}
+
+TEST_CASE( "Algoly: pass var array in array to const param open array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [[1, 2], [3, 4]]\n"
+        "def a\n"
+        "  B(ar1[1])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 7 );
+}
+
+TEST_CASE( "Algoly: pass closed slice of var array in array to const param open array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [[1, 2, 3], [4, 5, 6]]\n"
+        "def a\n"
+        "  B(ar1[1][1..3])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 11 );
+}
+
+TEST_CASE( "Algoly: pass var array in array to const param, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [[1, 2], [3, 4]]\n"
+        "var i := 1\n"
+        "def a\n"
+        "  B(ar1[i])\n"
+        "end\n"
+        "def B(const ARRAY: [2]) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 7 );
+}
+
+TEST_CASE( "Algoly: pass var array in array to const param open array, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [[1, 2], [3, 4]]\n"
+        "var i := 1\n"
+        "def a\n"
+        "  B(ar1[i])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 7 );
+}
+
+TEST_CASE( "Algoly: pass closed slice of var array in array to const param open array, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [[1, 2, 3], [4, 5, 6]]\n"
+        "var i := 1\n"
+        "def a\n"
+        "  B(ar1[i][1..3])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 11 );
+}
+
+
+//----------------------------------------------------------------------------
+// Modify const parameters
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: fail to modify var int passed to const param", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "var n := 3\n"
+        "def a\n"
+        "  B(n)\n"
+        "end\n"
+        "def B(const N) N := 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: fail to modify var int in record passed to const param", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "var r1: R := { a: 1, b: 2, c: 3 }\n"
+        "def a\n"
+        "  B(r1.c)\n"
+        "end\n"
+        "def B(const N) N := 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: fail to modify var record passed to const param", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "var r1: R := { a: 1, b: 2, c: 3 }\n"
+        "var r2: R := { a: 4, b: 5, c: 6 }\n"
+        "def a\n"
+        "  B(r1)\n"
+        "end\n"
+        "def B(const RR: R) RR := r2 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: fail to modify field of var record passed to const param", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "var r1: R := { a: 1, b: 2, c: 3 }\n"
+        "def a\n"
+        "  B(r1)\n"
+        "end\n"
+        "def B(const RR: R) RR.c := 10; RR.a + RR.b + RR.c end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: fail to modify var array passed to const param", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "var ar1 := [ 1, 2, 3 ]\n"
+        "var ar2 := [ 4, 5, 6 ]\n"
+        "def a\n"
+        "  B(ar1)\n"
+        "end\n"
+        "def B(const ARRAY: [3]) ARRAY := ar2 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: fail to modify elem of var array passed to const param", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "var ar1 := [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1)\n"
+        "end\n"
+        "def B(const ARRAY: [2]) ARRAY[1] := 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: fail to modify var array passed to const param open array", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "var ar1 := [ 1, 2, 3 ]\n"
+        "var ar2 := [ 4, 5, 6 ]\n"
+        "def a\n"
+        "  B(ar1)\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY := ar2 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: fail to modify elem of var array passed to const param open array", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "var ar1 := [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1)\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[1] := 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+
+//----------------------------------------------------------------------------
+// Const arguments to const parameters
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: pass const int to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const n = 3\n"
+        "def a\n"
+        "  B(n)\n"
+        "end\n"
+        "def B(const N) N end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass const int in record to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const r1: R = { a: 1, b: 2, c: 3 }\n"
+        "def a\n"
+        "  B(r1.c)\n"
+        "end\n"
+        "def B(const N) N end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass const int in array to const param, const index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1[2])\n"
+        "end\n"
+        "def B(const N) N end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass const int in array to const param, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [ 1, 2, 3 ]\n"
+        "var i := 2\n"
+        "def a\n"
+        "  B(ar1[i])\n"
+        "end\n"
+        "def B(const N) N end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass const record to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const r1: R = { a: 1, b: 2, c: 3 }\n"
+        "def a\n"
+        "  B(r1)\n"
+        "end\n"
+        "def B(const RR: R) RR.a + RR.b + RR.c end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: const var array to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1)\n"
+        "end\n"
+        "def B(const ARRAY: [2]) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: pass const array to const param open array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1)\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] + ARRAY[2] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: pass closed slice of const array to const param open array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [ 1, 2, 3 ]\n"
+        "def a\n"
+        "  B(ar1[1..3])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 5 );
+}
+
+TEST_CASE( "Algoly: pass const array in array to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [[1, 2], [3, 4]]\n"
+        "def a\n"
+        "  B(ar1[1])\n"
+        "end\n"
+        "def B(const ARRAY: [2]) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 7 );
+}
+
+TEST_CASE( "Algoly: pass const array in array to const param open array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [[1, 2], [3, 4]]\n"
+        "def a\n"
+        "  B(ar1[1])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 7 );
+}
+
+TEST_CASE( "Algoly: pass closed slice of const array in array to const param open array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [[1, 2, 3], [4, 5, 6]]\n"
+        "def a\n"
+        "  B(ar1[1][1..3])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 11 );
+}
+
+TEST_CASE( "Algoly: pass const array in array to const param, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [[1, 2], [3, 4]]\n"
+        "var i := 1\n"
+        "def a\n"
+        "  B(ar1[i])\n"
+        "end\n"
+        "def B(const ARRAY: [2]) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 7 );
+}
+
+TEST_CASE( "Algoly: pass const array in array to const param open array, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [[1, 2], [3, 4]]\n"
+        "var i := 1\n"
+        "def a\n"
+        "  B(ar1[i])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 7 );
+}
+
+TEST_CASE( "Algoly: pass closed slice of const array in array to const param open array, var index", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [[1, 2, 3], [4, 5, 6]]\n"
+        "var i := 1\n"
+        "def a\n"
+        "  B(ar1[i][1..3])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 11 );
+}
+
+// TODO: test assign const param to var local
+// TODO: test assign var param to const param

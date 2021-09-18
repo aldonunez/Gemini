@@ -743,6 +743,11 @@ Unique<DataDecl> AlgolyParser::ParseParameter()
         ScanToken();
         paramDecl->Modifier = ParamModifier::Var;
     }
+    else if ( mCurToken == TokenCode::Const )
+    {
+        ScanToken();
+        paramDecl->Modifier = ParamModifier::Const;
+    }
 
     return ParseVar( std::move( paramDecl ), std::nullopt );
 }
@@ -1538,6 +1543,11 @@ ParamSpecRef AlgolyParser::ParseAnonymousParameter()
     {
         ScanToken();
         param.Modifier = ParamModifier::Var;
+    }
+    else if ( mCurToken == TokenCode::Const )
+    {
+        ScanToken();
+        param.Modifier = ParamModifier::Const;
     }
 
     param.TypeRef = ParseTypeRef();

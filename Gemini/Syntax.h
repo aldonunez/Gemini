@@ -163,6 +163,7 @@ enum class ParamModifier
 {
     None,
     Var,
+    Const,
 };
 
 struct ParamSpecRef
@@ -783,6 +784,7 @@ enum class ParamMode
 {
     Value,
     RefInOut,
+    InRef,
 };
 
 struct ParamStorage : public CommonDeclaration
