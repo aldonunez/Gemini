@@ -2387,20 +2387,10 @@ void Compiler::SpillConstant( Constant* constant )
     constant->Spilled = true;
     constant->Offset = static_cast<GlobalSize>(mTotalConst);
 
+    // Scalar constants are not serialized
+
     switch ( static_cast<ValueKind>(constant->Value.index()) )
     {
-    case ValueKind::Integer:
-        mConsts[mTotalConst] = Get<ValueKind::Integer>( constant->Value );
-        break;
-
-    case ValueKind::Function:
-        {
-            auto func = Get<ValueKind::Function>( constant->Value );
-
-            EmitFuncAddress( func.get(), { CodeRefKind::Const, static_cast<int32_t>(mTotalConst) } );
-        }
-        break;
-
     case ValueKind::Aggregate:
         SpillConstPart( type.get(), static_cast<GlobalSize>(mTotalConst), *Get<ValueKind::Aggregate>( constant->Value ), 0 );
         break;
