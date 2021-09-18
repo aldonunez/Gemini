@@ -1286,7 +1286,10 @@ ParamSpec BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModif
         break;
 
     case ParamModifier::Const:
-        paramSpec.Mode = ParamMode::RefIn;
+        if ( IsScalarType( paramSpec.Type->GetKind() ) )
+            paramSpec.Mode = ParamMode::ValueIn;
+        else
+            paramSpec.Mode = ParamMode::RefIn;
         break;
 
     default:
@@ -1809,7 +1812,7 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, Par
     param->Size = static_cast<ParamSize>(paramSpec.Size);
     table.insert( SymTable::value_type( declNode->Name, param ) );
 
-    if ( paramSpec.Mode == ParamMode::RefIn )
+    if ( paramSpec.Mode == ParamMode::RefIn || paramSpec.Mode == ParamMode::ValueIn )
         param->IsReadOnly = true;
 
     mParamCount += static_cast<ParamSize>(paramSpec.Size);
@@ -2056,6 +2059,7 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
     switch ( mode )
     {
     case ParamMode::Value:
+    case ParamMode::ValueIn:
         {
             auto size = type->GetSize();
             if ( size > ParamSizeMax )

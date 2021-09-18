@@ -783,6 +783,7 @@ struct LocalStorage : public CommonDeclaration
 enum class ParamMode
 {
     Value,
+    ValueIn,
     RefInOut,
     RefIn,
 };

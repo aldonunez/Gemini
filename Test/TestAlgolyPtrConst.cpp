@@ -1170,4 +1170,21 @@ TEST_CASE( "Algoly: pass const array to const param open array, assign slice to 
 }
 
 
+//----------------------------------------------------------------------------
+// Pass enum by const reference
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: pass enum member to const param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type E = enum E1=11, E2, E3 end\n"
+        "def a\n"
+        "  B(E.E3)\n"
+        "end\n"
+        "def B(const N: E) N as int end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 13 );
+}
+
 // TODO: test assign var param to const param

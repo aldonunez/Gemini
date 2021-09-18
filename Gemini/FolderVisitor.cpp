@@ -134,7 +134,7 @@ void FolderVisitor::VisitCallExpr( CallExpr* call )
 
     for ( auto& arg : call->Arguments )
     {
-        if ( paramIt->Mode == ParamMode::Value )
+        if ( paramIt->Mode == ParamMode::Value || paramIt->Mode == ParamMode::ValueIn )
             Fold( arg );
         else
             arg->Accept( this );

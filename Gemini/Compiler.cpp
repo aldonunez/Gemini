@@ -359,7 +359,8 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         {
             auto param = (ParamStorage*) decl;
 
-            if ( param->Mode == ParamMode::Value )
+            if ( param->Mode == ParamMode::Value
+                || param->Mode == ParamMode::ValueIn )
             {
                 assert( offset >= 0 && offset < ParamSizeMax );
                 assert( offset < (ParamSizeMax - param->Offset) );
@@ -1129,6 +1130,7 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
     switch ( paramSpec.Mode )
     {
     case ParamMode::Value:
+    case ParamMode::ValueIn:
         Generate( &node );
         break;
 
@@ -2364,8 +2366,12 @@ void Compiler::VisitConstDecl( ConstDecl* constDecl )
     if ( mInFunc )
         return;
 
-    // All global constants are serialized
-    SpillConstant( (Constant*) constDecl->GetDecl() );
+    // All global constants except scalars are serialized.
+    // Scalar constants are skipped, because their addresses are never needed:
+    // Scalar parameters with RefIn mode are changed to ValueIn mode.
+
+    if ( !IsScalarType( constDecl->Decl->GetType()->GetKind() ) )
+        SpillConstant( (Constant*) constDecl->GetDecl() );
 }
 
 void Compiler::SpillConstant( Constant* constant )
