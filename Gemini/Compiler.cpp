@@ -354,7 +354,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
                 EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + offset) );
                 IncreaseExprDepth();
             }
-            else if ( param->Mode == ParamMode::InOutRef )
+            else if ( param->Mode == ParamMode::RefInOut )
             {
                 EmitU8( OP_LDARG, param->Offset );
                 IncreaseExprDepth();
@@ -711,7 +711,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
 
                 EmitU8( OP_STARG, static_cast<uint8_t>(param->Offset + offset) );
             }
-            else if ( param->Mode == ParamMode::InOutRef )
+            else if ( param->Mode == ParamMode::RefInOut )
             {
                 EmitU8( OP_LDARG, param->Offset );
                 IncreaseExprDepth();
@@ -1099,7 +1099,7 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
         Generate( &node );
         break;
 
-    case ParamMode::InOutRef:
+    case ParamMode::RefInOut:
         {
             GenerateDopeVector( node, paramSpec );
 
@@ -1896,7 +1896,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                     EmitU8( OP_LDARGA, static_cast<uint8_t>(param->Offset + offset) );
                     IncreaseExprDepth();
                 }
-                else if ( param->Mode == ParamMode::InOutRef )
+                else if ( param->Mode == ParamMode::RefInOut )
                 {
                     EmitU8( OP_LDARG, param->Offset );
 

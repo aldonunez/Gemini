@@ -162,7 +162,7 @@ static bool IsAllowedParamType( Type& type, ParamMode mode )
 {
     if ( type.GetKind() == TypeKind::Array
         || type.GetKind() == TypeKind::Record )
-        return mode == ParamMode::InOutRef;
+        return mode == ParamMode::RefInOut;
 
     return IsScalarType( type.GetKind() )
         ;
@@ -1264,7 +1264,7 @@ ParamSpec BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModif
         break;
 
     case ParamModifier::Var:
-        paramSpec.Mode = ParamMode::InOutRef;
+        paramSpec.Mode = ParamMode::RefInOut;
         break;
 
     default:
@@ -1950,7 +1950,7 @@ ParamSize BinderVisitor::GetParamSize( Type* type, ParamMode mode )
             return static_cast<ParamSize>(size);
         }
 
-    case ParamMode::InOutRef:
+    case ParamMode::RefInOut:
         // Open array: dope vector + address
         if ( IsOpenArrayType( *type ) )
             return 2;
