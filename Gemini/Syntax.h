@@ -784,7 +784,7 @@ enum class ParamMode
 {
     Value,
     RefInOut,
-    InRef,
+    RefIn,
 };
 
 struct ParamStorage : public CommonDeclaration

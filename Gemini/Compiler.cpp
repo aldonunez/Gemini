@@ -368,7 +368,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
                 IncreaseExprDepth();
             }
             else if ( param->Mode == ParamMode::RefInOut
-                || param->Mode == ParamMode::InRef )
+                || param->Mode == ParamMode::RefIn )
             {
                 EmitU8( OP_LDARG, param->Offset );
                 IncreaseExprDepth();
@@ -747,7 +747,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
                 Emit( OP_STOREI );
                 DecreaseExprDepth();
             }
-            else if ( param->Mode == ParamMode::InRef )
+            else if ( param->Mode == ParamMode::RefIn )
             {
                 mRep.ThrowSemanticsError( node, "Constants can't be changed" );
             }
@@ -1133,7 +1133,7 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
         break;
 
     case ParamMode::RefInOut:
-    case ParamMode::InRef:
+    case ParamMode::RefIn:
         {
             GenerateDopeVector( node, paramSpec );
 
@@ -1932,7 +1932,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                     IncreaseExprDepth();
                 }
                 else if ( param->Mode == ParamMode::RefInOut
-                    || param->Mode == ParamMode::InRef )
+                    || param->Mode == ParamMode::RefIn )
                 {
                     EmitU8( OP_LDARG, param->Offset );
 
