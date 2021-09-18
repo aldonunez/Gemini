@@ -1810,7 +1810,7 @@ std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, Par
     table.insert( SymTable::value_type( declNode->Name, param ) );
 
     if ( paramSpec.Mode == ParamMode::InRef )
-        param->IsConstant = true;
+        param->IsReadOnly = true;
 
     mParamCount += static_cast<ParamSize>(paramSpec.Size);
     return param;

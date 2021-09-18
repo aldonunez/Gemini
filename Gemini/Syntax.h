@@ -687,7 +687,7 @@ struct Declaration
 {
     const DeclKind          Kind;
     // TODO: try to make this const
-    bool                    IsConstant = false;
+    bool                    IsReadOnly = false;
 
     virtual ~Declaration() { }
     virtual std::shared_ptr<Type> GetType() const = 0;

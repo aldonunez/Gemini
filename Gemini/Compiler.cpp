@@ -49,7 +49,7 @@ Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
 
     mLoadedAddrDeclConst.reset( new LoadedAddressDeclaration() );
     mLoadedAddrDeclConst->Type = mErrorType;
-    mLoadedAddrDeclConst->IsConstant = true;
+    mLoadedAddrDeclConst->IsReadOnly = true;
 }
 
 void Compiler::AddUnit( Unique<Unit>&& unit )
@@ -703,7 +703,7 @@ void Compiler::GenerateSetScalar( AssignmentExpr* assignment, const GenConfig& c
 
 void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset )
 {
-    if ( decl->IsConstant )
+    if ( decl->IsReadOnly )
         mRep.ThrowSemanticsError( node, "Constants can't be changed" );
 
     switch ( decl->Kind )
@@ -2001,7 +2001,7 @@ void Compiler::GenerateArefAddrBase( Syntax* fullExpr, Syntax* head, Syntax* ind
         EmitLoadAddress( fullExpr, status.baseDecl, status.offset );
 
         // Set this after emitting the original decl's address above
-        if ( status.baseDecl->IsConstant )
+        if ( status.baseDecl->IsReadOnly )
             status.baseDecl = mLoadedAddrDeclConst.get();
         else
             status.baseDecl = mLoadedAddrDecl.get();
@@ -2137,7 +2137,7 @@ Compiler::CalculatedAddress Compiler::CalcAddress( Syntax* expr, bool writable )
     if ( status.baseDecl == nullptr )
         mRep.ThrowSemanticsError( expr, "Expression has no address" );
 
-    if ( writable && status.baseDecl->IsConstant )
+    if ( writable && status.baseDecl->IsReadOnly )
         mRep.ThrowSemanticsError( expr, "Constants cannot be changed" );
 
     CalculatedAddress addr{};
