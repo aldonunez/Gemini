@@ -1879,13 +1879,20 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::sh
 {
     CheckDuplicateSymbol( declNode, table );
 
+    if ( !IsScalarType( type->GetKind() ) )
+    {
+        if ( type->GetSize() > static_cast<size_t>(GlobalSizeMax - mConstSize) )
+            mRep.ThrowSemanticsError( declNode, "Const exceeds capacity" );
+    }
+
     std::shared_ptr<SimpleConstant> constant( new SimpleConstant() );
     constant->Type = type;
     constant->Value = value;
     constant->ModIndex = mModIndex;
     table.insert( SymTable::value_type( declNode->Name, constant ) );
 
-    mConstSize += static_cast<GlobalSize>(type->GetSize());
+    if ( !IsScalarType( type->GetKind() ) )
+        mConstSize += static_cast<GlobalSize>(type->GetSize());
 
     return constant;
 }
