@@ -1237,32 +1237,46 @@ void BinderVisitor::VisitNumberExpr( NumberExpr* numberExpr )
 
 void BinderVisitor::VisitParamDecl( ParamDecl* paramDecl )
 {
-    auto type = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Mode );
+    ParamSpec paramSpec = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Modifier );
 
-    ParamSize size = GetParamSize( type.get(), paramDecl->Mode );
-
-    paramDecl->Decl = AddParam( paramDecl, type, paramDecl->Mode, size );
+    paramDecl->Decl = AddParam( paramDecl, paramSpec );
 }
 
-std::shared_ptr<Type> BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamMode mode )
+ParamSpec BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModifier modifier )
 {
-    std::shared_ptr<Type> type;
+    ParamSpec paramSpec;
 
     if ( typeRef )
     {
         typeRef->Accept( this );
 
-        if ( !IsAllowedParamType( *typeRef->ReferentType, mode ) )
-            mRep.ThrowSemanticsError( typeRef.get(), "This type is not allowed for parameters" );
-
-        type = typeRef->ReferentType;
+        paramSpec.Type = typeRef->ReferentType;
     }
     else
     {
-        type = mIntType;
+        paramSpec.Type = mIntType;
     }
 
-    return type;
+    switch ( modifier )
+    {
+    case ParamModifier::None:
+        paramSpec.Mode = ParamMode::Value;
+        break;
+
+    case ParamModifier::Var:
+        paramSpec.Mode = ParamMode::InOutRef;
+        break;
+
+    default:
+        THROW_INTERNAL_ERROR( "VisitParamTypeRef: ParamModifier" );
+    }
+
+    if ( !IsAllowedParamType( *paramSpec.Type, paramSpec.Mode ) )
+        mRep.ThrowSemanticsError( typeRef.get(), "This type is not allowed for parameters" );
+
+    paramSpec.Size = GetParamSize( paramSpec.Type.get(), paramSpec.Mode );
+
+    return paramSpec;
 }
 
 void BinderVisitor::VisitPointerTypeRef( PointerTypeRef* pointerTypeRef )
@@ -1359,12 +1373,7 @@ void BinderVisitor::VisitProcTypeRef( ProcTypeRef* procTypeRef )
 
     for ( auto& param : procTypeRef->Params )
     {
-        param.TypeRef->Accept( this );
-
-        ParamSpec paramSpec;
-        paramSpec.Mode = param.Mode;
-        paramSpec.Type = param.TypeRef->ReferentType;
-        paramSpec.Size = GetParamSize( paramSpec.Type.get(), param.Mode );
+        ParamSpec paramSpec = VisitParamTypeRef( param.TypeRef, param.Modifier );
 
         funcType->Params.push_back( paramSpec );
     }
@@ -1677,23 +1686,23 @@ std::shared_ptr<Declaration> BinderVisitor::FindSymbol( const std::string& symbo
     return nullptr;
 }
 
-std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type, ParamMode mode, size_t size )
+std::shared_ptr<ParamStorage> BinderVisitor::AddParam( DeclSyntax* declNode, ParamSpec paramSpec )
 {
     auto& table = *mSymStack.back();
 
     CheckDuplicateSymbol( declNode, table );
 
-    if ( size > static_cast<size_t>(ParamSizeMax - mParamCount) )
+    if ( paramSpec.Size > static_cast<size_t>(ParamSizeMax - mParamCount) )
         mRep.ThrowSemanticsError( declNode, "Param exceeds capacity" );
 
     std::shared_ptr<ParamStorage> param( new ParamStorage() );
     param->Offset = mParamCount;
-    param->Type = type;
-    param->Mode = mode;
-    param->Size = static_cast<ParamSize>( size );
+    param->Type = paramSpec.Type;
+    param->Mode = paramSpec.Mode;
+    param->Size = static_cast<ParamSize>(paramSpec.Size);
     table.insert( SymTable::value_type( declNode->Name, param ) );
 
-    mParamCount += static_cast<ParamSize>( size );
+    mParamCount += static_cast<ParamSize>(paramSpec.Size);
     return param;
 }
 
@@ -1895,12 +1904,7 @@ std::shared_ptr<FuncType> BinderVisitor::MakeFuncType( ProcDeclBase* procDecl )
     {
         auto paramDecl = (ParamDecl*) paramDataDecl.get();
 
-        auto type = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Mode );
-
-        ParamSpec paramSpec;
-        paramSpec.Mode = paramDecl->Mode;
-        paramSpec.Type = type;
-        paramSpec.Size = GetParamSize( type.get(), paramDecl->Mode );
+        ParamSpec paramSpec = VisitParamTypeRef( paramDecl->TypeRef, paramDecl->Modifier );
 
         funcType->Params.push_back( paramSpec );
     }

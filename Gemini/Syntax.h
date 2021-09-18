@@ -156,22 +156,22 @@ public:
     virtual void Accept( Visitor* visitor ) override;
 };
 
-enum class ParamMode
+enum class ParamModifier
 {
-    Value,
-    InOutRef,
+    None,
+    Var,
 };
 
 struct ParamSpecRef
 {
     Unique<Gemini::TypeRef> TypeRef;
-    ParamMode               Mode = ParamMode::Value;
+    ParamModifier           Modifier = ParamModifier::None;
 
     ParamSpecRef() = default;
 
     ParamSpecRef( ParamSpecRef&& other ) noexcept :
         TypeRef( std::move( other.TypeRef ) ),
-        Mode( other.Mode )
+        Modifier( other.Modifier )
     {
     }
 
@@ -274,7 +274,7 @@ public:
 class ParamDecl : public DataDecl
 {
 public:
-    ParamMode Mode = ParamMode::Value;
+    ParamModifier   Modifier = ParamModifier::None;
 
     ParamDecl();
 
@@ -742,6 +742,12 @@ struct LocalStorage : public CommonDeclaration
     LocalSize   Offset = 0;
 
     LocalStorage();
+};
+
+enum class ParamMode
+{
+    Value,
+    InOutRef,
 };
 
 struct ParamStorage : public CommonDeclaration

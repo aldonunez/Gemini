@@ -117,7 +117,7 @@ private:
     void VisitLetBinding( DataDecl* varDecl );
     void VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind );
     void VisitStorage( DataDecl* varDecl, DeclKind declKind );
-    std::shared_ptr<Type> VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamMode mode );
+    ParamSpec VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModifier modifier );
 
     int32_t Evaluate( Syntax* node, const char* message = nullptr );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
@@ -150,7 +150,7 @@ private:
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );
-    std::shared_ptr<ParamStorage> AddParam( DeclSyntax* declNode, std::shared_ptr<Type> type, ParamMode mode, size_t size );
+    std::shared_ptr<ParamStorage> AddParam( DeclSyntax* declNode, ParamSpec paramSpec );
     std::shared_ptr<LocalStorage> AddLocal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<GlobalStorage> AddGlobal( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size );
     std::shared_ptr<Declaration> AddStorage( DeclSyntax* declNode, std::shared_ptr<Type> type, size_t size, DeclKind declKind );
