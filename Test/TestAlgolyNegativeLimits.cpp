@@ -501,6 +501,17 @@ TEST_CASE( "Algoly: duplicate func", "[algoly][negative]" )
     TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
+TEST_CASE( "Algoly: fail to assign to const", "[algoly][negative]" )
+{
+    const char code[] =
+        "const C = 3\n"
+        "def a C := 10 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+
 // TODO: add duplicate module name, duplicate module import, duplicate module import as
 
 
