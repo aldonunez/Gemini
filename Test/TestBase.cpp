@@ -241,6 +241,43 @@ void Disassemble( const uint8_t* program, int size )
 }
 
 
+template <typename T>
+class CodeGenBuffer
+{
+    std::vector<T>  mBuffer;
+    size_t          mConsumed = 0;
+
+public:
+    size_t Add( size_t size, const T* source )
+    {
+        if ( size > 0 )
+        {
+            size_t origBufferSize = mBuffer.size();
+
+            mBuffer.resize( origBufferSize + size );
+
+            std::copy_n( source, size, mBuffer.data() + origBufferSize );
+        }
+
+        return size;
+    }
+
+    T* Consume( size_t size )
+    {
+        T* base = nullptr;
+
+        if ( size > 0 )
+        {
+            base = mBuffer.data() + mConsumed;
+
+            mConsumed += size;
+        }
+
+        return base;
+    }
+};
+
+
 //-----------------------------------------
 
 static CELL gStack[1024];
@@ -358,11 +395,10 @@ void TestCompileAndRun( const TestConfig& config )
     if ( config.moduleSources == nullptr )
         throw std::invalid_argument( "config.moduleSources" );
 
-    std::vector<U8> bin1;
-    size_t      binSize = 0;
-    std::vector<CELL> data1;
-    size_t      dataSize = 0;
     uint32_t    maxStack = 0;
+
+    CodeGenBuffer<U8>   codeBuf;
+    CodeGenBuffer<CELL> dataBuf;
 
     CompilerEnv env;
     CompilerLog log{ GetKind( config.expectedResult ) == ResultKind::Compiler };
@@ -423,29 +459,10 @@ void TestCompileAndRun( const TestConfig& config )
             REQUIRE( compilerErr == CompilerErr::OK );
         }
 
-        if ( compiler1.GetDataSize() > 0 )
-        {
-            // Don't assign DataBase yet, because growing the buffer can reallocate it
-            curMod->DataSize = (U16) compiler1.GetDataSize();
+        // Don't assign bases yet, because growing the buffer can reallocate it
 
-            data1.resize( data1.size() + compiler1.GetDataSize() );
-
-            std::copy_n( compiler1.GetData(), compiler1.GetDataSize(), data1.data() + dataSize );
-
-            dataSize += compiler1.GetDataSize();
-        }
-
-        if ( compiler1.GetCodeSize() > 0 )
-        {
-            // Don't assign CodeBase yet, because growing the buffer can reallocate it
-            curMod->CodeSize = (U32) compiler1.GetCodeSize();
-
-            bin1.resize( bin1.size() + compiler1.GetCodeSize() );
-
-            std::copy_n( compiler1.GetCode(), compiler1.GetCodeSize(), bin1.data() + binSize );
-
-            binSize += compiler1.GetCodeSize();
-        }
+        curMod->CodeSize  = static_cast<CodeSize>(codeBuf.Add( compiler1.GetCodeSize(), compiler1.GetCode() ));
+        curMod->DataSize  = static_cast<GlobalSize>(dataBuf.Add( compiler1.GetDataSize(), compiler1.GetData() ));
 
         modDecls.push_back( compiler1.GetMetadata( moduleSource->Name ) );
 
@@ -464,26 +481,12 @@ void TestCompileAndRun( const TestConfig& config )
 
     machine.Init( gStack, static_cast<U16>( std::size( gStack ) ), &env );
 
-    binSize = 0;
-    dataSize = 0;
-
     for ( ModSize i = 0; i < env.GetModuleCount(); i++ )
     {
         Module* mod = env.FindModule( i );
 
-        if ( mod->DataSize > 0 )
-        {
-            mod->DataBase = data1.data() + dataSize;
-
-            dataSize += mod->DataSize;
-        }
-
-        if ( mod->CodeSize > 0 )
-        {
-            mod->CodeBase = bin1.data() + binSize;
-
-            binSize += mod->CodeSize;
-        }
+        mod->CodeBase  = codeBuf.Consume( mod->CodeSize );
+        mod->DataBase  = dataBuf.Consume( mod->DataSize );
     }
 
     if ( config.natives != nullptr )
