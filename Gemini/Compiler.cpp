@@ -136,6 +136,16 @@ size_t Compiler::GetDataSize()
     return mGlobals.size();
 }
 
+I32* Compiler::GetConst()
+{
+    return mConsts.data();
+}
+
+size_t Compiler::GetConstSize()
+{
+    return mConsts.size();
+}
+
 std::shared_ptr<ModuleDeclaration> Compiler::GetMetadata( const char* modName )
 {
     if ( modName == nullptr )
@@ -164,13 +174,8 @@ void Compiler::BindAttributes()
     for ( auto& unit : mUnits )
         binder.BindFunctionBodies( unit.get() );
 
-#if 0
     mGlobals.resize( binder.GetDataSize() );
     mConsts.resize( binder.GetConstSize() );
-#else
-    mGlobals.resize( binder.GetDataSize() + binder.GetConstSize() );
-    mTotalConst = binder.GetDataSize();
-#endif
 
     mConstIndexFuncMap = binder.GetConstIndexFuncMap();
 }
@@ -1953,6 +1958,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
         case DeclKind::Const:
             {
                 auto constant = (Constant*) baseDecl;
+                ModSize modIndex = constant->ModIndex | CONST_SECTION_MOD_INDEX_MASK;
 
                 if ( !constant->Spilled )
                     SpillConstant( constant );
@@ -1962,7 +1968,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
 
                 addrWord = CodeAddr::Build(
                     constant->Offset + offset,
-                    constant->ModIndex );
+                    modIndex );
                 EmitU32( OP_LDC, addrWord );
                 IncreaseExprDepth();
             }

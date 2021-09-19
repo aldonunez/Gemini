@@ -28,6 +28,8 @@ constexpr uint32_t MAX_MODULE_CODE_SIZE = ((1ul << 24) - MODULE_CODE_ALIGNMENT);
 constexpr uint16_t MAX_MODULE_DATA_SIZE = UINT16_MAX;
 constexpr uint8_t  MAX_NATIVE_NESTING = 32;
 
+constexpr uint8_t  CONST_SECTION_MOD_INDEX_MASK = 0x80;
+
 
 template <typename T, size_t Size = sizeof( T )>
 T ReadPacked( const uint8_t*& p )

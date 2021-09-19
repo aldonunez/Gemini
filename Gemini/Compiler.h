@@ -282,7 +282,7 @@ private:
 
     CodeVec         mCodeBin;
     GlobalVec       mGlobals;
-    GlobalVec&      mConsts = mGlobals;
+    GlobalVec       mConsts;
     size_t          mTotalConst = 0;
 
     SymTable        mGlobalTable;
@@ -340,6 +340,8 @@ public:
     size_t GetCodeSize();
     I32* GetData();
     size_t GetDataSize();
+    I32* GetConst();
+    size_t GetConstSize();
     std::shared_ptr<ModuleDeclaration> GetMetadata( const char* modName );
 
 private:

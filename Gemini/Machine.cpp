@@ -394,17 +394,14 @@ int Machine::Run()
                 U8  iMod = ReadU8( codePtr );
                 U16 addr = ReadU16( codePtr );
 
-                auto [err, mod] = GetDataModule( iMod );
+                auto [err, mod] = GetReadableDataModule( iMod, addr );
                 if ( err != ERR_NONE )
                     return err;
-
-                if ( addr >= mod->DataSize )
-                    return ERR_BAD_ADDRESS;
 
                 if ( WouldOverflow() )
                     return ERR_STACK_OVERFLOW;
 
-                Push( mod->DataBase[addr] );
+                Push( mod.Base[addr] );
             }
             break;
 
@@ -413,17 +410,14 @@ int Machine::Run()
                 U8  iMod = ReadU8( codePtr );
                 U16 addr = ReadU16( codePtr );
 
-                auto [err, mod] = GetDataModule( iMod );
+                auto [err, mod] = GetWritableDataModule( iMod, addr );
                 if ( err != ERR_NONE )
                     return err;
-
-                if ( addr >= mod->DataSize )
-                    return ERR_BAD_ADDRESS;
 
                 if ( WouldUnderflow() )
                     return ERR_STACK_UNDERFLOW;
 
-                mod->DataBase[addr] = Pop();
+                mod.Base[addr] = Pop();
             }
             break;
 
@@ -456,14 +450,11 @@ int Machine::Run()
                 U8  iMod = CodeAddr::GetModule( addrWord );
                 U32 addr = CodeAddr::GetAddress( addrWord );
 
-                auto [err, mod] = GetDataModule( iMod );
+                auto [err, mod] = GetReadableDataModule( iMod, addr );
                 if ( err != ERR_NONE )
                     return err;
 
-                if ( addr >= mod->DataSize )
-                    return ERR_BAD_ADDRESS;
-
-                Push( mod->DataBase[addr] );
+                Push( mod.Base[addr] );
             }
             break;
 
@@ -477,14 +468,11 @@ int Machine::Run()
                 U8  iMod = CodeAddr::GetModule( addrWord );
                 U32 addr = CodeAddr::GetAddress( addrWord );
 
-                auto [err, mod] = GetDataModule( iMod );
+                auto [err, mod] = GetWritableDataModule( iMod, addr );
                 if ( err != ERR_NONE )
                     return err;
 
-                if ( addr >= mod->DataSize )
-                    return ERR_BAD_ADDRESS;
-
-                mod->DataBase[addr] = value;
+                mod.Base[addr] = value;
             }
             break;
 
@@ -658,11 +646,11 @@ int Machine::Run()
 
                 mSP += 2;
 
-                auto [err, pDst] = GetSizedDataPtr( dest, size );
+                auto [err, pDst] = GetSizedWritableDataPtr( dest, size );
                 if ( err != ERR_NONE )
                     return err;
 
-                auto [err1, pSrc] = GetSizedDataPtr( source, size );
+                auto [err1, pSrc] = GetSizedReadableDataPtr( source, size );
                 if ( err1 != ERR_NONE )
                     return err1;
 
@@ -693,11 +681,11 @@ int Machine::Run()
 
                 U32 size = static_cast<U32>(size64);
 
-                auto [err, pDst] = GetSizedDataPtr( dstAddr, size );
+                auto [err, pDst] = GetSizedWritableDataPtr( dstAddr, size );
                 if ( err != ERR_NONE )
                     return err;
 
-                auto [err1, pSrc] = GetSizedDataPtr( srcAddr, size );
+                auto [err1, pSrc] = GetSizedReadableDataPtr( srcAddr, size );
                 if ( err1 != ERR_NONE )
                     return err1;
 
@@ -1114,47 +1102,80 @@ bool Machine::IsCodeInBounds( U32 address ) const
     return address < (mMod->CodeSize - SENTINEL_SIZE);
 }
 
-std::pair<int, CELL*> Machine::GetSizedDataPtr( CELL addrWord, CELL size )
+std::pair<int, const CELL*> Machine::GetSizedReadableDataPtr( CELL addrWord, CELL size, bool writable )
 {
     U8  iMod = CodeAddr::GetModule( addrWord );
     U32 offs = CodeAddr::GetAddress( addrWord );
 
-    auto [err, mod] = GetDataModule( iMod );
+    auto [err, mod] = GetReadableDataModule( iMod, offs, writable );
     if ( err != ERR_NONE )
         return std::pair( err, nullptr );
 
-    if ( size < 0 )
+    if ( size < 0 || size > (mod.Size - static_cast<U16>(offs)) )
         return std::pair( ERR_BAD_ADDRESS, nullptr );
 
-    if ( offs >= mod->DataSize || size > mod->DataSize - static_cast<U16>(offs) )
-        return std::pair( ERR_BAD_ADDRESS, nullptr );
-
-    return std::pair( ERR_NONE, mod->DataBase + offs );
+    return std::pair( ERR_NONE, mod.Base + offs );
 }
 
-std::pair<int, const Module*> Machine::GetDataModule( U8 index )
+std::pair<int, CELL*> Machine::GetSizedWritableDataPtr( CELL addrWord, CELL size )
+{
+    auto [err, ptr] = GetSizedReadableDataPtr( addrWord, size, true );
+    if ( err != ERR_NONE )
+        return std::pair( err, nullptr );
+
+    return std::pair( ERR_NONE, const_cast<CELL*>(ptr) );
+}
+
+std::pair<int, Machine::ReadableDataModule> Machine::GetReadableDataModule( U8 index, U32 addr, bool writable )
 {
     const Module* mod;
 
-    if ( index == mModIndex )
-    {
-        mod = mMod;
-    }
-    else if ( index == MODINDEX_STACK )
+    if ( index == MODINDEX_STACK )
     {
         mod = &mStackMod;
     }
     else
     {
-        mod = GetModule( index );
-        if ( mod == nullptr )
-            return std::pair( ERR_BYTECODE_NOT_FOUND, nullptr );
+        U8 baseIndex = index & ~CONST_SECTION_MOD_INDEX_MASK;
+        bool isConstSection = (baseIndex != index);
+
+        if ( baseIndex == mModIndex )
+        {
+            mod = mMod;
+        }
+        else
+        {
+            mod = GetModule( baseIndex );
+            if ( mod == nullptr )
+                return std::pair( ERR_BYTECODE_NOT_FOUND, ReadableDataModule() );
+        }
+
+        if ( isConstSection )
+        {
+            if ( writable || addr >= mod->ConstSize )
+                return std::pair( ERR_BAD_ADDRESS, ReadableDataModule() );
+
+            assert( mod->ConstBase != nullptr );
+
+            return std::pair( ERR_NONE, ReadableDataModule{ mod->ConstBase, mod->ConstSize } );
+        }
     }
 
-    if ( mod->DataBase == nullptr )
-        return std::pair( ERR_BAD_ADDRESS, nullptr );
+    if ( addr >= mod->DataSize )
+        return std::pair( ERR_BAD_ADDRESS, ReadableDataModule() );
 
-    return std::pair( ERR_NONE, mod );
+    assert( mod->DataBase != nullptr );
+
+    return std::pair( ERR_NONE, ReadableDataModule{ mod->DataBase, mod->DataSize } );
+}
+
+std::pair<int, Machine::WritableDataModule> Machine::GetWritableDataModule( U8 index, U32 addr )
+{
+    auto [err, mod] = GetReadableDataModule( index, addr, true );
+    if ( err != ERR_NONE )
+        return std::pair( err, WritableDataModule() );
+
+    return std::pair( ERR_NONE, WritableDataModule{ const_cast<CELL*>(mod.Base), mod.Size } );
 }
 
 const Module* Machine::GetModule( U8 index )
