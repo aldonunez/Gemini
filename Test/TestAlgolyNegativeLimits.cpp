@@ -609,3 +609,77 @@ TEST_CASE( "Algoly: var record, inferred, nested", "[algoly][record][negative]" 
 
     TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
+
+
+//----------------------------------------------------------------------------
+//  Natives
+//----------------------------------------------------------------------------
+
+int NatNestingLimit( Machine* machine, U8 argc, CELL* args, UserContext context )
+{
+    REQUIRE( argc == 2 );
+
+    int err = ERR_NONE;
+    CELL level = args[1];
+    CELL retVal = 2;
+
+    if ( level > 1 )
+    {
+        CELL* subArgs = machine->Start( args[0], 1 );
+
+        subArgs[0] = level - 1;
+
+        err = machine->Run();
+        if ( err != ERR_NONE )
+            return err;
+
+        err = machine->PopCell( retVal );
+        if ( err != ERR_NONE )
+            return err;
+
+        retVal += 2;
+    }
+
+    err = machine->PushCell( retVal );
+    if ( err != ERR_NONE )
+        return err;
+
+    return ERR_NONE;
+}
+
+static NativePair gMaxNestedNatives[] =
+{
+    { 0, NatNestingLimit },
+    { 0, nullptr }
+};
+
+TEST_CASE( "Algoly: native call back nesting limit", "[algoly][limit]" )
+{
+    constexpr auto Max = MAX_NATIVE_NESTING;
+
+    const char* mainCode[] =
+    {
+        "def a(max)\n"
+        "  CallA(&A, max)\n"
+        "end\n"
+        "def A(x) CallA(&A, x) end\n"
+        "native CallA(callback: &proc(int), level: int)\n"
+        ,
+        nullptr
+    };
+
+    const ModuleSource modSources[] =
+    {
+        { "Main",   mainCode },
+        { },
+    };
+
+    WHEN( "max" )
+        TestCompileAndRun( Language::Gema, modSources, Max*2, Max, 0, gMaxNestedNatives );
+
+    WHEN( "too deep" )
+    {
+        int limit[] = { Max+1 };
+        TestCompileAndRun( Language::Gema, modSources, Emplace<ResultKind::Vm>( ERR_NATIVE_ERROR ), ParamSpan( limit ), 0, gMaxNestedNatives );
+    }
+}

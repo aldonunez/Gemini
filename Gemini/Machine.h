@@ -76,9 +76,6 @@ struct StackFrame
 class Machine : private IEnvironment
 {
 private:
-    static constexpr uint8_t MAX_NATIVE_NESTING = 255;
-
-private:
     CELL*           mSP;
     CELL*           mStack;
     U16             mStackSize;

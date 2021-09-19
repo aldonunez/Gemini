@@ -26,6 +26,7 @@ constexpr uint8_t FRAME_WORDS = 2;
 
 constexpr uint32_t MAX_MODULE_CODE_SIZE = ((1ul << 24) - MODULE_CODE_ALIGNMENT);
 constexpr uint16_t MAX_MODULE_DATA_SIZE = UINT16_MAX;
+constexpr uint8_t  MAX_NATIVE_NESTING = 32;
 
 
 template <typename T, size_t Size = sizeof( T )>
