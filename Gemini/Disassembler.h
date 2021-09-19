@@ -11,12 +11,21 @@
 
 class Disassembler
 {
+public:
+    enum ConstFormat : uint8_t
+    {
+        DecimalConst,
+        HexConst,
+    };
+
+private:
     const U8*   mCodeBin;
     const U8*   mCodePtr;
     bool        mShowInstAddr;
+    ConstFormat mConstFormat;
 
 public:
-    Disassembler( const U8* code, bool showInstAddr = true );
+    Disassembler( const U8* code, bool showInstAddr = true, ConstFormat constFormat = DecimalConst );
 
     int32_t Disassemble( char* disassembly, size_t capacity );
 };

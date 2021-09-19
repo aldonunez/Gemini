@@ -227,7 +227,7 @@ public:
 
 void Disassemble( const uint8_t* program, int size )
 {
-    Disassembler disassembler( program );
+    Disassembler disassembler( program, true, Disassembler::DecimalConst );
     int totalBytesDisasm = 0;
     while ( totalBytesDisasm < size )
     {
