@@ -16,7 +16,11 @@ int VerifyModule( const Module* mod )
 
     if ( mod->CodeBase == nullptr
         || mod->CodeSize > MAX_MODULE_CODE_SIZE
-        || mod->CodeSize <= SENTINEL_SIZE )
+        || mod->CodeSize <= SENTINEL_SIZE
+        || (mod->CodeSize % MODULE_CODE_ALIGNMENT) != 0 )
+        return ERR_BAD_MODULE;
+
+    if ( (mod->DataBase == nullptr && mod->DataSize > 0) )
         return ERR_BAD_MODULE;
 
     const U8* codeBase = mod->CodeBase;

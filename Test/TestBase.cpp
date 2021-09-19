@@ -477,16 +477,14 @@ void TestCompileAndRun( const TestConfig& config )
 
     std::fill_n( gStack, std::size( gStack ), 0xFEFEFEFE );
 
-    Machine machine;
-
-    machine.Init( gStack, static_cast<U16>( std::size( gStack ) ), &env );
-
     for ( ModSize i = 0; i < env.GetModuleCount(); i++ )
     {
         Module* mod = env.FindModule( i );
 
         mod->CodeBase  = codeBuf.Consume( mod->CodeSize );
         mod->DataBase  = dataBuf.Consume( mod->DataSize );
+
+        REQUIRE( VerifyModule( mod ) == ERR_NONE );
     }
 
     if ( config.natives != nullptr )
@@ -501,6 +499,10 @@ void TestCompileAndRun( const TestConfig& config )
 
     b = env.FindByteCode( external.Id, &byteCode );
     REQUIRE( b );
+
+    Machine machine;
+
+    machine.Init( gStack, static_cast<U16>(std::size( gStack )), &env );
 
     CELL* args = machine.Start( (U8) (env.GetModuleCount() - 1), byteCode.Address, (U8) config.params.size() );
 
