@@ -1565,8 +1565,7 @@ TEST_CASE( "Algoly: native basic", "[algoly]" )
 
 int NatNoReturnValue( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( machine == nullptr || argc != 2 || args == nullptr )
-        return ERR_BAD_ARG;
+    REQUIRE( (machine != nullptr && argc == 2 && args != nullptr) );
 
     return ERR_NONE;
 }
@@ -1731,8 +1730,7 @@ TEST_CASE( "Algoly: native separate units, out of order", "[algoly]" )
 
 int NatYielderContinuation( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( machine == nullptr || argc != 2 || args == nullptr )
-        return ERR_BAD_ARG;
+    REQUIRE( (machine != nullptr && argc == 2 && args != nullptr) );
 
     machine->PushCell( args[0] + args[1] + static_cast<CELL>( context ) );
     return ERR_NONE;
@@ -1740,8 +1738,7 @@ int NatYielderContinuation( Machine* machine, U8 argc, CELL* args, UserContext c
 
 int NatYielder( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( machine == nullptr || argc != 2 || args == nullptr )
-        return ERR_BAD_ARG;
+    REQUIRE( (machine != nullptr && argc == 2 && args != nullptr) );
 
     return machine->Yield( NatYielderContinuation, 100 );
 }
@@ -1776,8 +1773,7 @@ TEST_CASE( "Algoly: native yield", "[algoly]" )
 
 int NatCallA( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( argc != 2 )
-        return ERR_BAD_ARG;
+    REQUIRE( argc == 2 );
 
     CELL* subArgs = machine->Start( args[0], 1 );
 
@@ -1794,8 +1790,7 @@ int NatCallA( Machine* machine, U8 argc, CELL* args, UserContext context )
 
 int NatCallB( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( argc != 2 )
-        return ERR_BAD_ARG;
+    REQUIRE( argc == 2 );
 
     CELL* subArgs = machine->Start( args[0], 1 );
 
@@ -1857,8 +1852,7 @@ int NatCallFail( Machine* machine, U8 argc, CELL* args, UserContext context )
 
 int NatCallYield( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( argc != 2 )
-        return ERR_BAD_ARG;
+    REQUIRE( argc == 2 );
 
     return machine->Yield( NatCallFail, 0 );
 }
@@ -2376,8 +2370,7 @@ TEST_CASE( "Algoly: yield end", "[algoly]" )
 
 int NatCallFailManagedYield( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( argc != 1 )
-        return ERR_BAD_ARG;
+    REQUIRE( argc == 1 );
 
     machine->Start( args[0], 0 );
 
