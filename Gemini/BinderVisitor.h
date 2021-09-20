@@ -67,7 +67,7 @@ public:
 
     size_t GetDataSize();
     size_t GetConstSize();
-    ConstIndexFuncMap GetConstIndexFuncMap();
+    ConstIndexFuncMap ReleaseConstIndexFuncMap();
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
@@ -127,9 +127,9 @@ private:
     ParamSpec VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModifier modifier );
 
     int32_t Evaluate( Syntax* node, const char* message = nullptr );
-    void EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer );
     ValueVariant EvaluateVariant( Syntax* node );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
+    void EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer );
 
     void CheckType(
         const std::shared_ptr<Type>& left,

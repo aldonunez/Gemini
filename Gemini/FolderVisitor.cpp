@@ -13,10 +13,9 @@
 namespace Gemini
 {
 
-FolderVisitor::FolderVisitor( ICompilerLog* log, ConstIndexFuncMap* constIndexFuncMap ) :
+FolderVisitor::FolderVisitor( ICompilerLog* log ) :
     mFoldNodes( false ),
-    mRep( log ),
-    mConstIndexFuncMap( constIndexFuncMap )
+    mRep( log )
 {
 }
 
@@ -28,9 +27,10 @@ std::optional<int32_t> FolderVisitor::Evaluate( Syntax* node )
     return mLastValue;
 }
 
-void FolderVisitor::Fold( Syntax* node )
+void FolderVisitor::Fold( Syntax* node, ConstIndexFuncMap& constIndexFuncMap )
 {
     mFoldNodes = true;
+    mConstIndexFuncMap = &constIndexFuncMap;
     node->Accept( this );
 }
 
@@ -511,7 +511,10 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
 {
     child->Accept( this );
 
-    if ( mFoldNodes && mLastValue.has_value() && IsIntegralType( child->Type->GetKind() ) )
+    if ( !mFoldNodes )
+        return;
+
+    if ( mLastValue.has_value() && IsIntegralType( child->Type->GetKind() ) )
     {
         if ( child->Kind != SyntaxKind::Number )
         {
@@ -524,7 +527,7 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
             child->Type = mIntType;
         }
     }
-    else if ( mFoldNodes && mLastValue.has_value() && IsPtrFuncType( *child->Type ) )
+    else if ( mLastValue.has_value() && IsPtrFuncType( *child->Type ) )
     {
         if ( mConstIndexFuncMap == nullptr )
             THROW_INTERNAL_ERROR( "" );

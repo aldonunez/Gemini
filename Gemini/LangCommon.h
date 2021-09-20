@@ -79,13 +79,13 @@ public:
 
     using EmitFuncAddressFunctor = std::function<void( std::shared_ptr<Function>, GlobalSize, int32_t* )>;
     using CopyAggregateFunctor = std::function<void( GlobalSize, Syntax* )>;
-    using GetSyntaxValueFunctor = std::function<int32_t( Syntax*, const char* )>;
+    using EvaluateSyntaxFunctor = std::function<int32_t( Syntax*, const char* )>;
 
 private:
     std::vector<int32_t>&   mGlobals;
     EmitFuncAddressFunctor  mEmitFuncAddressFunctor;
     CopyAggregateFunctor    mCopyAggregateFunctor;
-    GetSyntaxValueFunctor   mGetSyntaxValueFunctor;
+    EvaluateSyntaxFunctor   mEvaluateSyntaxFunctor;
     Reporter&               mRep;
 
 public:
@@ -93,7 +93,7 @@ public:
         std::vector<int32_t>& globals,
         EmitFuncAddressFunctor emitFuncAddressFunctor,
         CopyAggregateFunctor copyAggregateFunctor,
-        GetSyntaxValueFunctor getSyntaxValueFunctor,
+        EvaluateSyntaxFunctor evaluateSyntaxFunctor,
         Reporter& reporter );
 
     void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );

@@ -267,7 +267,7 @@ size_t BinderVisitor::GetConstSize()
     return mConstSize;
 }
 
-ConstIndexFuncMap BinderVisitor::GetConstIndexFuncMap()
+ConstIndexFuncMap BinderVisitor::ReleaseConstIndexFuncMap()
 {
     return std::move( mConstIndexFuncMap );
 }
@@ -1738,7 +1738,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
             {
                 // TODO:
             },
-            std::bind( &BinderVisitor::Evaluate, this, std::placeholders::_1, std::placeholders::_2 ),
+            std::bind( &BinderVisitor::Evaluate, this, _1, _2 ),
             mRep
         );
 

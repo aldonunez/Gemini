@@ -177,15 +177,15 @@ void Compiler::BindAttributes()
     mGlobals.resize( binder.GetDataSize() );
     mConsts.resize( binder.GetConstSize() );
 
-    mConstIndexFuncMap = binder.GetConstIndexFuncMap();
+    mConstIndexFuncMap = binder.ReleaseConstIndexFuncMap();
 }
 
 void Compiler::FoldConstants()
 {
-    FolderVisitor folder( mRep.GetLog(), &mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog() );
 
     for ( auto& unit : mUnits )
-        folder.Fold( unit.get() );
+        folder.Fold( unit.get(), mConstIndexFuncMap );
 }
 
 void Compiler::GenerateCode()
@@ -1960,11 +1960,11 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 auto constant = (Constant*) baseDecl;
                 ModSize modIndex = constant->ModIndex | CONST_SECTION_MOD_INDEX_MASK;
 
-                if ( !constant->Spilled )
-                    SpillConstant( constant );
-
                 assert( offset >= 0 && offset < GlobalSizeMax );
                 assert( offset < (GlobalSizeMax - constant->Offset) );
+
+                if ( !constant->Spilled )
+                    SpillConstant( constant );
 
                 addrWord = CodeAddr::Build(
                     constant->Offset + offset,
@@ -2226,13 +2226,13 @@ GlobalDataGenerator::GlobalDataGenerator(
     std::vector<I32>& globals,
     EmitFuncAddressFunctor emitFuncAddressFunctor,
     CopyAggregateFunctor copyAggregateFunctor,
-    GetSyntaxValueFunctor getSyntaxValueFunctor,
+    EvaluateSyntaxFunctor evaluateSyntaxFunctor,
     Reporter& reporter )
     :
     mGlobals( globals ),
     mEmitFuncAddressFunctor( emitFuncAddressFunctor ),
     mCopyAggregateFunctor( copyAggregateFunctor ),
-    mGetSyntaxValueFunctor( getSyntaxValueFunctor ),
+    mEvaluateSyntaxFunctor( evaluateSyntaxFunctor ),
     mRep( reporter )
 {
 }
@@ -2290,7 +2290,7 @@ void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem
     }
     else
     {
-        mGlobals[offset] = mGetSyntaxValueFunctor( valueElem, "Globals must be initialized with constant data" );
+        mGlobals[offset] = mEvaluateSyntaxFunctor( valueElem, "Globals must be initialized with constant data" );
     }
 }
 
@@ -2372,7 +2372,9 @@ void Compiler::VisitConstDecl( ConstDecl* constDecl )
     if ( mInFunc )
         return;
 
-    // All global constants except scalars are serialized.
+    // All global constants except scalars are serialized, because they're public,
+    // and can be accessed from any module.
+
     // Scalar constants are skipped, because their addresses are never needed:
     // Scalar parameters with RefIn mode are changed to ValueIn mode.
 
@@ -2391,14 +2393,14 @@ void Compiler::SpillConstant( Constant* constant )
     assert( type->GetSize() <= (mConsts.size() - mTotalConst) );
 
     constant->Spilled = true;
-    constant->Offset = static_cast<GlobalSize>(mTotalConst);
+    constant->Offset = mTotalConst;
 
     // Scalar constants are not serialized
 
     switch ( static_cast<ValueKind>(constant->Value.index()) )
     {
     case ValueKind::Aggregate:
-        SpillConstPart( type.get(), static_cast<GlobalSize>(mTotalConst), *Get<ValueKind::Aggregate>( constant->Value ), 0 );
+        SpillConstPart( type.get(), mTotalConst, *Get<ValueKind::Aggregate>( constant->Value ), 0 );
         break;
 
     default:

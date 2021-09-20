@@ -283,7 +283,7 @@ private:
     CodeVec         mCodeBin;
     GlobalVec       mGlobals;
     GlobalVec       mConsts;
-    size_t          mTotalConst = 0;
+    GlobalSize      mTotalConst = 0;
 
     SymTable        mGlobalTable;
     SymTable        mModuleTable;

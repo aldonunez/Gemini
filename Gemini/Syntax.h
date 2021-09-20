@@ -686,7 +686,6 @@ enum class DeclKind
 struct Declaration
 {
     const DeclKind          Kind;
-    // TODO: try to make this const
     bool                    IsReadOnly = false;
 
     virtual ~Declaration() { }
@@ -741,9 +740,6 @@ inline decltype(auto) Get( const ValueVariant& variant )
 {
     return std::get<(size_t) kind>( variant );
 }
-
-// TODO: Use Declaration::IsConstant instead of deriving from this.
-//       So, make EnumMember derive from Declaration, and merge SimpleConstant into Constant.
 
 struct Constant : public Declaration
 {

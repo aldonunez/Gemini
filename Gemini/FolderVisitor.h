@@ -16,24 +16,23 @@ namespace Gemini
 
 class FolderVisitor final : public Visitor
 {
-    std::optional<int32_t>  mLastValue;
-
-    bool                    mCalcOffset = false;
-    std::optional<int32_t>  mBufOffset;
-    std::shared_ptr<std::vector<int32_t>> mBuffer;
-
-    bool                    mFoldNodes;
-    Reporter                mRep;
+    std::optional<int32_t>      mLastValue;
+    bool                        mFoldNodes = false;
+    Reporter                    mRep;
 
     std::shared_ptr<IntType>    mIntType;
 
-    ConstIndexFuncMap*      mConstIndexFuncMap;
+    bool                        mCalcOffset = false;
+    std::optional<int32_t>      mBufOffset;
+    std::shared_ptr<std::vector<int32_t>> mBuffer;
+
+    ConstIndexFuncMap*          mConstIndexFuncMap = nullptr;
 
 public:
-    FolderVisitor( ICompilerLog* log, ConstIndexFuncMap* constIndexFuncMap = nullptr );
+    FolderVisitor( ICompilerLog* log );
 
     std::optional<int32_t> Evaluate( Syntax* node );
-    void Fold( Syntax* node );
+    void Fold( Syntax* node, ConstIndexFuncMap& constIndexFuncMap );
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
