@@ -1733,7 +1733,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
         (
             *sharedBuffer,
             std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3 ),
-            //std::bind( &Compiler::EmitGlobalAggregateCopyBlock, this, std::placeholders::_1, std::placeholders::_2 ),
+            //std::bind( &BinderVisitor::EmitConstAggregateCopyBlock, this, _1, _2 ),
             [=]( GlobalSize offset, Syntax* valueNode )
             {
                 // TODO:
@@ -1754,6 +1754,13 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     return value;
 }
 
+std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
+{
+    FolderVisitor folder( mRep.GetLog() );
+
+    return folder.Evaluate( node );
+}
+
 void BinderVisitor::EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer )
 {
     auto funcIt = mConstFuncIndexMap.find( func.get() );
@@ -1772,13 +1779,6 @@ void BinderVisitor::EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize 
     }
 
     buffer[offset] = index;
-}
-
-std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
-{
-    FolderVisitor folder( mRep.GetLog() );
-
-    return folder.Evaluate( node );
 }
 
 
