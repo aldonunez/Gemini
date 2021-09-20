@@ -229,6 +229,8 @@ void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
     }
     else
     {
+        mBuffer.reset();
+
         mCalcOffset = true;
         dotExpr->Accept( this );
         mCalcOffset = false;
@@ -282,28 +284,12 @@ void FolderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 {
     if ( mCalcOffset )
     {
-        indexExpr->Head->Accept( this );
-
-        auto bufOffset = mBufOffset;
-        auto buffer = mBuffer;
-
-        mCalcOffset = false;
-        Fold( indexExpr->Index );
-        mCalcOffset = true;
-
-        if ( mLastValue.has_value() && bufOffset.has_value() && buffer )
-        {
-            mBufOffset = (mLastValue.value() * indexExpr->Type->GetSize()) + mBufOffset.value();
-        }
-        else
-        {
-            mLastValue.reset();
-            mBufOffset.reset();
-            mBuffer.reset();
-        }
+        CalcIndexAddr( indexExpr->Head, indexExpr->Index );
     }
     else
     {
+        mBuffer.reset();
+
         mCalcOffset = true;
         indexExpr->Accept( this );
         mCalcOffset = false;
@@ -319,6 +305,30 @@ void FolderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
             mBuffer.reset();
         }
     }
+}
+
+void FolderVisitor::CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index )
+{
+    mCalcOffset = false;
+    Fold( index );
+    mCalcOffset = true;
+
+    auto lastValue = mLastValue;
+
+    head->Accept( this );
+
+    if ( lastValue.has_value() && mBufOffset.has_value() && mBuffer )
+    {
+        auto arrayType = (ArrayType&) *head->Type;
+        mBufOffset = (lastValue.value() * arrayType.ElemType->GetSize()) + mBufOffset.value();
+    }
+    else
+    {
+        mBufOffset.reset();
+        mBuffer.reset();
+    }
+
+    mLastValue.reset();
 }
 
 void FolderVisitor::VisitInitList( InitList* initList )
@@ -366,23 +376,31 @@ void FolderVisitor::VisitLoopStatement( LoopStatement* loopStmt )
 
 void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
 {
-    mBufOffset.reset();
-
-    if ( nameExpr->Decl->Kind == DeclKind::Const
-        && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Integer ) )
+    if ( mCalcOffset )
     {
-        mLastValue = Get<ValueKind::Integer>( ((Constant*) nameExpr->Decl.get())->Value );
-    }
-    else if ( mCalcOffset && nameExpr->Decl->Kind == DeclKind::Const
-        && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Aggregate ) )
-    {
-        mBufOffset = 0;
-        mBuffer = Get<ValueKind::Aggregate>( ((Constant*) nameExpr->Decl.get())->Value );
+        if ( nameExpr->Decl->Kind == DeclKind::Const
+            && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Aggregate ) )
+        {
+            mBufOffset = 0;
+            mBuffer = Get<ValueKind::Aggregate>( ((Constant*) nameExpr->Decl.get())->Value );
+        }
+        else
+        {
+            mBuffer.reset();
+            mBufOffset.reset();
+        }
     }
     else
     {
-        mLastValue.reset();
-        mBuffer.reset();
+        if ( nameExpr->Decl->Kind == DeclKind::Const
+            && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Integer ) )
+        {
+            mLastValue = Get<ValueKind::Integer>( ((Constant*) nameExpr->Decl.get())->Value );
+        }
+        else
+        {
+            mLastValue.reset();
+        }
     }
 }
 
@@ -441,9 +459,21 @@ void FolderVisitor::VisitReturnStatement( ReturnStatement* retStmt )
 
 void FolderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 {
-    sliceExpr->Head->Accept( this );
-    Fold( sliceExpr->FirstIndex );
-    Fold( sliceExpr->LastIndex );
+    if ( mCalcOffset )
+    {
+        mCalcOffset = false;
+        Fold( sliceExpr->LastIndex );
+        mCalcOffset = true;
+
+        CalcIndexAddr( sliceExpr->Head, sliceExpr->FirstIndex );
+    }
+    else
+    {
+        sliceExpr->Head->Accept( this );
+        Fold( sliceExpr->FirstIndex );
+        Fold( sliceExpr->LastIndex );
+    }
+
     mLastValue.reset();
 }
 

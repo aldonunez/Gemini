@@ -72,6 +72,7 @@ private:
     void VisitProc( ProcDecl* procDecl );
     void VisitLetBinding( DataDecl* varDecl );
     void VisitFieldAccess( DotExpr* dotExpr );
+    void CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index );
 
     void Fold( Unique<Syntax>& child );
 };
