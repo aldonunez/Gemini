@@ -663,7 +663,7 @@ LoadedAddressDeclaration::LoadedAddressDeclaration() :
 EnumMember::EnumMember( int32_t value, std::shared_ptr<EnumType> parentType ) :
     ParentType( parentType )
 {
-    Value = value;
+    Value.SetInteger( value );
 }
 
 std::shared_ptr<Type> EnumMember::GetType() const

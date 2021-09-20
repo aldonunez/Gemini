@@ -16,7 +16,7 @@ namespace Gemini
 
 class FolderVisitor final : public Visitor
 {
-    std::optional<int32_t>      mLastValue;
+    std::optional<ValueVariant> mLastValue;
     bool                        mFoldNodes = false;
     Reporter                    mRep;
 
@@ -31,7 +31,8 @@ class FolderVisitor final : public Visitor
 public:
     FolderVisitor( ICompilerLog* log );
 
-    std::optional<int32_t> Evaluate( Syntax* node );
+    std::optional<int32_t> EvaluateInt( Syntax* node );
+    std::optional<ValueVariant> Evaluate( Syntax* node, ConstIndexFuncMap& constIndexFuncMap );
     void Fold( Syntax* node, ConstIndexFuncMap& constIndexFuncMap );
 
     // Visitor
@@ -73,6 +74,8 @@ private:
     void VisitLetBinding( DataDecl* varDecl );
     void VisitFieldAccess( DotExpr* dotExpr );
     void CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index );
+
+    ValueVariant ReadScalarValueAtCurrentOffset( Type& type );
 
     void Fold( Unique<Syntax>& child );
 };

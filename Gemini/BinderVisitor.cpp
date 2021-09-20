@@ -309,7 +309,7 @@ void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
     {
         Visit( typeRef->SizeExpr );
 
-        int32_t rawSize = Evaluate( typeRef->SizeExpr.get(), "Expected a constant array size" );
+        int32_t rawSize = EvaluateInt( typeRef->SizeExpr.get(), "Expected a constant array size" );
 
         if ( rawSize <= 0 )
             mRep.ThrowSemanticsError( typeRef->SizeExpr.get(), "Array size must be positive" );
@@ -724,7 +724,7 @@ void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
             if ( memberDef->Initializer->Type->GetKind() != TypeKind::Int )
                 CheckType( enumType, memberDef->Initializer->Type, memberDef->Initializer.get() );
 
-            value = Evaluate( memberDef->Initializer.get() );
+            value = EvaluateInt( memberDef->Initializer.get() );
         }
         else
         {
@@ -1674,11 +1674,11 @@ void BinderVisitor::CheckAndConsolidateClauseType( Syntax* clause, std::shared_p
         CheckType( bodyType, clause->Type, clause );
 }
 
-int32_t BinderVisitor::Evaluate( Syntax* node, const char* message )
+int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 {
     FolderVisitor folder( mRep.GetLog() );
 
-    auto optValue = folder.Evaluate( node );
+    auto optValue = folder.EvaluateInt( node );
 
     if ( optValue.has_value() )
         return optValue.value();
@@ -1701,9 +1701,9 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 
     if ( IsIntegralType( type->GetKind() ) )
     {
-        int32_t iValue = Evaluate( node, "Expected constant value" );
+        int32_t iValue = EvaluateInt( node, "Expected constant value" );
 
-        value = iValue;
+        value.SetInteger( iValue );
     }
     else if ( type->GetKind() == TypeKind::Pointer )
     {
@@ -1711,11 +1711,14 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 
         if ( ptrType.TargetType->GetKind() == TypeKind::Func )
         {
-            FuncAddrVisitor visitor( mRep.GetLog() );
+            FolderVisitor visitor( mRep.GetLog() );
 
-            std::shared_ptr<Function> func = visitor.Evaluate( node );
+            auto optValue = visitor.Evaluate( node, mConstIndexFuncMap );
 
-            value = func;
+            if ( !optValue.has_value() )
+                mRep.ThrowSemanticsError( node, "Expected a constant value" );
+
+            value = optValue.value();
         }
         else
         {
@@ -1738,13 +1741,13 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
             {
                 // TODO:
             },
-            std::bind( &BinderVisitor::Evaluate, this, _1, _2 ),
+            std::bind( &BinderVisitor::EvaluateInt, this, _1, _2 ),
             mRep
         );
 
         globalDataGenerator.GenerateGlobalInit( 0, node );
 
-        value = sharedBuffer;
+        value.SetAggregate( sharedBuffer );
     }
     else
     {
@@ -1758,7 +1761,7 @@ std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
 {
     FolderVisitor folder( mRep.GetLog() );
 
-    return folder.Evaluate( node );
+    return folder.EvaluateInt( node );
 }
 
 void BinderVisitor::EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer )

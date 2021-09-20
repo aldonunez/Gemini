@@ -126,9 +126,10 @@ private:
     void VisitStorage( DataDecl* varDecl, DeclKind declKind );
     ParamSpec VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModifier modifier );
 
-    int32_t Evaluate( Syntax* node, const char* message = nullptr );
+    int32_t EvaluateInt( Syntax* node, const char* message = nullptr );
     ValueVariant EvaluateVariant( Syntax* node );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
+
     void EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer );
 
     void CheckType(

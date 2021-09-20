@@ -14,14 +14,28 @@ namespace Gemini
 {
 
 FolderVisitor::FolderVisitor( ICompilerLog* log ) :
-    mFoldNodes( false ),
     mRep( log )
 {
 }
 
-std::optional<int32_t> FolderVisitor::Evaluate( Syntax* node )
+std::optional<int32_t> FolderVisitor::EvaluateInt( Syntax* node )
 {
     mFoldNodes = false;
+    node->Accept( this );
+
+    if ( !mLastValue.has_value() )
+        return std::nullopt;
+
+    if ( Is( mLastValue.value(), ValueKind::Integer ) )
+        return Get<ValueKind::Integer>( mLastValue.value() );
+
+    THROW_INTERNAL_ERROR( "EvaluateInt: ValueKind" );
+}
+
+std::optional<ValueVariant> FolderVisitor::Evaluate( Syntax* node, ConstIndexFuncMap& constIndexFuncMap )
+{
+    mFoldNodes = false;
+    mConstIndexFuncMap = &constIndexFuncMap;
     node->Accept( this );
 
     return mLastValue;
@@ -36,7 +50,12 @@ void FolderVisitor::Fold( Syntax* node, ConstIndexFuncMap& constIndexFuncMap )
 
 void FolderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 {
-    mLastValue.reset();
+    auto decl = addrOf->Inner->GetSharedDecl();
+
+    if ( decl->Kind != DeclKind::Func )
+        mRep.ThrowSemanticsError( addrOf, "Expected function" );
+
+    mLastValue = std::static_pointer_cast<Function>(decl);
 }
 
 void FolderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
@@ -60,14 +79,16 @@ void FolderVisitor::VisitBinaryExpr( BinaryExpr* binary )
 {
     Fold( binary->Left );
 
-    std::optional<int32_t> leftOptVal = std::move( mLastValue );
+    std::optional<ValueVariant> leftOptVal = std::move( mLastValue );
 
     Fold( binary->Right );
 
     if ( leftOptVal.has_value() && mLastValue.has_value() )
     {
-        int32_t left = leftOptVal.value();
-        int32_t right = mLastValue.value();
+        assert( Is( leftOptVal.value(), ValueKind::Integer ) && Is( mLastValue.value(), ValueKind::Integer ) );
+
+        int32_t left = leftOptVal.value().GetInteger();
+        int32_t right = mLastValue.value().GetInteger();
         int32_t result = 0;
 
         if ( binary->Op == "+" )
@@ -149,6 +170,7 @@ void FolderVisitor::VisitCallExpr( CallExpr* call )
 
 void FolderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
 {
+    // TODO: try to fold this, if it's not a call
     callOrSymbol->Symbol->Accept( this );
 }
 
@@ -237,7 +259,7 @@ void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
 
         if ( mBufOffset.has_value() && mBuffer )
         {
-            mLastValue = (*mBuffer)[mBufOffset.value()];
+            mLastValue = ReadScalarValueAtCurrentOffset( *dotExpr->Type );
         }
         else
         {
@@ -250,10 +272,17 @@ void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
 
 void FolderVisitor::VisitDotExpr( DotExpr* dotExpr )
 {
+    // TODO: make this as much as possible like VisitNameExpr
+
     if ( dotExpr->GetDecl()->Kind == DeclKind::Const
         && Is( ((Constant*) dotExpr->GetDecl())->Value, ValueKind::Integer ) )
     {
         mLastValue = Get<ValueKind::Integer>( ((Constant*) dotExpr->GetDecl())->Value );
+    }
+    else if ( dotExpr->GetDecl()->Kind == DeclKind::Const
+        && Is( ((Constant*) dotExpr->GetDecl())->Value, ValueKind::Function ) )
+    {
+        mLastValue = Get<ValueKind::Function>( ((Constant*) dotExpr->GetDecl())->Value );
     }
     else if ( dotExpr->Head->Type->GetKind() == TypeKind::Record )
     {
@@ -296,7 +325,7 @@ void FolderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 
         if ( mBufOffset.has_value() && mBuffer )
         {
-            mLastValue = (*mBuffer)[mBufOffset.value()];
+            mLastValue = ReadScalarValueAtCurrentOffset( *indexExpr->Type );
         }
         else
         {
@@ -320,7 +349,7 @@ void FolderVisitor::CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index )
     if ( lastValue.has_value() && mBufOffset.has_value() && mBuffer )
     {
         auto arrayType = (ArrayType&) *head->Type;
-        mBufOffset = (lastValue.value() * arrayType.ElemType->GetSize()) + mBufOffset.value();
+        mBufOffset = (lastValue.value().GetInteger() * arrayType.ElemType->GetSize()) + mBufOffset.value();
     }
     else
     {
@@ -396,6 +425,11 @@ void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
             && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Integer ) )
         {
             mLastValue = Get<ValueKind::Integer>( ((Constant*) nameExpr->Decl.get())->Value );
+        }
+        else if ( nameExpr->GetDecl()->Kind == DeclKind::Const
+            && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Function ) )
+        {
+            mLastValue = Get<ValueKind::Function>( ((Constant*) nameExpr->GetDecl())->Value );
         }
         else
         {
@@ -504,9 +538,9 @@ void FolderVisitor::VisitUnaryExpr( UnaryExpr* unary )
     if ( mLastValue.has_value() )
     {
         if ( unary->Op == "-" )
-            mLastValue = VmSub( 0, mLastValue.value() );
+            mLastValue = VmSub( 0, mLastValue.value().GetInteger() );
         else if ( unary->Op == "not" )
-            mLastValue = !mLastValue.value();
+            mLastValue = !mLastValue.value().GetInteger();
         else
             THROW_INTERNAL_ERROR( "" );
     }
@@ -537,6 +571,39 @@ void FolderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
 }
 
 
+ValueVariant FolderVisitor::ReadScalarValueAtCurrentOffset( Type& type )
+{
+    if ( IsIntegralType( type.GetKind() ) )
+    {
+        return (*mBuffer)[mBufOffset.value()];
+    }
+    else if ( IsPtrFuncType( type ) )
+    {
+        assert( mConstIndexFuncMap != nullptr );
+
+        auto funcIndex = (*mBuffer)[mBufOffset.value()];
+        auto funcIt = mConstIndexFuncMap->find( funcIndex );
+
+        if ( funcIt == mConstIndexFuncMap->end() )
+            THROW_INTERNAL_ERROR( "" );
+
+#if 0
+        return funcIt->second;
+#else
+        ValueVariant value;
+
+        // Initialize the value this way, so that we don't steal the function by returning iterator->second
+        value.SetFunction( funcIt->second );
+
+        return value;
+#endif
+    }
+    else
+    {
+        THROW_INTERNAL_ERROR( "" );
+    }
+}
+
 void FolderVisitor::Fold( Unique<Syntax>& child )
 {
     child->Accept( this );
@@ -548,7 +615,7 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
     {
         if ( child->Kind != SyntaxKind::Number )
         {
-            Unique<NumberExpr> number( new NumberExpr( mLastValue.value() ) );
+            Unique<NumberExpr> number( new NumberExpr( mLastValue.value().GetInteger() ) );
 
             if ( !mIntType )
                 mIntType = std::shared_ptr<IntType>( new IntType() );
@@ -559,15 +626,7 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
     }
     else if ( mLastValue.has_value() && IsPtrFuncType( *child->Type ) )
     {
-        if ( mConstIndexFuncMap == nullptr )
-            THROW_INTERNAL_ERROR( "" );
-
-        auto funcIt = mConstIndexFuncMap->find( mLastValue.value() );
-
-        if ( funcIt == mConstIndexFuncMap->end() )
-            THROW_INTERNAL_ERROR( "" );
-
-        auto func = funcIt->second;
+        auto func = mLastValue.value().GetFunction();
 
         auto pointerType = std::shared_ptr<PointerType>( new PointerType( func->Type ) );
 
