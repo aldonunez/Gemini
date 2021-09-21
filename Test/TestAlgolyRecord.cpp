@@ -301,6 +301,51 @@ TEST_CASE( "Algoly: write record of record", "[algoly][record]" )
     TestCompileAndRunAlgoly( code, 12, 0, 4 );
 }
 
+TEST_CASE( "Algoly: init global record by record initializer and copying", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "type S = record c: R, r: R end\n"
+        "var r1: R := { a: 3, b: 4 }\n"
+        "var s1: S := { c: { a: 1, b: 2 }, r: r1 }\n"
+        "def a\n"
+        "  s1.c.a + s1.c.b + s1.r.a + s1.r.b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: local var record by record initializer and copying global", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "type S = record c: R, r: R end\n"
+        "var r1: R := { a: 3, b: 4 }\n"
+        "def a\n"
+        "  var s1: S := { c: { a: 1, b: 2 }, r: r1 }\n"
+        "  s1.c.a + s1.c.b + s1.r.a + s1.r.b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: init local record by record initializer and copying local", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "type S = record c: R, r: R end\n"
+        "def a\n"
+        "  var r1: R := { a: 3, b: 4 }\n"
+        "  var s1: S := { c: { a: 1, b: 2 }, r: r1 }\n"
+        "  s1.c.a + s1.c.b + s1.r.a + s1.r.b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
 
 //----------------------------------------------------------------------------
 //  array of record

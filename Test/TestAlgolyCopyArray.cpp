@@ -159,6 +159,45 @@ TEST_CASE( "Algoly: CopyArray: init array with shorter array local-local", "[alg
     TestCompileAndRunAlgoly( code, 18, 0, 9 );
 }
 
+TEST_CASE( "Algoly: init global array by array initializer and copying", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [3, 4]\n"
+        "var ar2 := [[1, 2], ar1]\n"
+        "def a\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: init local array by array initializer and copying global", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [3, 4]\n"
+        "def a\n"
+        "  var ar2 := [[1, 2], ar1]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: init local array by array initializer and copying local", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "def a\n"
+        "  var ar1 := [3, 4]\n"
+        "  var ar2 := [[1, 2], ar1]\n"
+        "  ar2[0][0] + ar2[0][1] + ar2[1][0] + ar2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
 
 //----------------------------------------------------------------------------
 //  Assign array with indexing
