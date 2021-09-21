@@ -169,7 +169,6 @@ void FolderVisitor::VisitCallExpr( CallExpr* call )
 
 void FolderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
 {
-    // TODO: try to fold this, if it's not a call
     callOrSymbol->Symbol->Accept( this );
 }
 
@@ -271,27 +270,13 @@ void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
 
 void FolderVisitor::VisitDotExpr( DotExpr* dotExpr )
 {
-    // TODO: make this as much as possible like VisitNameExpr
-
-    if ( dotExpr->GetDecl()->Kind == DeclKind::Const
-        && Is( ((Constant*) dotExpr->GetDecl())->Value, ValueKind::Integer ) )
-    {
-        mLastValue = Get<ValueKind::Integer>( ((Constant*) dotExpr->GetDecl())->Value );
-    }
-    else if ( dotExpr->GetDecl()->Kind == DeclKind::Const
-        && Is( ((Constant*) dotExpr->GetDecl())->Value, ValueKind::Function ) )
-    {
-        mLastValue = Get<ValueKind::Function>( ((Constant*) dotExpr->GetDecl())->Value );
-    }
-    else if ( dotExpr->Head->Type->GetKind() == TypeKind::Record )
+    if ( dotExpr->GetDecl()->Kind == DeclKind::Field )
     {
         VisitFieldAccess( dotExpr );
     }
     else
     {
-        Fold( dotExpr->Head );
-
-        mLastValue.reset();
+        VisitNameAccess( dotExpr );
     }
 }
 
@@ -404,13 +389,18 @@ void FolderVisitor::VisitLoopStatement( LoopStatement* loopStmt )
 
 void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
 {
+    VisitNameAccess( nameExpr );
+}
+
+void FolderVisitor::VisitNameAccess( Syntax* nameExpr )
+{
     if ( mCalcOffset )
     {
-        if ( nameExpr->Decl->Kind == DeclKind::Const
+        if ( nameExpr->GetDecl()->Kind == DeclKind::Const
             && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Aggregate ) )
         {
             mBufOffset = 0;
-            mBuffer = Get<ValueKind::Aggregate>( ((Constant*) nameExpr->Decl.get())->Value ).Buffer;
+            mBuffer = Get<ValueKind::Aggregate>( ((Constant*) nameExpr->GetDecl())->Value ).Buffer;
         }
         else
         {
@@ -420,20 +410,9 @@ void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
     }
     else
     {
-        if ( nameExpr->Decl->Kind == DeclKind::Const
-            && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Integer ) )
+        if ( nameExpr->GetDecl()->Kind == DeclKind::Const )
         {
-            mLastValue = Get<ValueKind::Integer>( ((Constant*) nameExpr->Decl.get())->Value );
-        }
-        else if ( nameExpr->GetDecl()->Kind == DeclKind::Const
-            && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Function ) )
-        {
-            mLastValue = Get<ValueKind::Function>( ((Constant*) nameExpr->GetDecl())->Value );
-        }
-        else if ( nameExpr->Decl->Kind == DeclKind::Const
-            && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Aggregate ) )
-        {
-            mLastValue = Get<ValueKind::Aggregate>( ((Constant*) nameExpr->Decl.get())->Value );
+            mLastValue = ((Constant*) nameExpr->GetDecl())->Value;
         }
         else
         {

@@ -73,6 +73,7 @@ private:
     void VisitProc( ProcDecl* procDecl );
     void VisitLetBinding( DataDecl* varDecl );
     void VisitFieldAccess( DotExpr* dotExpr );
+    void VisitNameAccess( Syntax* expr );
     void CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index );
 
     ValueVariant ReadScalarValueAtCurrentOffset( Type& type );
