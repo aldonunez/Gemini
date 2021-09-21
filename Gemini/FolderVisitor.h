@@ -81,23 +81,4 @@ private:
     void Fold( Unique<Syntax>& child );
 };
 
-
-class FuncAddrVisitor final : public Visitor
-{
-    Reporter                    mRep;
-    std::shared_ptr<Function>   mLastValue;
-
-public:
-    FuncAddrVisitor( ICompilerLog* log );
-
-    std::shared_ptr<Function> Evaluate( Syntax* node );
-
-    // Visitor
-    virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
-    virtual void VisitDotExpr( DotExpr* dotExpr ) override;
-    virtual void VisitNameExpr( NameExpr* nameExpr ) override;
-
-    void VisitDotOrNameExpr( Syntax* expr );
-};
-
 }
