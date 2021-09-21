@@ -1728,38 +1728,51 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     else if ( IsClosedArrayType( *type )
         || type->GetKind() == TypeKind::Record )
     {
-        // TODO: implement a special case for aggregate copy another
+        if ( node->Kind == SyntaxKind::ArrayInitializer
+            || node->Kind == SyntaxKind::RecordInitializer )
+        {
+            ConstRef constBuffer = { std::make_shared<std::vector<int32_t>>( type->GetSize() ) };
+            //auto sharedBuffer = std::make_shared<std::vector<int32_t>>( type->GetSize() );
 
-        ConstRef constBuffer = { std::make_shared<std::vector<int32_t>>( type->GetSize() ) };
-        //auto sharedBuffer = std::make_shared<std::vector<int32_t>>( type->GetSize() );
+            using namespace std::placeholders;
 
-        using namespace std::placeholders;
+            GlobalDataGenerator globalDataGenerator
+            (
+                *constBuffer.Buffer,
+                std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3 ),
+                //std::bind( &BinderVisitor::EmitConstAggregateCopyBlock, this, _1, _2 ),
+                [=]( GlobalSize offset, Syntax* valueNode )
+                {
+                    // TODO: pass the buffer and source offset into this callback
 
-        GlobalDataGenerator globalDataGenerator
-        (
-            *constBuffer.Buffer,
-            std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3 ),
-            //std::bind( &BinderVisitor::EmitConstAggregateCopyBlock, this, _1, _2 ),
-            [=]( GlobalSize offset, Syntax* valueNode )
-            {
-                // TODO: pass the buffer and source offset into this callback
+                    FolderVisitor folder( mRep.GetLog() );
 
-                FolderVisitor folder( mRep.GetLog() );
+                    auto value = folder.Evaluate( valueNode, mConstIndexFuncMap );
 
-                auto value = folder.Evaluate( valueNode, mConstIndexFuncMap );
+                    std::copy_n(
+                        &(*value.value().GetAggregate().Buffer)[value.value().GetAggregate().Offset],
+                        valueNode->Type->GetSize(),
+                        &(*constBuffer.Buffer)[offset] );
+                },
+                std::bind( &BinderVisitor::EvaluateInt, this, _1, _2 ),
+                mRep
+                );
 
-                std::copy_n(
-                    &(*value.value().GetAggregate().Buffer)[value.value().GetAggregate().Offset],
-                    valueNode->Type->GetSize(),
-                    &(*constBuffer.Buffer)[offset] );
-            },
-            std::bind( &BinderVisitor::EvaluateInt, this, _1, _2 ),
-            mRep
-        );
+            globalDataGenerator.GenerateGlobalInit( 0, node );
 
-        globalDataGenerator.GenerateGlobalInit( 0, node );
+            value.SetAggregate( constBuffer );
+        }
+        else
+        {
+            FolderVisitor folder( mRep.GetLog() );
 
-        value.SetAggregate( constBuffer );
+            auto optValue = folder.Evaluate( node, mConstIndexFuncMap );
+
+            if ( !optValue.has_value() )
+                mRep.ThrowSemanticsError( node, "Expected a constant value" );
+
+            value = optValue.value();
+        }
     }
     else
     {
