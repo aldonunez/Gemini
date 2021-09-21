@@ -297,12 +297,12 @@ private:
     GlobalDataGenerator mGlobalDataGenerator
     {
         mGlobals,
-        [=]( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer )
+        [=]( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* initializer )
         {
-            EmitFuncAddress( func.get(), { CodeRefKind::Data, offset } );
+            EmitFuncAddress( optFunc, offset, buffer, initializer );
         },
         std::bind( &Compiler::EmitGlobalAggregateCopyBlock, this, std::placeholders::_1, std::placeholders::_3 ),
-        std::bind( &Compiler::GetSyntaxValue, this, std::placeholders::_1, std::placeholders::_2 ),
+        mConstIndexFuncMap,
         mRep
     };
 
@@ -377,6 +377,7 @@ private:
 
     CalculatedAddress CalcAddress( Syntax* expr, bool writable = false );
 
+    void EmitFuncAddress( std::optional<std::shared_ptr<Function>> func, GlobalSize offset, int32_t* buffer, Syntax* initializer );
     void EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem );
 
     void EmitLoadConstant( int32_t value );

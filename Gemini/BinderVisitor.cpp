@@ -1735,9 +1735,9 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
             GlobalDataGenerator globalDataGenerator
             (
                 *constBuffer.Buffer,
-                std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3 ),
+                std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3, _4 ),
                 std::bind( &BinderVisitor::EmitConstAggregateCopyBlock, this, _1, _2, _3 ),
-                std::bind( &BinderVisitor::EvaluateInt, this, _1, _2 ),
+                mConstIndexFuncMap,
                 mRep
                 );
 
@@ -1772,8 +1772,13 @@ std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
     return folder.EvaluateInt( node );
 }
 
-void BinderVisitor::EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer )
+void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueElem )
 {
+    if ( !optFunc.has_value() )
+        mRep.ThrowSemanticsError( valueElem, "Expected a constant value" );
+
+    std::shared_ptr<Function> func = optFunc.value();
+
     auto funcIt = mConstFuncIndexMap.find( func.get() );
     int32_t index;
 

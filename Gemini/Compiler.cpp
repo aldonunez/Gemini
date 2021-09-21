@@ -2226,13 +2226,13 @@ GlobalDataGenerator::GlobalDataGenerator(
     std::vector<I32>& globals,
     EmitFuncAddressFunctor emitFuncAddressFunctor,
     CopyAggregateFunctor copyAggregateFunctor,
-    EvaluateSyntaxFunctor evaluateSyntaxFunctor,
+    ConstIndexFuncMap& constIndexFuncMap,
     Reporter& reporter )
     :
     mGlobals( globals ),
     mEmitFuncAddressFunctor( emitFuncAddressFunctor ),
     mCopyAggregateFunctor( copyAggregateFunctor ),
-    mEvaluateSyntaxFunctor( evaluateSyntaxFunctor ),
+    mConstIndexFuncMap( constIndexFuncMap ),
     mRep( reporter )
 {
 }
@@ -2271,26 +2271,55 @@ void Compiler::VisitVarDecl( VarDecl* varDecl )
 
 void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
 {
-    if ( valueElem->Type->GetKind() == TypeKind::Pointer )
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+
+    auto optVal = folder.Evaluate( valueElem );
+
+    std::optional<std::shared_ptr<Function>> optFunc;
+
+    if ( optVal.has_value() )
     {
-        auto& ptrType = (PointerType&) *valueElem->Type;
-
-        if ( ptrType.TargetType->GetKind() == TypeKind::Func )
+        if ( optVal.value().Is( ValueKind::Integer ) )
         {
-            FuncAddrVisitor visitor( mRep.GetLog() );
-
-            std::shared_ptr<Function> func = visitor.Evaluate( valueElem );
-
-            mEmitFuncAddressFunctor( func, offset, &mGlobals[0] );
+            mGlobals[offset] = optVal.value().GetInteger();
+            return;
         }
         else
         {
-            THROW_INTERNAL_ERROR( "" );
+            assert( optVal.value().Is( ValueKind::Function ) );
+
+            optFunc = optVal.value().GetFunction();
         }
+    }
+
+    mEmitFuncAddressFunctor( optFunc, offset, mGlobals.data(), valueElem );
+}
+
+// TODO: Use the new methods of ValueVariant instead of global Get and Is
+
+void Compiler::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* initializer )
+{
+    if ( optFunc.has_value() )
+    {
+        EmitFuncAddress( optFunc.value().get(), { CodeRefKind::Data, offset } );
     }
     else
     {
-        mGlobals[offset] = mEvaluateSyntaxFunctor( valueElem, "Globals must be initialized with constant data" );
+        // TODO: set writable?
+        auto addr = CalcAddress( initializer, false );
+
+        if ( addr.decl->Kind != DeclKind::Global )
+            mRep.ThrowSemanticsError( initializer, "*** has to be a global ***" );
+
+        // TODO: consolidate this with EmitGlobalAggregateCopyBlock
+
+        MemTransfer  transfer;
+
+        transfer.Src = addr.offset;
+        transfer.Dst = offset;
+        transfer.Size = initializer->Type->GetSize();
+
+        mDeferredGlobals.push_back( transfer );
     }
 }
 

@@ -130,7 +130,7 @@ private:
     ValueVariant EvaluateVariant( Syntax* node );
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
 
-    void EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer );
+    void EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueElem );
     void EmitConstAggregateCopyBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode );
 
     void CheckType(

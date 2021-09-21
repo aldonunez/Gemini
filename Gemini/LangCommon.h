@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <map>
+#include <optional>
 
 
 namespace Gemini
@@ -77,15 +78,14 @@ class GlobalDataGenerator
 public:
     using GlobalSize = uint16_t;
 
-    using EmitFuncAddressFunctor = std::function<void( std::shared_ptr<Function>, GlobalSize, int32_t* )>;
+    using EmitFuncAddressFunctor = std::function<void( std::optional<std::shared_ptr<Function>>, GlobalSize, int32_t*, Syntax* )>;
     using CopyAggregateFunctor = std::function<void( GlobalSize, int32_t*, Syntax* )>;
-    using EvaluateSyntaxFunctor = std::function<int32_t( Syntax*, const char* )>;
 
 private:
     std::vector<int32_t>&   mGlobals;
     EmitFuncAddressFunctor  mEmitFuncAddressFunctor;
     CopyAggregateFunctor    mCopyAggregateFunctor;
-    EvaluateSyntaxFunctor   mEvaluateSyntaxFunctor;
+    ConstIndexFuncMap&      mConstIndexFuncMap;
     Reporter&               mRep;
 
 public:
@@ -93,7 +93,7 @@ public:
         std::vector<int32_t>& globals,
         EmitFuncAddressFunctor emitFuncAddressFunctor,
         CopyAggregateFunctor copyAggregateFunctor,
-        EvaluateSyntaxFunctor evaluateSyntaxFunctor,
+        ConstIndexFuncMap& constIndexFuncMap,
         Reporter& reporter );
 
     void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );
