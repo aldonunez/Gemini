@@ -1676,7 +1676,7 @@ void BinderVisitor::CheckAndConsolidateClauseType( Syntax* clause, std::shared_p
 
 int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 {
-    FolderVisitor folder( mRep.GetLog() );
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
     auto optValue = folder.EvaluateInt( node );
 
@@ -1691,10 +1691,6 @@ int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 
 ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 {
-    // TODO: can we initialize a scalar or a scalar part of an aggregate with part of an aggregate?
-    //       global and local
-    // TODO: in open-array-value, can you capture an array initializer? should it be allowed?
-
     ValueVariant value;
 
     std::shared_ptr<Type> type = node->Type;
@@ -1711,9 +1707,9 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 
         if ( ptrType.TargetType->GetKind() == TypeKind::Func )
         {
-            FolderVisitor visitor( mRep.GetLog() );
+            FolderVisitor visitor( mRep.GetLog(), mConstIndexFuncMap );
 
-            auto optValue = visitor.Evaluate( node, mConstIndexFuncMap );
+            auto optValue = visitor.Evaluate( node );
 
             if ( !optValue.has_value() )
                 mRep.ThrowSemanticsError( node, "Expected a constant value" );
@@ -1740,20 +1736,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
             (
                 *constBuffer.Buffer,
                 std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3 ),
-                //std::bind( &BinderVisitor::EmitConstAggregateCopyBlock, this, _1, _2 ),
-                [=]( GlobalSize offset, Syntax* valueNode )
-                {
-                    // TODO: pass the buffer and source offset into this callback
-
-                    FolderVisitor folder( mRep.GetLog() );
-
-                    auto value = folder.Evaluate( valueNode, mConstIndexFuncMap );
-
-                    std::copy_n(
-                        &(*value.value().GetAggregate().Buffer)[value.value().GetAggregate().Offset],
-                        valueNode->Type->GetSize(),
-                        &(*constBuffer.Buffer)[offset] );
-                },
+                std::bind( &BinderVisitor::EmitConstAggregateCopyBlock, this, _1, _2, _3 ),
                 std::bind( &BinderVisitor::EvaluateInt, this, _1, _2 ),
                 mRep
                 );
@@ -1764,9 +1747,9 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
         }
         else
         {
-            FolderVisitor folder( mRep.GetLog() );
+            FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
-            auto optValue = folder.Evaluate( node, mConstIndexFuncMap );
+            auto optValue = folder.Evaluate( node );
 
             if ( !optValue.has_value() )
                 mRep.ThrowSemanticsError( node, "Expected a constant value" );
@@ -1784,7 +1767,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 
 std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
 {
-    FolderVisitor folder( mRep.GetLog() );
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
     return folder.EvaluateInt( node );
 }
@@ -1807,6 +1790,18 @@ void BinderVisitor::EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize 
     }
 
     buffer[offset] = index;
+}
+
+void BinderVisitor::EmitConstAggregateCopyBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode )
+{
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+
+    auto value = folder.Evaluate( valueNode );
+
+    std::copy_n(
+        &(*value.value().GetAggregate().Buffer)[value.value().GetAggregate().Offset],
+        valueNode->Type->GetSize(),
+        &buffer[offset] );
 }
 
 

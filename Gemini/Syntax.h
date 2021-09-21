@@ -762,8 +762,6 @@ public:
     ValueVariant( const ValueVariant& ) = default;
     ValueVariant( ValueVariant&& ) = default;
 
-    // TODO: verify that noexcept is true. Look at at the choices of std::variant
-
     template <typename T,
         std::enable_if_t<!std::is_same_v<std::decay_t<T>, ValueVariant>,
             int> = 0>

@@ -13,8 +13,9 @@
 namespace Gemini
 {
 
-FolderVisitor::FolderVisitor( ICompilerLog* log ) :
-    mRep( log )
+FolderVisitor::FolderVisitor( ICompilerLog* log, ConstIndexFuncMap& constIndexFuncMap ) :
+    mRep( log ),
+    mConstIndexFuncMap( &constIndexFuncMap )
 {
 }
 
@@ -32,19 +33,17 @@ std::optional<int32_t> FolderVisitor::EvaluateInt( Syntax* node )
     THROW_INTERNAL_ERROR( "EvaluateInt: ValueKind" );
 }
 
-std::optional<ValueVariant> FolderVisitor::Evaluate( Syntax* node, ConstIndexFuncMap& constIndexFuncMap )
+std::optional<ValueVariant> FolderVisitor::Evaluate( Syntax* node )
 {
     mFoldNodes = false;
-    mConstIndexFuncMap = &constIndexFuncMap;
     node->Accept( this );
 
     return mLastValue;
 }
 
-void FolderVisitor::Fold( Syntax* node, ConstIndexFuncMap& constIndexFuncMap )
+void FolderVisitor::Fold( Syntax* node )
 {
     mFoldNodes = true;
-    mConstIndexFuncMap = &constIndexFuncMap;
     node->Accept( this );
 }
 

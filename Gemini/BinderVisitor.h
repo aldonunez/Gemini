@@ -131,6 +131,7 @@ private:
     std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
 
     void EmitFuncAddress( std::shared_ptr<Function> func, GlobalSize offset, int32_t* buffer );
+    void EmitConstAggregateCopyBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode );
 
     void CheckType(
         const std::shared_ptr<Type>& left,

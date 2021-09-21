@@ -78,7 +78,7 @@ public:
     using GlobalSize = uint16_t;
 
     using EmitFuncAddressFunctor = std::function<void( std::shared_ptr<Function>, GlobalSize, int32_t* )>;
-    using CopyAggregateFunctor = std::function<void( GlobalSize, Syntax* )>;
+    using CopyAggregateFunctor = std::function<void( GlobalSize, int32_t*, Syntax* )>;
     using EvaluateSyntaxFunctor = std::function<int32_t( Syntax*, const char* )>;
 
 private:

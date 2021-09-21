@@ -301,7 +301,7 @@ private:
         {
             EmitFuncAddress( func.get(), { CodeRefKind::Data, offset } );
         },
-        std::bind( &Compiler::EmitGlobalAggregateCopyBlock, this, std::placeholders::_1, std::placeholders::_2 ),
+        std::bind( &Compiler::EmitGlobalAggregateCopyBlock, this, std::placeholders::_1, std::placeholders::_3 ),
         std::bind( &Compiler::GetSyntaxValue, this, std::placeholders::_1, std::placeholders::_2 ),
         mRep
     };

@@ -29,11 +29,11 @@ class FolderVisitor final : public Visitor
     ConstIndexFuncMap*          mConstIndexFuncMap = nullptr;
 
 public:
-    FolderVisitor( ICompilerLog* log );
+    FolderVisitor( ICompilerLog* log, ConstIndexFuncMap& constIndexFuncMap );
 
     std::optional<int32_t> EvaluateInt( Syntax* node );
-    std::optional<ValueVariant> Evaluate( Syntax* node, ConstIndexFuncMap& constIndexFuncMap );
-    void Fold( Syntax* node, ConstIndexFuncMap& constIndexFuncMap );
+    std::optional<ValueVariant> Evaluate( Syntax* node );
+    void Fold( Syntax* node );
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;

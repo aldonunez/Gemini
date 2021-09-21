@@ -182,10 +182,10 @@ void Compiler::BindAttributes()
 
 void Compiler::FoldConstants()
 {
-    FolderVisitor folder( mRep.GetLog() );
+    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
     for ( auto& unit : mUnits )
-        folder.Fold( unit.get(), mConstIndexFuncMap );
+        folder.Fold( unit.get() );
 }
 
 void Compiler::GenerateCode()
@@ -2260,7 +2260,7 @@ void GlobalDataGenerator::GenerateGlobalInit( GlobalSize offset, Syntax* initial
     }
     else
     {
-        mCopyAggregateFunctor( offset, initializer );
+        mCopyAggregateFunctor( offset, mGlobals.data(), initializer );
     }
 }
 
