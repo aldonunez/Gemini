@@ -2400,7 +2400,11 @@ void Compiler::SpillConstant( Constant* constant )
     switch ( static_cast<ValueKind>(constant->Value.index()) )
     {
     case ValueKind::Aggregate:
-        SpillConstPart( type.get(), mTotalConst, *Get<ValueKind::Aggregate>( constant->Value ), 0 );
+        {
+            auto aggregate = constant->Value.GetAggregate();
+
+            SpillConstPart( type.get(), mTotalConst, *aggregate.Buffer, static_cast<GlobalSize>(aggregate.Offset) );
+        }
         break;
 
     default:

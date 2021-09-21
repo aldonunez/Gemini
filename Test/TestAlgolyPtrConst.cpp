@@ -418,6 +418,135 @@ TEST_CASE( "Algoly: const record of int and fptr in array, var index", "[algoly]
 
 
 //----------------------------------------------------------------------------
+// Init const with const
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: init const int by copying", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const A = 3\n"
+        "const B = A\n"
+        "def a\n"
+        "  B\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: init const fptr by copying", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const f = &C\n"
+        "const g = f\n"
+        "def a\n"
+        "  (g)()\n"
+        "end\n"
+        "def C 3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: init const int by copying from record field", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "const R1: R = { a: 2, b: 3 }\n"
+        "const B = R1.b\n"
+        "def a\n"
+        "  B\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: init const fptr by copying from record field", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, f: @proc end\n"
+        "const R1: R = { a: 2, f: @C }\n"
+        "const g = R1.f\n"
+        "def a\n"
+        "  (g)()\n"
+        "end\n"
+        "def C 3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: init const record by copying", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const R1: R = { a: 1, b: 2, c: 3 }\n"
+        "const R2: R = R1\n"
+        "def a\n"
+        "  R2.a + R2.b + R2.c\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: init const record by record initializer and copying", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "type S = record c: R, r: R end\n"
+        "const R1: R = { a: 3, b: 4 }\n"
+        "const S1: S = { c: { a: 1, b: 2 }, r: R1 }\n"
+        "def a\n"
+        "  S1.c.a + S1.c.b + S1.r.a + S1.r.b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: init const int by copying from array element", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [2, 3]\n"
+        "const B = AR1[1]\n"
+        "def a\n"
+        "  B\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 3 );
+}
+
+TEST_CASE( "Algoly: init const array by copying", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2, 3]\n"
+        "const AR2 = AR1\n"
+        "def a\n"
+        "  AR2[0] + AR2[1] + AR2[2]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: init const array by array initializer and copying", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [3, 4]\n"
+        "const AR2 = [[1, 2], AR1]\n"
+        "def a\n"
+        "  AR2[0][0] + AR2[0][1] + AR2[1][0] + AR2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+
+//----------------------------------------------------------------------------
 // Const arguments to var parameters
 //----------------------------------------------------------------------------
 

@@ -411,7 +411,7 @@ void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
             && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Aggregate ) )
         {
             mBufOffset = 0;
-            mBuffer = Get<ValueKind::Aggregate>( ((Constant*) nameExpr->Decl.get())->Value );
+            mBuffer = Get<ValueKind::Aggregate>( ((Constant*) nameExpr->Decl.get())->Value ).Buffer;
         }
         else
         {
@@ -430,6 +430,11 @@ void FolderVisitor::VisitNameExpr( NameExpr* nameExpr )
             && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Function ) )
         {
             mLastValue = Get<ValueKind::Function>( ((Constant*) nameExpr->GetDecl())->Value );
+        }
+        else if ( nameExpr->Decl->Kind == DeclKind::Const
+            && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Aggregate ) )
+        {
+            mLastValue = Get<ValueKind::Aggregate>( ((Constant*) nameExpr->Decl.get())->Value );
         }
         else
         {
@@ -598,6 +603,15 @@ ValueVariant FolderVisitor::ReadScalarValueAtCurrentOffset( Type& type )
         return value;
 #endif
     }
+    else if ( IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
+    {
+        ConstRef constRef;
+
+        constRef.Buffer = mBuffer;
+        constRef.Offset = mBufOffset.value();
+
+        return constRef;
+    }
     else
     {
         THROW_INTERNAL_ERROR( "" );
@@ -642,6 +656,7 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
 
         child = std::move( addrOf );
     }
+    // TODO: fold aggregate?
 }
 
 

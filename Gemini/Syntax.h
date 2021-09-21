@@ -742,12 +742,18 @@ inline decltype(auto) Get( const ValueVariant& variant )
     return std::get<(size_t) kind>( variant );
 }
 #else
+struct ConstRef
+{
+    std::shared_ptr<std::vector<int32_t>>   Buffer;
+    int32_t                                 Offset;
+};
+
 class ValueVariant
 {
     using Variant = std::variant<
         int32_t,
         std::shared_ptr<Function>,
-        std::shared_ptr<std::vector<int32_t>>>;
+        ConstRef>;
 
     Variant mVariant;
 
@@ -803,7 +809,7 @@ public:
         return std::get<1>( mVariant );
     }
 
-    std::shared_ptr<std::vector<int32_t>> GetAggregate() const
+    ConstRef GetAggregate() const
     {
         return std::get<2>( mVariant );
     }
@@ -818,7 +824,7 @@ public:
         mVariant = value;
     }
 
-    void SetAggregate( std::shared_ptr<std::vector<int32_t>> value )
+    void SetAggregate( ConstRef value )
     {
         mVariant = value;
     }

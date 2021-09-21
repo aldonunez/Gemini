@@ -1728,18 +1728,30 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     else if ( IsClosedArrayType( *type )
         || type->GetKind() == TypeKind::Record )
     {
-        auto sharedBuffer = std::make_shared<std::vector<int32_t>>( type->GetSize() );
+        // TODO: implement a special case for aggregate copy another
+
+        ConstRef constBuffer = { std::make_shared<std::vector<int32_t>>( type->GetSize() ) };
+        //auto sharedBuffer = std::make_shared<std::vector<int32_t>>( type->GetSize() );
 
         using namespace std::placeholders;
 
         GlobalDataGenerator globalDataGenerator
         (
-            *sharedBuffer,
+            *constBuffer.Buffer,
             std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3 ),
             //std::bind( &BinderVisitor::EmitConstAggregateCopyBlock, this, _1, _2 ),
             [=]( GlobalSize offset, Syntax* valueNode )
             {
-                // TODO:
+                // TODO: pass the buffer and source offset into this callback
+
+                FolderVisitor folder( mRep.GetLog() );
+
+                auto value = folder.Evaluate( valueNode, mConstIndexFuncMap );
+
+                std::copy_n(
+                    &(*value.value().GetAggregate().Buffer)[value.value().GetAggregate().Offset],
+                    valueNode->Type->GetSize(),
+                    &(*constBuffer.Buffer)[offset] );
             },
             std::bind( &BinderVisitor::EvaluateInt, this, _1, _2 ),
             mRep
@@ -1747,7 +1759,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 
         globalDataGenerator.GenerateGlobalInit( 0, node );
 
-        value.SetAggregate( sharedBuffer );
+        value.SetAggregate( constBuffer );
     }
     else
     {
