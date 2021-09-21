@@ -1097,6 +1097,31 @@ TEST_CASE( "Global array, indexing", "[algoly]" )
     TestCompileAndRunAlgoly( code, 99 );
 }
 
+TEST_CASE( "Algoly: callOrSymbol", "[algoly][x]" )
+{
+    const char code[] =
+        "const N = 10\n"
+        "var I := 3\n"
+        "def X 4 end\n"
+        "def a A() + B() + C() end\n"
+        "def A N end\n"
+        "def B I end\n"
+        "def C X end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 17 );
+}
+
+TEST_CASE( "Algoly: callOrSymbol, 1 arg", "[algoly]" )
+{
+    const char code[] =
+        "def X(n) n+2 end\n"
+        "def a X 3 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 5 );
+}
+
 
 //----------------------------------------------------------------------------
 //  (new)
@@ -1989,25 +2014,25 @@ TEST_CASE( "Algoly: mod dotted type alias", "[algoly]" )
     TestCompileAndRun( Language::Gema, modSources, 3, 0 );
 }
 
-TEST_CASE( "Algoly: mod dotted callOrSymbol", "[algoly]" )
+TEST_CASE( "Algoly: mod dotted callOrSymbol", "[algoly][x]" )
 {
     const char* modeCodeA[] =
     {
+        "const C = 10\n"
         "var I := 3\n"
         "def X 4 end\n"
         ,
-
         nullptr
     };
 
     const char* mainCode[] =
     {
         "import ModA\n"
-        "def a B() + C() end\n"
+        "def a A() + B() + C() end\n"
+        "def A ModA.C end\n"
         "def B ModA.I end\n"
         "def C ModA.X end\n"
         ,
-
         nullptr
     };
 
@@ -2018,7 +2043,7 @@ TEST_CASE( "Algoly: mod dotted callOrSymbol", "[algoly]" )
         { },
     };
 
-    TestCompileAndRun( Language::Gema, modSources, 7, 0 );
+    TestCompileAndRun( Language::Gema, modSources, 17, 0 );
 }
 
 TEST_CASE( "Algoly: mod dotted callOrSymbol, 1 arg", "[algoly]" )
