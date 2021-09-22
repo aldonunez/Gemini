@@ -276,7 +276,7 @@ private:
     struct CalculatedAddress
     {
         Declaration*    decl;
-        int32_t         offset;
+        GlobalSize      offset;
         bool            spilled;
     };
 
@@ -379,6 +379,7 @@ private:
 
     void EmitFuncAddress( std::optional<std::shared_ptr<Function>> func, GlobalSize offset, int32_t* buffer, Syntax* initializer );
     void EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem );
+    void PushDeferredGlobal( Type& type, GlobalSize srcOffset, GlobalSize dstOffset );
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );

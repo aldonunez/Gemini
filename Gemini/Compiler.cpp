@@ -2305,37 +2305,34 @@ void Compiler::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc
     }
     else
     {
-        // TODO: set writable?
-        auto addr = CalcAddress( initializer, false );
+        // We don't need to check if it's writable, because we'll explicitly check that it's a global
+        auto addr = CalcAddress( initializer );
 
         if ( addr.decl->Kind != DeclKind::Global )
-            mRep.ThrowSemanticsError( initializer, "*** has to be a global ***" );
+            mRep.ThrowSemanticsError( initializer, "Const or global expected" );
 
-        // TODO: consolidate this with EmitGlobalAggregateCopyBlock
-
-        MemTransfer  transfer;
-
-        transfer.Src = addr.offset;
-        transfer.Dst = offset;
-        transfer.Size = initializer->Type->GetSize();
-
-        mDeferredGlobals.push_back( transfer );
+        PushDeferredGlobal( *initializer->Type, addr.offset, offset );
     }
+}
+
+void Compiler::PushDeferredGlobal( Type& type, GlobalSize srcOffset, GlobalSize dstOffset )
+{
+    MemTransfer  transfer;
+
+    transfer.Src = srcOffset;
+    transfer.Dst = dstOffset;
+    transfer.Size = type.GetSize();
+
+    mDeferredGlobals.push_back( transfer );
 }
 
 void Compiler::EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem )
 {
     // Defer these globals until all function addresses are known and put in source blocks
 
-    MemTransfer  transfer;
-
     auto srcAddr = CalcAddress( valueElem );
 
-    transfer.Src = srcAddr.offset;
-    transfer.Dst = offset;
-    transfer.Size = valueElem->Type->GetSize();
-
-    mDeferredGlobals.push_back( transfer );
+    PushDeferredGlobal( *valueElem->Type, srcAddr.offset, offset );
 }
 
 void GlobalDataGenerator::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size )
