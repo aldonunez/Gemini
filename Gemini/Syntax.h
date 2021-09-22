@@ -719,6 +719,12 @@ struct UndefinedDeclaration : public CommonDeclaration
     UndefinedDeclaration();
 };
 
+struct ConstRef
+{
+    std::shared_ptr<std::vector<int32_t>>   Buffer;
+    GlobalSize                              Offset;
+};
+
 enum class ValueKind
 {
     Integer,
@@ -742,12 +748,6 @@ inline decltype(auto) Get( const ValueVariant& variant )
     return std::get<(size_t) kind>( variant );
 }
 #else
-struct ConstRef
-{
-    std::shared_ptr<std::vector<int32_t>>   Buffer;
-    GlobalSize                              Offset;
-};
-
 class ValueVariant
 {
     using Variant = std::variant<

@@ -370,7 +370,7 @@ private:
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
 
     void SpillConstant( Constant* constant );
-    void SpillConstPart( Type* type, GlobalSize offset, GlobalVec& buffer, GlobalSize bufOffset );
+    void SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcOffset, GlobalVec& dstBuffer, GlobalSize dstOffset );
 
     CalculatedAddress CalcAddress( Syntax* expr, bool writable = false );
 

@@ -2332,7 +2332,24 @@ void Compiler::CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode )
 
     auto srcAddr = CalcAddress( valueNode );
 
-    PushDeferredGlobal( *valueNode->Type, srcAddr.offset, offset );
+    if ( srcAddr.decl->Kind == DeclKind::Global )
+    {
+        GlobalSize srcOffset = ((GlobalStorage*) srcAddr.decl)->Offset + srcAddr.offset;
+
+        PushDeferredGlobal( *valueNode->Type, srcOffset, offset );
+    }
+    else if ( srcAddr.decl->Kind == DeclKind::Const )
+    {
+        assert( ((Constant*) srcAddr.decl)->Spilled );
+
+        GlobalSize srcOffset = ((Constant*) srcAddr.decl)->Offset + srcAddr.offset;
+
+        SpillConstPart( valueNode->Type.get(), mConsts, srcOffset, mGlobals, offset );
+    }
+    else
+    {
+        THROW_INTERNAL_ERROR( "CopyGlobalAggregateBlock: DeclKind" );
+    }
 }
 
 void GlobalDataGenerator::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size )
@@ -2429,7 +2446,7 @@ void Compiler::SpillConstant( Constant* constant )
         {
             auto aggregate = constant->Value.GetAggregate();
 
-            SpillConstPart( type.get(), mTotalConst, *aggregate.Buffer, static_cast<GlobalSize>(aggregate.Offset) );
+            SpillConstPart( type.get(), *aggregate.Buffer, static_cast<GlobalSize>(aggregate.Offset), mConsts, mTotalConst );
         }
         break;
 
@@ -2440,17 +2457,17 @@ void Compiler::SpillConstant( Constant* constant )
     mTotalConst += type->GetSize();
 }
 
-void Compiler::SpillConstPart( Type* type, GlobalSize constOffset, GlobalVec& buffer, GlobalSize bufOffset )
+void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcOffset, GlobalVec& dstBuffer, GlobalSize dstOffset )
 {
     if ( IsIntegralType( type->GetKind() ) )
     {
-        mConsts[constOffset] = buffer[bufOffset];
+        dstBuffer[dstOffset] = srcBuffer[srcOffset];
     }
     else if ( IsPtrFuncType( *type ) )
     {
-        auto funcIt = mConstIndexFuncMap.find( buffer[bufOffset] );
+        auto funcIt = mConstIndexFuncMap.find( srcBuffer[srcOffset] );
 
-        EmitFuncAddress( funcIt->second.get(), { CodeRefKind::Const, constOffset }  );
+        EmitFuncAddress( funcIt->second.get(), { CodeRefKind::Const, dstOffset }  );
     }
     else if ( type->GetKind() == TypeKind::Array )
     {
@@ -2459,10 +2476,10 @@ void Compiler::SpillConstPart( Type* type, GlobalSize constOffset, GlobalVec& bu
 
         for ( GlobalSize i = 0; i < arrayType->Count; i++ )
         {
-            SpillConstPart( elemType, constOffset, buffer, bufOffset );
+            SpillConstPart( elemType, srcBuffer, srcOffset, dstBuffer, dstOffset );
 
-            constOffset += elemType->GetSize();
-            bufOffset += elemType->GetSize();
+            dstOffset += elemType->GetSize();
+            srcOffset += elemType->GetSize();
         }
     }
     else if ( type->GetKind() == TypeKind::Record )
@@ -2471,7 +2488,7 @@ void Compiler::SpillConstPart( Type* type, GlobalSize constOffset, GlobalVec& bu
 
         for ( auto& f : recordType->GetOrderedFields() )
         {
-            SpillConstPart( f->GetType().get(), constOffset + f->Offset, buffer, bufOffset + f->Offset );
+            SpillConstPart( f->GetType().get(), srcBuffer, srcOffset + f->Offset, dstBuffer, dstOffset + f->Offset );
         }
     }
     else
