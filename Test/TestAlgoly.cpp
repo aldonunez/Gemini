@@ -1097,7 +1097,7 @@ TEST_CASE( "Global array, indexing", "[algoly]" )
     TestCompileAndRunAlgoly( code, 99 );
 }
 
-TEST_CASE( "Algoly: callOrSymbol", "[algoly][x]" )
+TEST_CASE( "Algoly: callOrSymbol", "[algoly]" )
 {
     const char code[] =
         "const N = 10\n"
@@ -2014,7 +2014,7 @@ TEST_CASE( "Algoly: mod dotted type alias", "[algoly]" )
     TestCompileAndRun( Language::Gema, modSources, 3, 0 );
 }
 
-TEST_CASE( "Algoly: mod dotted callOrSymbol", "[algoly][x]" )
+TEST_CASE( "Algoly: mod dotted callOrSymbol", "[algoly]" )
 {
     const char* modeCodeA[] =
     {

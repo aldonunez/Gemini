@@ -506,6 +506,20 @@ TEST_CASE( "Algoly: init const int field from const field", "[algoly][ptr-const]
     TestCompileAndRunAlgoly( code, 5 );
 }
 
+TEST_CASE( "Algoly: init const int field from var field", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "var R1: R := { a: 1, b: 3 }\n"
+        "const R2: R = { a: 2, b: R1.b }\n"
+        "def a\n"
+        "  R2.a + R2.b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
 TEST_CASE( "Algoly: init const record by copying", "[algoly][ptr-const]" )
 {
     const char code[] =
@@ -518,6 +532,20 @@ TEST_CASE( "Algoly: init const record by copying", "[algoly][ptr-const]" )
         ;
 
     TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: init const record by copying var", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "var R1: R := { a: 1, b: 2, c: 3 }\n"
+        "const R2: R = R1\n"
+        "def a\n"
+        "  R2.a + R2.b + R2.c\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: init const record by record initializer and copying", "[algoly][ptr-const]" )
@@ -533,6 +561,21 @@ TEST_CASE( "Algoly: init const record by record initializer and copying", "[algo
         ;
 
     TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: init const record by record initializer and copying var", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "type S = record c: R, r: R end\n"
+        "var R1: R := { a: 3, b: 4 }\n"
+        "const S1: S = { c: { a: 1, b: 2 }, r: R1 }\n"
+        "def a\n"
+        "  S1.c.a + S1.c.b + S1.r.a + S1.r.b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: init const int by copying from array element", "[algoly][ptr-const]" )
@@ -586,6 +629,20 @@ TEST_CASE( "Algoly: init const int element from const field", "[algoly][ptr-cons
         ;
 
     TestCompileAndRunAlgoly( code, 5 );
+}
+
+TEST_CASE( "Algoly: init const int element from var field", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "var R1: R := { a: 1, b: 3 }\n"
+        "const AR1 = [2, R1.b]\n"
+        "def a\n"
+        "  AR1[0] + AR1[1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
 }
 
 TEST_CASE( "Algoly: init const array by array initializer and copying", "[algoly][ptr-const]" )
