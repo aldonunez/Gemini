@@ -128,10 +128,10 @@ private:
 
     int32_t EvaluateInt( Syntax* node, const char* message = nullptr );
     ValueVariant EvaluateVariant( Syntax* node );
-    std::optional<int32_t> GetOptionalSyntaxValue( Syntax* node );
+    std::optional<int32_t> EvaluateOptionalInt( Syntax* node );
 
-    void EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueElem );
-    void EmitConstAggregateCopyBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode );
+    void EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueNode );
+    void CopyConstAggregateBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode );
 
     void CheckType(
         const std::shared_ptr<Type>& left,

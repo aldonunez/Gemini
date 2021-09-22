@@ -2297,7 +2297,7 @@ void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem
 
 // TODO: Use the new methods of ValueVariant instead of global Get and Is
 
-void Compiler::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* initializer )
+void Compiler::EmitGlobalFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* initializer )
 {
     if ( optFunc.has_value() )
     {
@@ -2326,13 +2326,13 @@ void Compiler::PushDeferredGlobal( Type& type, GlobalSize srcOffset, GlobalSize 
     mDeferredGlobals.push_back( transfer );
 }
 
-void Compiler::EmitGlobalAggregateCopyBlock( GlobalSize offset, Syntax* valueElem )
+void Compiler::CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode )
 {
     // Defer these globals until all function addresses are known and put in source blocks
 
-    auto srcAddr = CalcAddress( valueElem );
+    auto srcAddr = CalcAddress( valueNode );
 
-    PushDeferredGlobal( *valueElem->Type, srcAddr.offset, offset );
+    PushDeferredGlobal( *valueNode->Type, srcAddr.offset, offset );
 }
 
 void GlobalDataGenerator::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size )

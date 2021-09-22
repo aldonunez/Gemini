@@ -745,7 +745,7 @@ inline decltype(auto) Get( const ValueVariant& variant )
 struct ConstRef
 {
     std::shared_ptr<std::vector<int32_t>>   Buffer;
-    int32_t                                 Offset;
+    GlobalSize                              Offset;
 };
 
 class ValueVariant

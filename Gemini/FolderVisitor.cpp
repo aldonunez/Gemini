@@ -586,7 +586,7 @@ ValueVariant FolderVisitor::ReadValueAtCurrentOffset( Type& type )
         ConstRef constRef;
 
         constRef.Buffer = mBuffer;
-        constRef.Offset = mBufOffset.value();
+        constRef.Offset = static_cast<GlobalSize>(mBufOffset.value());
 
         return constRef;
     }

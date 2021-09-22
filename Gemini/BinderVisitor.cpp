@@ -558,7 +558,7 @@ void BinderVisitor::VisitCondExpr( CondExpr* condExpr )
 
     if ( condExpr->Clauses.size() > 0 )
     {
-        auto optVal = GetOptionalSyntaxValue( condExpr->Clauses.back()->Condition.get() );
+        auto optVal = EvaluateOptionalInt( condExpr->Clauses.back()->Condition.get() );
 
         if ( !optVal.has_value() || optVal.value() == 0 )
         {
@@ -830,7 +830,7 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 
     if ( arrayType->Count > 0 )
     {
-        std::optional<int32_t> optIndexVal = GetOptionalSyntaxValue( indexExpr->Index.get() );
+        std::optional<int32_t> optIndexVal = EvaluateOptionalInt( indexExpr->Index.get() );
 
         if ( optIndexVal.has_value() )
         {
@@ -1477,8 +1477,8 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
 
     auto arrayType = (ArrayType*) sliceExpr->Head->Type.get();
 
-    std::optional<int32_t> firstVal = GetOptionalSyntaxValue( sliceExpr->FirstIndex.get() );
-    std::optional<int32_t> lastVal = GetOptionalSyntaxValue( sliceExpr->LastIndex.get() );
+    std::optional<int32_t> firstVal = EvaluateOptionalInt( sliceExpr->FirstIndex.get() );
+    std::optional<int32_t> lastVal = EvaluateOptionalInt( sliceExpr->LastIndex.get() );
 
     // Immediately substitute the end marker with the known end index, if applied to a closed array
 
@@ -1694,87 +1694,57 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
 
     std::shared_ptr<Type> type = node->Type;
 
-    if ( IsIntegralType( type->GetKind() ) )
+    if ( node->Kind == SyntaxKind::ArrayInitializer
+        || node->Kind == SyntaxKind::RecordInitializer )
     {
-        int32_t iValue = EvaluateInt( node, "Expected constant value" );
+        ConstRef constRef = { std::make_shared<std::vector<int32_t>>( type->GetSize() ) };
 
-        value.SetInteger( iValue );
+        using namespace std::placeholders;
+
+        GlobalDataGenerator globalDataGenerator
+        (
+            *constRef.Buffer,
+            std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3, _4 ),
+            std::bind( &BinderVisitor::CopyConstAggregateBlock, this, _1, _2, _3 ),
+            mConstIndexFuncMap,
+            mRep
+        );
+
+        globalDataGenerator.GenerateGlobalInit( 0, node );
+
+        value.SetAggregate( constRef );
     }
-    else if ( type->GetKind() == TypeKind::Pointer )
+    else if ( IsIntegralType( type->GetKind() ) || IsPtrFuncType( *type )
+        || IsClosedArrayType( *type ) || type->GetKind() == TypeKind::Record )
     {
-        auto& ptrType = (PointerType&) *type;
+        FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
-        if ( ptrType.TargetType->GetKind() == TypeKind::Func )
-        {
-            FolderVisitor visitor( mRep.GetLog(), mConstIndexFuncMap );
+        auto optValue = folder.Evaluate( node );
 
-            auto optValue = visitor.Evaluate( node );
+        if ( !optValue.has_value() )
+            mRep.ThrowSemanticsError( node, "Expected a constant value" );
 
-            if ( !optValue.has_value() )
-                mRep.ThrowSemanticsError( node, "Expected a constant value" );
-
-            value = optValue.value();
-        }
-        else
-        {
-            mRep.ThrowSemanticsError( node, "Only pointers to functions are allowed" );
-        }
-    }
-    else if ( IsClosedArrayType( *type )
-        || type->GetKind() == TypeKind::Record )
-    {
-        if ( node->Kind == SyntaxKind::ArrayInitializer
-            || node->Kind == SyntaxKind::RecordInitializer )
-        {
-            ConstRef constBuffer = { std::make_shared<std::vector<int32_t>>( type->GetSize() ) };
-            //auto sharedBuffer = std::make_shared<std::vector<int32_t>>( type->GetSize() );
-
-            using namespace std::placeholders;
-
-            GlobalDataGenerator globalDataGenerator
-            (
-                *constBuffer.Buffer,
-                std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3, _4 ),
-                std::bind( &BinderVisitor::EmitConstAggregateCopyBlock, this, _1, _2, _3 ),
-                mConstIndexFuncMap,
-                mRep
-                );
-
-            globalDataGenerator.GenerateGlobalInit( 0, node );
-
-            value.SetAggregate( constBuffer );
-        }
-        else
-        {
-            FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
-
-            auto optValue = folder.Evaluate( node );
-
-            if ( !optValue.has_value() )
-                mRep.ThrowSemanticsError( node, "Expected a constant value" );
-
-            value = optValue.value();
-        }
+        value = optValue.value();
     }
     else
     {
-        mRep.ThrowSemanticsError( node, "Expected constant value" );
+        mRep.ThrowSemanticsError( node, "Type not allowed for constants" );
     }
 
     return value;
 }
 
-std::optional<int32_t> BinderVisitor::GetOptionalSyntaxValue( Syntax* node )
+std::optional<int32_t> BinderVisitor::EvaluateOptionalInt( Syntax* node )
 {
     FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
     return folder.EvaluateInt( node );
 }
 
-void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueElem )
+void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueNode )
 {
     if ( !optFunc.has_value() )
-        mRep.ThrowSemanticsError( valueElem, "Expected a constant value" );
+        mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
 
     std::shared_ptr<Function> func = optFunc.value();
 
@@ -1796,14 +1766,20 @@ void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> op
     buffer[offset] = index;
 }
 
-void BinderVisitor::EmitConstAggregateCopyBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode )
+void BinderVisitor::CopyConstAggregateBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode )
 {
     FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
-    auto value = folder.Evaluate( valueNode );
+    auto optVal = folder.Evaluate( valueNode );
+
+    if ( !optVal.has_value() )
+        mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
+
+    std::vector<int32_t>& srcBuffer = *optVal.value().GetAggregate().Buffer;
+    GlobalSize srcOffset = optVal.value().GetAggregate().Offset;
 
     std::copy_n(
-        &(*value.value().GetAggregate().Buffer)[value.value().GetAggregate().Offset],
+        &srcBuffer[srcOffset],
         valueNode->Type->GetSize(),
         &buffer[offset] );
 }
