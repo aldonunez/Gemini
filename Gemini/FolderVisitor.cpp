@@ -257,7 +257,7 @@ void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
 
         if ( mBufOffset.has_value() && mBuffer )
         {
-            mLastValue = ReadScalarValueAtCurrentOffset( *dotExpr->Type );
+            mLastValue = ReadValueAtCurrentOffset( *dotExpr->Type );
         }
         else
         {
@@ -309,7 +309,7 @@ void FolderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
 
         if ( mBufOffset.has_value() && mBuffer )
         {
-            mLastValue = ReadScalarValueAtCurrentOffset( *indexExpr->Type );
+            mLastValue = ReadValueAtCurrentOffset( *indexExpr->Type );
         }
         else
         {
@@ -554,7 +554,7 @@ void FolderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
 }
 
 
-ValueVariant FolderVisitor::ReadScalarValueAtCurrentOffset( Type& type )
+ValueVariant FolderVisitor::ReadValueAtCurrentOffset( Type& type )
 {
     if ( IsIntegralType( type.GetKind() ) )
     {

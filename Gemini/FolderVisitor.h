@@ -76,7 +76,7 @@ private:
     void VisitNameAccess( Syntax* expr );
     void CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index );
 
-    ValueVariant ReadScalarValueAtCurrentOffset( Type& type );
+    ValueVariant ReadValueAtCurrentOffset( Type& type );
 
     void Fold( Unique<Syntax>& child );
 };

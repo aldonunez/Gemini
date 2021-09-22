@@ -1334,7 +1334,6 @@ void BinderVisitor::VisitProcDecl( ProcDecl* procDecl )
 void BinderVisitor::BindNamedProc( ProcDecl* procDecl )
 {
     SymTable::iterator it = mGlobalTable.find( procDecl->Name );
-    std::shared_ptr<Function> func;
 
     if ( it != mGlobalTable.end() )
     {
