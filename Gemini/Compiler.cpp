@@ -424,6 +424,10 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         }
         break;
 
+    case DeclKind::Enum:
+        EmitLoadConstant( ((EnumMember*) decl)->Value );
+        break;
+
     case DeclKind::LoadedAddress:
         assert( offset >= 0 && offset < DataSizeMax );
 
@@ -436,7 +440,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     default:
-        THROW_INTERNAL_ERROR( "" );
+        THROW_INTERNAL_ERROR( "EmitLoadScalar: DeclKind" );
     }
 }
 
@@ -786,6 +790,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     case DeclKind::Const:
+    case DeclKind::Enum:
         mRep.ThrowSemanticsError( node, "Constants can't be changed" );
         break;
 

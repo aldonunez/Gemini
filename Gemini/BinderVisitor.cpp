@@ -92,6 +92,7 @@ static bool IsSimpleValueDeclaration( DeclKind kind )
         || kind == DeclKind::Global
         || kind == DeclKind::Local
         || kind == DeclKind::Const
+        || kind == DeclKind::Enum
         ;
 }
 
@@ -1908,7 +1909,7 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::sh
             mRep.ThrowSemanticsError( declNode, "Const exceeds capacity" );
     }
 
-    std::shared_ptr<SimpleConstant> constant( new SimpleConstant() );
+    std::shared_ptr<Constant> constant( new Constant() );
     constant->Type = type;
     constant->Value = value;
     constant->ModIndex = mModIndex;

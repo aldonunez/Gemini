@@ -672,6 +672,7 @@ enum class DeclKind
 {
     Undefined,
     Const,
+    Enum,
     Global,
     Local,
     Param,
@@ -810,12 +811,9 @@ struct Constant : public Declaration
     ModSize         ModIndex = 0;
     bool            Spilled = false;
 
-    Constant();
-};
-
-struct SimpleConstant : public Constant
-{
     std::shared_ptr<Gemini::Type>   Type;
+
+    Constant();
 
     virtual std::shared_ptr<Gemini::Type> GetType() const override
     {
@@ -924,14 +922,15 @@ struct LoadedAddressDeclaration : public CommonDeclaration
 
 class EnumType;
 
-struct EnumMember : public Constant
+struct EnumMember : public Declaration
 {
     // Use a weak reference to avoid a circular reference.
     // But the parent type must always be available.
     // This is easy to guarantee since, in the language,
     // these only show up in the context of the parent.
 
-    const std::weak_ptr<EnumType> ParentType;
+    const std::weak_ptr<EnumType>   ParentType;
+    int32_t                         Value;
 
     EnumMember( int32_t value, std::shared_ptr<EnumType> parentType );
 

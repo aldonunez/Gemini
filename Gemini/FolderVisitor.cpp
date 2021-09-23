@@ -384,6 +384,10 @@ void FolderVisitor::VisitNameAccess( Syntax* nameExpr )
         {
             mLastValue = ((Constant*) nameExpr->GetDecl())->Value;
         }
+        else if ( nameExpr->GetDecl()->Kind == DeclKind::Enum )
+        {
+            mLastValue = ((EnumMember*) nameExpr->GetDecl())->Value;
+        }
         else
         {
             mLastValue.reset();
