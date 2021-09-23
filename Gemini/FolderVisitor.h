@@ -35,6 +35,8 @@ public:
     std::optional<ValueVariant> Evaluate( Syntax* node );
     void Fold( Syntax* node );
 
+    ValueVariant ReadConstValue( Type& type, std::shared_ptr<std::vector<int32_t>> buffer, GlobalSize offset );
+
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
     virtual void VisitArrayTypeRef( ArrayTypeRef* typeRef ) override;

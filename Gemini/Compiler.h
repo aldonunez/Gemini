@@ -460,6 +460,7 @@ private:
     void CopyDeferredGlobals();
 
     I32 GetSyntaxValue( Syntax* node, const char* message = nullptr );
+    std::optional<I32> GetFinalOptionalSyntaxValue( Syntax* node );
 
     // Stack usage
     void IncreaseExprDepth( LocalSize amount = 1 );

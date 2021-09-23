@@ -182,10 +182,12 @@ void Compiler::BindAttributes()
 
 void Compiler::FoldConstants()
 {
+#if !defined( GEMINIVM_DISABLE_FOLDING_PASS )
     FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
     for ( auto& unit : mUnits )
         folder.Fold( unit.get() );
+#endif
 }
 
 void Compiler::GenerateCode()
@@ -397,14 +399,28 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
 
     case DeclKind::Const:
         {
-            assert( offset == 0 );
-
             auto constant = (Constant*) decl;
+            ValueVariant value;
 
-            if ( Is( constant->Value, ValueKind::Integer ) )
-                EmitLoadConstant( Get<ValueKind::Integer>( constant->Value ) );
+            if ( Is( constant->Value, ValueKind::Aggregate ) )
+            {
+                FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+
+                GlobalSize bufOffset = static_cast<GlobalSize>(constant->Value.GetAggregate().Offset + offset);
+
+                value = folder.ReadConstValue( *node->Type, constant->Value.GetAggregate().Buffer, bufOffset );
+            }
             else
-                EmitLoadFuncAddress( Get<ValueKind::Function>( constant->Value ).get() );
+            {
+                value = constant->Value;
+            }
+
+            if ( Is( value, ValueKind::Integer ) )
+                EmitLoadConstant( Get<ValueKind::Integer>( value ) );
+            else if ( Is( value, ValueKind::Function ) )
+                EmitLoadFuncAddress( Get<ValueKind::Function>( value ).get() );
+            else
+                THROW_INTERNAL_ERROR( "" );
         }
         break;
 
@@ -2654,6 +2670,20 @@ I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
         mRep.ThrowSemanticsError( node, message );
     else
         mRep.ThrowSemanticsError( node, "Expected a constant value" );
+}
+
+std::optional<int32_t> Compiler::GetFinalOptionalSyntaxValue( Syntax* node )
+{
+#if defined( GEMINIVM_DISABLE_FOLDING_PASS )
+    if ( node->Kind != SyntaxKind::Number )
+    {
+        FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+
+        return folder.EvaluateInt( node );
+    }
+#endif
+
+    return Gemini::GetFinalOptionalSyntaxValue( node );
 }
 
 void Compiler::IncreaseExprDepth( LocalSize amount )

@@ -154,7 +154,7 @@ private:
     void CheckConstType( Type& type, Syntax* node );
     void CheckInitializer(
         const std::shared_ptr<Type>& type,
-        const Unique<Syntax>& initializer );
+        Unique<Syntax>& initializer );
     void CheckMissingRecordInitializer( const Unique<Syntax>& initializer );
     void CheckAllDescendantsHaveDefault( Type* type, Syntax* node );
     DataSize CheckArraySize( size_t rawSize, Type* elemType, Syntax* node );

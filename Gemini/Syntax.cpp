@@ -398,7 +398,7 @@ std::optional<int32_t> GetFinalOptionalSyntaxValue( Syntax* node )
         return (int32_t) number->Value;
     }
 
-    return std::optional<int32_t>();
+    return {};
 }
 
 void CopyBaseSyntax( Syntax& dest, const Syntax& source )

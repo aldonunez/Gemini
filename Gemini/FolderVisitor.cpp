@@ -398,11 +398,6 @@ void FolderVisitor::VisitNextStatement( NextStatement* nextStmt )
 
 void FolderVisitor::VisitNumberExpr( NumberExpr* numberExpr )
 {
-    assert( numberExpr->Value >= INT32_MIN );
-
-    if ( numberExpr->Value > INT32_MAX )
-        mRep.ThrowSemanticsError( numberExpr, "Number out of range" );
-
     mLastValue = (int32_t) numberExpr->Value;
 }
 
@@ -472,16 +467,6 @@ void FolderVisitor::VisitStatementList( StatementList* stmtList )
 
 void FolderVisitor::VisitUnaryExpr( UnaryExpr* unary )
 {
-    if ( unary->Op == "-" && unary->Inner->Kind == SyntaxKind::Number )
-    {
-        int64_t value = ((NumberExpr&) *unary->Inner).Value;
-
-        assert( value >= 0 && value <= (uint32_t) INT32_MAX + 1 );
-
-        mLastValue = (int32_t) -value;
-        return;
-    }
-
     Fold( unary->Inner );
 
     if ( mLastValue.has_value() )
@@ -542,15 +527,20 @@ void FolderVisitor::ReadValue( Syntax* expr )
 
 ValueVariant FolderVisitor::ReadValueAtCurrentOffset( Type& type )
 {
+    return ReadConstValue( type, mBuffer, static_cast<GlobalSize>(mBufOffset.value()) );
+}
+
+ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<std::vector<int32_t>> buffer, GlobalSize offset )
+{
     if ( IsIntegralType( type.GetKind() ) )
     {
-        return (*mBuffer)[mBufOffset.value()];
+        return (*buffer)[offset];
     }
     else if ( IsPtrFuncType( type ) )
     {
         assert( mConstIndexFuncMap != nullptr );
 
-        auto funcIndex = (*mBuffer)[mBufOffset.value()];
+        auto funcIndex = (*buffer)[offset];
         auto funcIt = mConstIndexFuncMap->find( funcIndex );
 
         assert( funcIt != mConstIndexFuncMap->end() );
@@ -568,8 +558,8 @@ ValueVariant FolderVisitor::ReadValueAtCurrentOffset( Type& type )
     {
         ConstRef constRef;
 
-        constRef.Buffer = mBuffer;
-        constRef.Offset = static_cast<GlobalSize>(mBufOffset.value());
+        constRef.Buffer = buffer;
+        constRef.Offset = offset;
 
         return constRef;
     }
@@ -583,10 +573,10 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
 {
     child->Accept( this );
 
-    if ( !mFoldNodes )
+    if ( !mFoldNodes || !mLastValue.has_value() )
         return;
 
-    if ( mLastValue.has_value() && IsIntegralType( child->Type->GetKind() ) )
+    if ( IsIntegralType( child->Type->GetKind() ) )
     {
         if ( child->Kind != SyntaxKind::Number )
         {
@@ -599,7 +589,7 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
             child->Type = mIntType;
         }
     }
-    else if ( mLastValue.has_value() && IsPtrFuncType( *child->Type ) )
+    else if ( IsPtrFuncType( *child->Type ) )
     {
         auto func = mLastValue.value().GetFunction();
 
