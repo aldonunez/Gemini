@@ -249,22 +249,7 @@ void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
     }
     else
     {
-        mBuffer.reset();
-
-        mCalcOffset = true;
-        dotExpr->Accept( this );
-        mCalcOffset = false;
-
-        if ( mBufOffset.has_value() && mBuffer )
-        {
-            mLastValue = ReadValueAtCurrentOffset( *dotExpr->Type );
-        }
-        else
-        {
-            mLastValue.reset();
-            mBufOffset.reset();
-            mBuffer.reset();
-        }
+        ReadValue( dotExpr );
     }
 }
 
@@ -301,22 +286,7 @@ void FolderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
     }
     else
     {
-        mBuffer.reset();
-
-        mCalcOffset = true;
-        indexExpr->Accept( this );
-        mCalcOffset = false;
-
-        if ( mBufOffset.has_value() && mBuffer )
-        {
-            mLastValue = ReadValueAtCurrentOffset( *indexExpr->Type );
-        }
-        else
-        {
-            mLastValue.reset();
-            mBufOffset.reset();
-            mBuffer.reset();
-        }
+        ReadValue( indexExpr );
     }
 }
 
@@ -486,22 +456,7 @@ void FolderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
     }
     else
     {
-        mBuffer.reset();
-
-        mCalcOffset = true;
-        sliceExpr->Accept( this );
-        mCalcOffset = false;
-
-        if ( mBufOffset.has_value() && mBuffer )
-        {
-            mLastValue = ReadValueAtCurrentOffset( *sliceExpr->Type );
-        }
-        else
-        {
-            mLastValue.reset();
-            mBufOffset.reset();
-            mBuffer.reset();
-        }
+        ReadValue( sliceExpr );
     }
 }
 
@@ -565,6 +520,26 @@ void FolderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
 }
 
 
+void FolderVisitor::ReadValue( Syntax* expr )
+{
+    mBuffer.reset();
+
+    mCalcOffset = true;
+    expr->Accept( this );
+    mCalcOffset = false;
+
+    if ( mBufOffset.has_value() && mBuffer )
+    {
+        mLastValue = ReadValueAtCurrentOffset( *expr->Type );
+    }
+    else
+    {
+        mLastValue.reset();
+        mBufOffset.reset();
+        mBuffer.reset();
+    }
+}
+
 ValueVariant FolderVisitor::ReadValueAtCurrentOffset( Type& type )
 {
     if ( IsIntegralType( type.GetKind() ) )
@@ -578,19 +553,16 @@ ValueVariant FolderVisitor::ReadValueAtCurrentOffset( Type& type )
         auto funcIndex = (*mBuffer)[mBufOffset.value()];
         auto funcIt = mConstIndexFuncMap->find( funcIndex );
 
-        if ( funcIt == mConstIndexFuncMap->end() )
-            THROW_INTERNAL_ERROR( "" );
+        assert( funcIt != mConstIndexFuncMap->end() );
 
-#if 0
-        return funcIt->second;
-#else
+        // Initialize the value this way, so that we don't steal the function
+        // by returning iterator->second
+
         ValueVariant value;
 
-        // Initialize the value this way, so that we don't steal the function by returning iterator->second
         value.SetFunction( funcIt->second );
 
         return value;
-#endif
     }
     else if ( IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
     {
@@ -645,7 +617,8 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
 
         child = std::move( addrOf );
     }
-    // TODO: fold aggregate?
+
+    // No need to fold aggregates, because it would bring more complexity for no benefit
 }
 
 }
