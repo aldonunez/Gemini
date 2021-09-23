@@ -486,12 +486,23 @@ void FolderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
     }
     else
     {
-        sliceExpr->Head->Accept( this );
-        Fold( sliceExpr->FirstIndex );
-        Fold( sliceExpr->LastIndex );
-    }
+        mBuffer.reset();
 
-    mLastValue.reset();
+        mCalcOffset = true;
+        sliceExpr->Accept( this );
+        mCalcOffset = false;
+
+        if ( mBufOffset.has_value() && mBuffer )
+        {
+            mLastValue = ReadValueAtCurrentOffset( *sliceExpr->Type );
+        }
+        else
+        {
+            mLastValue.reset();
+            mBufOffset.reset();
+            mBuffer.reset();
+        }
+    }
 }
 
 void FolderVisitor::VisitStatementList( StatementList* stmtList )
