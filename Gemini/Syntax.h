@@ -797,17 +797,17 @@ public:
         return std::get<(size_t) kind>( mVariant );
     }
 
-    int32_t GetInteger() const
+    int32_t& GetInteger()
     {
         return std::get<0>( mVariant );
     }
 
-    std::shared_ptr<Function> GetFunction() const
+    std::shared_ptr<Function>& GetFunction()
     {
         return std::get<1>( mVariant );
     }
 
-    ConstRef GetAggregate() const
+    ConstRef& GetAggregate()
     {
         return std::get<2>( mVariant );
     }
