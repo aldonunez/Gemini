@@ -402,7 +402,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             auto constant = (Constant*) decl;
             ValueVariant value;
 
-            if ( Is( constant->Value, ValueKind::Aggregate ) )
+            if ( constant->Value.Is( ValueKind::Aggregate ) )
             {
                 FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
@@ -415,10 +415,10 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
                 value = constant->Value;
             }
 
-            if ( Is( value, ValueKind::Integer ) )
-                EmitLoadConstant( Get<ValueKind::Integer>( value ) );
-            else if ( Is( value, ValueKind::Function ) )
-                EmitLoadFuncAddress( Get<ValueKind::Function>( value ).get() );
+            if ( value.Is( ValueKind::Integer ) )
+                EmitLoadConstant( value.GetInteger() );
+            else if ( value.Is( ValueKind::Function ) )
+                EmitLoadFuncAddress( value.GetFunction().get() );
             else
                 THROW_INTERNAL_ERROR( "" );
         }
@@ -2310,8 +2310,6 @@ void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem
 
     mEmitFuncAddressFunctor( optFunc, offset, mGlobals.data(), valueElem );
 }
-
-// TODO: Use the new methods of ValueVariant instead of global Get and Is
 
 void Compiler::EmitGlobalFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* initializer )
 {

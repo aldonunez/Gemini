@@ -734,20 +734,6 @@ enum class ValueKind
 
 struct Function;
 
-#if 0
-using ValueVariant = std::variant<int32_t, std::shared_ptr<Function>, std::shared_ptr<std::vector<int32_t>>>;
-
-inline bool Is( const ValueVariant& variant, ValueKind kind )
-{
-    return variant.index() == (size_t) kind;
-}
-
-template <ValueKind kind>
-inline decltype(auto) Get( const ValueVariant& variant )
-{
-    return std::get<(size_t) kind>( variant );
-}
-#else
 class ValueVariant
 {
     using Variant = std::variant<
@@ -781,20 +767,9 @@ public:
     ValueVariant& operator=( const ValueVariant& ) = default;
     ValueVariant& operator=( ValueVariant&& ) = default;
 
-    ValueKind index() const
-    {
-        return static_cast<ValueKind>(mVariant.index());
-    }
-
     bool Is( ValueKind kind ) const
     {
         return mVariant.index() == static_cast<size_t>(kind);
-    }
-
-    template <ValueKind kind>
-    decltype(auto) Get() const
-    {
-        return std::get<(size_t) kind>( mVariant );
     }
 
     int32_t& GetInteger()
@@ -827,18 +802,6 @@ public:
         mVariant = value;
     }
 };
-
-inline bool Is( const ValueVariant& variant, ValueKind kind )
-{
-    return variant.Is( kind );
-}
-
-template <ValueKind kind>
-inline decltype(auto) Get( const ValueVariant& variant )
-{
-    return variant.Get<kind>();
-}
-#endif
 
 struct Constant : public Declaration
 {

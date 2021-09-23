@@ -27,8 +27,8 @@ std::optional<int32_t> FolderVisitor::EvaluateInt( Syntax* node )
     if ( !mLastValue.has_value() )
         return std::nullopt;
 
-    if ( Is( mLastValue.value(), ValueKind::Integer ) )
-        return Get<ValueKind::Integer>( mLastValue.value() );
+    if ( mLastValue.value().Is( ValueKind::Integer ) )
+        return mLastValue.value().GetInteger();
 
     THROW_INTERNAL_ERROR( "EvaluateInt: ValueKind" );
 }
@@ -84,7 +84,7 @@ void FolderVisitor::VisitBinaryExpr( BinaryExpr* binary )
 
     if ( leftOptVal.has_value() && mLastValue.has_value() )
     {
-        assert( Is( leftOptVal.value(), ValueKind::Integer ) && Is( mLastValue.value(), ValueKind::Integer ) );
+        assert( leftOptVal.value().Is( ValueKind::Integer ) && mLastValue.value().Is( ValueKind::Integer ) );
 
         int32_t left = leftOptVal.value().GetInteger();
         int32_t right = mLastValue.value().GetInteger();
@@ -367,10 +367,10 @@ void FolderVisitor::VisitNameAccess( Syntax* nameExpr )
     if ( mCalcOffset )
     {
         if ( nameExpr->GetDecl()->Kind == DeclKind::Const
-            && Is( ((Constant*) nameExpr->GetDecl())->Value, ValueKind::Aggregate ) )
+            && ((Constant*) nameExpr->GetDecl())->Value.Is( ValueKind::Aggregate ) )
         {
             mBufOffset = 0;
-            mBuffer = Get<ValueKind::Aggregate>( ((Constant*) nameExpr->GetDecl())->Value ).Buffer;
+            mBuffer = ((Constant*) nameExpr->GetDecl())->Value.GetAggregate().Buffer;
         }
         else
         {
