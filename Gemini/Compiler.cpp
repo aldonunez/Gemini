@@ -2443,17 +2443,16 @@ void Compiler::SpillConstant( Constant* constant )
 
     // Scalar constants are not serialized
 
-    switch ( static_cast<ValueKind>(constant->Value.index()) )
+    ValueVariant value = constant->Value;
+
+    if ( value.Is( ValueKind::Aggregate ) )
     {
-    case ValueKind::Aggregate:
-        {
-            auto aggregate = constant->Value.GetAggregate();
+        auto aggregate = constant->Value.GetAggregate();
 
-            SpillConstPart( type.get(), *aggregate.Buffer, static_cast<GlobalSize>(aggregate.Offset), mConsts, mTotalConst );
-        }
-        break;
-
-    default:
+        SpillConstPart( type.get(), *aggregate.Buffer, static_cast<GlobalSize>(aggregate.Offset), mConsts, mTotalConst );
+    }
+    else
+    {
         THROW_INTERNAL_ERROR( "SpillConstant: ValueKind" );
     }
 
