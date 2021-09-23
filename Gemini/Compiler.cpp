@@ -2311,14 +2311,17 @@ void Compiler::EmitGlobalFuncAddress( std::optional<std::shared_ptr<Function>> o
         if ( addr.decl->Kind != DeclKind::Global )
             mRep.ThrowSemanticsError( initializer, "Const or global expected" );
 
-        PushDeferredGlobal( *initializer->Type, addr.offset, offset );
+        GlobalSize srcOffset = ((GlobalStorage*) addr.decl)->Offset + addr.offset;
+
+        PushDeferredGlobal( *initializer->Type, ModuleSection::Data, srcOffset, offset );
     }
 }
 
-void Compiler::PushDeferredGlobal( Type& type, GlobalSize srcOffset, GlobalSize dstOffset )
+void Compiler::PushDeferredGlobal( Type& type, ModuleSection srcSection, GlobalSize srcOffset, GlobalSize dstOffset )
 {
     MemTransfer  transfer;
 
+    transfer.SrcSection = srcSection;
     transfer.Src = srcOffset;
     transfer.Dst = dstOffset;
     transfer.Size = type.GetSize();
@@ -2336,7 +2339,7 @@ void Compiler::CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode )
     {
         GlobalSize srcOffset = ((GlobalStorage*) srcAddr.decl)->Offset + srcAddr.offset;
 
-        PushDeferredGlobal( *valueNode->Type, srcOffset, offset );
+        PushDeferredGlobal( *valueNode->Type, ModuleSection::Data, srcOffset, offset );
     }
     else if ( srcAddr.decl->Kind == DeclKind::Const )
     {
@@ -2344,7 +2347,7 @@ void Compiler::CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode )
 
         GlobalSize srcOffset = ((Constant*) srcAddr.decl)->Offset + srcAddr.offset;
 
-        SpillConstPart( valueNode->Type.get(), mConsts, srcOffset, mGlobals, offset );
+        PushDeferredGlobal( *valueNode->Type, ModuleSection::Const, srcOffset, offset );
     }
     else
     {
@@ -2677,7 +2680,17 @@ void Compiler::CopyDeferredGlobals()
 {
     for ( const auto& transfer : mDeferredGlobals )
     {
-        std::copy_n( &mGlobals[transfer.Src], transfer.Size, &mGlobals[transfer.Dst] );
+        int32_t* pSrc = nullptr;
+
+        switch ( transfer.SrcSection )
+        {
+        case ModuleSection::Data:   pSrc = &mGlobals[transfer.Src]; break;
+        case ModuleSection::Const:  pSrc = &mConsts[transfer.Src]; break;
+        default:
+            THROW_INTERNAL_ERROR( "CopyDeferredGlobals: ModuleSection" );
+        }
+
+        std::copy_n( pSrc, transfer.Size, &mGlobals[transfer.Dst] );
     }
 }
 

@@ -164,8 +164,15 @@ private:
         };
     };
 
+    enum class ModuleSection
+    {
+        Data,
+        Const,
+    };
+
     struct MemTransfer
     {
+        ModuleSection SrcSection;
         int32_t Src;
         int32_t Dst;
         int32_t Size;
@@ -376,7 +383,7 @@ private:
 
     void EmitGlobalFuncAddress( std::optional<std::shared_ptr<Function>> func, GlobalSize offset, int32_t* buffer, Syntax* initializer );
     void CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode );
-    void PushDeferredGlobal( Type& type, GlobalSize srcOffset, GlobalSize dstOffset );
+    void PushDeferredGlobal( Type& type, ModuleSection srcSection, GlobalSize srcOffset, GlobalSize dstOffset );
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
