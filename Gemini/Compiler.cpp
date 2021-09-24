@@ -399,11 +399,15 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
 
     case DeclKind::Const:
         {
+            assert( offset >= 0 && offset < GlobalSizeMax );
+
             auto constant = (Constant*) decl;
             ValueVariant value;
 
             if ( constant->Value.Is( ValueKind::Aggregate ) )
             {
+                assert( offset < (constant->Value.GetAggregate().Buffer->size() - constant->Value.GetAggregate().Offset) );
+
                 FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
                 GlobalSize bufOffset = static_cast<GlobalSize>(constant->Value.GetAggregate().Offset + offset);
@@ -412,6 +416,8 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             }
             else
             {
+                assert( offset == 0 );
+
                 value = constant->Value;
             }
 
@@ -425,6 +431,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
         break;
 
     case DeclKind::Enum:
+        assert( offset == 0 );
         EmitLoadConstant( ((EnumMember*) decl)->Value );
         break;
 
@@ -805,7 +812,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
         break;
 
     default:
-        THROW_INTERNAL_ERROR( "" );
+        THROW_INTERNAL_ERROR( "EmitStoreScalar: DeclKind" );
     }
 
     DecreaseExprDepth();

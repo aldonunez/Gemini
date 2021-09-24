@@ -13,9 +13,9 @@
 namespace Gemini
 {
 
-FolderVisitor::FolderVisitor( ICompilerLog* log, ConstIndexFuncMap& constIndexFuncMap ) :
+FolderVisitor::FolderVisitor( ICompilerLog* log, const ConstIndexFuncMap& constIndexFuncMap ) :
     mRep( log ),
-    mConstIndexFuncMap( &constIndexFuncMap )
+    mConstIndexFuncMap( constIndexFuncMap )
 {
 }
 
@@ -154,7 +154,9 @@ void FolderVisitor::VisitCallExpr( CallExpr* call )
 
     for ( auto& arg : call->Arguments )
     {
-        if ( paramIt->Mode == ParamMode::Value || paramIt->Mode == ParamMode::ValueIn )
+        if (   paramIt->Mode == ParamMode::Value
+            || paramIt->Mode == ParamMode::ValueIn
+            || paramIt->Mode == ParamMode::RefIn )
             Fold( arg );
         else
             arg->Accept( this );
@@ -296,7 +298,7 @@ void FolderVisitor::CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index )
     Fold( index );
     mCalcOffset = true;
 
-    auto lastValue = mLastValue;
+    auto lastValue = std::move( mLastValue );
 
     head->Accept( this );
 
@@ -542,21 +544,12 @@ ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<std::vec
     }
     else if ( IsPtrFuncType( type ) )
     {
-        assert( mConstIndexFuncMap != nullptr );
-
         auto funcIndex = (*buffer)[offset];
-        auto funcIt = mConstIndexFuncMap->find( funcIndex );
+        auto funcIt = mConstIndexFuncMap.find( funcIndex );
 
-        assert( funcIt != mConstIndexFuncMap->end() );
+        assert( funcIt != mConstIndexFuncMap.end() );
 
-        // Initialize the value this way, so that we don't steal the function
-        // by returning iterator->second
-
-        ValueVariant value;
-
-        value.SetFunction( funcIt->second );
-
-        return value;
+        return funcIt->second;
     }
     else if ( IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
     {

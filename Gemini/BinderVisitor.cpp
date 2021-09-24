@@ -1745,7 +1745,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
         if ( !optValue.has_value() )
             mRep.ThrowSemanticsError( node, "Expected a constant value" );
 
-        value = optValue.value();
+        value = std::move( optValue.value() );
     }
     else
     {
