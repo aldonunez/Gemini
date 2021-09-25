@@ -406,7 +406,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
 
             if ( constant->Value.Is( ValueKind::Aggregate ) )
             {
-                assert( offset < (constant->Value.GetAggregate().Buffer->size() - constant->Value.GetAggregate().Offset) );
+                assert( (GlobalSize) offset < (constant->Value.GetAggregate().Buffer->size() - constant->Value.GetAggregate().Offset) );
 
                 FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
 
