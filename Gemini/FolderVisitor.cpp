@@ -562,7 +562,7 @@ ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<std::vec
     }
     else
     {
-        THROW_INTERNAL_ERROR( "" );
+        THROW_INTERNAL_ERROR( "ReadConstValue: type" );
     }
 }
 
@@ -579,11 +579,8 @@ void FolderVisitor::Fold( Unique<Syntax>& child )
         {
             Unique<NumberExpr> number( new NumberExpr( mLastValue.value().GetInteger() ) );
 
-            if ( !mIntType )
-                mIntType = std::shared_ptr<IntType>( new IntType() );
-
+            number->Type = child->Type;
             child = std::move( number );
-            child->Type = mIntType;
         }
     }
     else if ( IsPtrFuncType( *child->Type ) )

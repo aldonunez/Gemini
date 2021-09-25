@@ -422,11 +422,17 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             }
 
             if ( value.Is( ValueKind::Integer ) )
+            {
                 EmitLoadConstant( value.GetInteger() );
+            }
             else if ( value.Is( ValueKind::Function ) )
+            {
                 EmitLoadFuncAddress( value.GetFunction().get() );
+            }
             else
+            {
                 THROW_INTERNAL_ERROR( "" );
+            }
         }
         break;
 
@@ -780,10 +786,6 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
                 Emit( OP_STOREI );
                 DecreaseExprDepth();
             }
-            else if ( param->Mode == ParamMode::RefIn )
-            {
-                mRep.ThrowSemanticsError( node, "Constants can't be changed" );
-            }
             else
             {
                 THROW_INTERNAL_ERROR( "EmitStoreScalar: Bad parameter mode" );
@@ -793,7 +795,7 @@ void Compiler::EmitStoreScalar( Syntax* node, Declaration* decl, int32_t offset 
 
     case DeclKind::Func:
     case DeclKind::NativeFunc:
-        mRep.ThrowSemanticsError( node, "functions can't be assigned a value" );
+        mRep.ThrowSemanticsError( node, "Functions can't be assigned a value" );
         break;
 
     case DeclKind::Const:
@@ -1985,7 +1987,7 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
 
         case DeclKind::Const:
             {
-                auto constant = (Constant*) baseDecl;
+                auto    constant = (Constant*) baseDecl;
                 ModSize modIndex = constant->ModIndex | CONST_SECTION_MOD_INDEX_MASK;
 
                 assert( offset >= 0 && offset < GlobalSizeMax );
@@ -2251,7 +2253,7 @@ void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenSta
 }
 
 GlobalDataGenerator::GlobalDataGenerator(
-    std::vector<I32>& globals,
+    std::vector<int32_t>& globals,
     EmitFuncAddressFunctor emitFuncAddressFunctor,
     CopyAggregateFunctor copyAggregateFunctor,
     ConstIndexFuncMap& constIndexFuncMap,
@@ -2456,7 +2458,7 @@ void Compiler::VisitConstDecl( ConstDecl* constDecl )
 
 void Compiler::SpillConstant( Constant* constant )
 {
-    // Constants in other modules should have been spilled already
+    // Constants in other modules would have been spilled already
     assert( constant->ModIndex == mModIndex );
     assert( !constant->Spilled );
 
@@ -2469,13 +2471,11 @@ void Compiler::SpillConstant( Constant* constant )
 
     // Scalar constants are not serialized
 
-    ValueVariant value = constant->Value;
-
-    if ( value.Is( ValueKind::Aggregate ) )
+    if ( constant->Value.Is( ValueKind::Aggregate ) )
     {
         auto aggregate = constant->Value.GetAggregate();
 
-        SpillConstPart( type.get(), *aggregate.Buffer, static_cast<GlobalSize>(aggregate.Offset), mConsts, mTotalConst );
+        SpillConstPart( type.get(), *aggregate.Buffer, aggregate.Offset, mConsts, mTotalConst );
     }
     else
     {
@@ -2506,8 +2506,8 @@ void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcO
         {
             SpillConstPart( elemType, srcBuffer, srcOffset, dstBuffer, dstOffset );
 
-            dstOffset += elemType->GetSize();
             srcOffset += elemType->GetSize();
+            dstOffset += elemType->GetSize();
         }
     }
     else if ( type->GetKind() == TypeKind::Record )

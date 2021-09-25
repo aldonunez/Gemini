@@ -18,11 +18,9 @@ class FolderVisitor final : public Visitor
 {
     std::optional<ValueVariant> mLastValue;
     bool                        mFoldNodes = false;
+    bool                        mCalcOffset = false;
     Reporter                    mRep;
 
-    std::shared_ptr<IntType>    mIntType;
-
-    bool                        mCalcOffset = false;
     std::optional<int32_t>      mBufOffset;
     std::shared_ptr<std::vector<int32_t>> mBuffer;
 
