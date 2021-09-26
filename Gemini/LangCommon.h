@@ -87,9 +87,53 @@ public:
 struct Function;
 class InitList;
 class RecordInitializer;
+class ModuleAttrs;
 
 
-using ConstIndexFuncMap = std::map<int32_t, std::shared_ptr<Function>>;
+class CompilerAttrs
+{
+    using ConstFuncIndexMap = std::map<Function*, int32_t>;
+    using ConstIndexFuncMap = std::map<int32_t, std::shared_ptr<Function>>;
+    using AddressFuncMap    = std::map<uint32_t, std::shared_ptr<Function>>;
+    using ModuleVec         = std::vector<std::shared_ptr<ModuleAttrs>>;
+
+    ConstFuncIndexMap   mConstFuncIndexMap;
+    ConstIndexFuncMap   mConstIndexFuncMap;
+    AddressFuncMap      mAddressFuncMap;
+    ModuleVec           mModules;
+
+public:
+    int32_t AddFunctionByIndex( std::shared_ptr<Function> func );
+    void AddFunctionByAddress( std::shared_ptr<Function> func );
+    std::shared_ptr<Function> GetFunction( int32_t id ) const;
+
+    void AddModule( std::shared_ptr<ModuleAttrs> module );
+    std::shared_ptr<ModuleAttrs> GetModule( int32_t index ) const;
+};
+
+
+class ModuleAttrs
+{
+    using GlobalSize = uint16_t;
+    using ModSize = uint_least8_t;
+
+    static constexpr GlobalSize GlobalSizeMax = 65535;
+
+    using ConstVec = std::vector<int32_t>;
+
+    ModSize             mModIndex;
+    CompilerAttrs&      mGlobalAttrs;
+    ConstVec            mConsts;
+
+public:
+    ModuleAttrs( uint_least8_t modIndex, CompilerAttrs& globalAttrs );
+
+    uint_least8_t GetIndex();
+    CompilerAttrs& GetGlobalAttrs();
+
+    std::vector<int32_t>& GetConsts();
+    GlobalSize GrowConsts( GlobalSize amount );
+};
 
 
 class GlobalDataGenerator
@@ -104,7 +148,7 @@ private:
     std::vector<int32_t>&   mGlobals;
     EmitFuncAddressFunctor  mEmitFuncAddressFunctor;
     CopyAggregateFunctor    mCopyAggregateFunctor;
-    ConstIndexFuncMap&      mConstIndexFuncMap;
+    ModuleAttrs&            mModuleAttrs;
     Reporter&               mRep;
 
 public:
@@ -112,7 +156,7 @@ public:
         std::vector<int32_t>& globals,
         EmitFuncAddressFunctor emitFuncAddressFunctor,
         CopyAggregateFunctor copyAggregateFunctor,
-        ConstIndexFuncMap& constIndexFuncMap,
+        ModuleAttrs& moduleAttrs,
         Reporter& reporter );
 
     void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );

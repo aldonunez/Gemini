@@ -225,11 +225,13 @@ BinderVisitor::BinderVisitor(
     SymTable& globalTable,
     SymTable& moduleTable,
     SymTable& publicTable,
+    CompilerAttrs& globalAttrs,
     ICompilerLog* log )
     :
     mGlobalTable( globalTable ),
     mModuleTable( moduleTable ),
     mPublicTable( publicTable ),
+    mGlobalAttrs( globalAttrs ),
     mRep( log ),
     mModIndex( modIndex )
 {
@@ -268,9 +270,9 @@ size_t BinderVisitor::GetConstSize()
     return mConstSize;
 }
 
-ConstIndexFuncMap BinderVisitor::ReleaseConstIndexFuncMap()
+std::shared_ptr<ModuleAttrs> BinderVisitor::GetModuleAttrs()
 {
-    return std::move( mConstIndexFuncMap );
+    return mModuleAttrs;
 }
 
 void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
@@ -664,6 +666,8 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
 
         dotExpr->Decl = it->second;
         dotExpr->Type = dotExpr->Decl->GetType();
+
+        ForbidExternalGlobalInGlobalInit( *dotExpr->Decl, dotExpr );
     }
     else if ( dotExpr->Head->Type->GetKind() == TypeKind::Type )
     {
@@ -943,6 +947,9 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 {
     std::shared_ptr<Type> type;
 
+    if ( declKind == DeclKind::Global )
+        mInGlobalVarDef = true;
+
     if ( varDecl->TypeRef == nullptr )
     {
         if ( varDecl->Initializer != nullptr )
@@ -978,6 +985,9 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
     if ( size == 0 )
         THROW_INTERNAL_ERROR( "Bad type" );
+
+    if ( declKind == DeclKind::Global )
+        mInGlobalVarDef = false;
 
     varDecl->Decl = AddStorage( varDecl, type, size, declKind );
     varDecl->Type = type;
@@ -1158,6 +1168,8 @@ void BinderVisitor::VisitNameExpr( NameExpr* nameExpr )
 
     if ( decl != nullptr )
     {
+        ForbidExternalGlobalInGlobalInit( *decl, nameExpr );
+
         if ( decl->Kind == DeclKind::Undefined )
             decl = DefineNode( nameExpr->String, (UndefinedDeclaration*) decl.get() );
 
@@ -1694,9 +1706,15 @@ void BinderVisitor::CheckAndConsolidateClauseType( Syntax* clause, std::shared_p
         CheckType( bodyType, clause->Type, clause );
 }
 
+void BinderVisitor::ForbidExternalGlobalInGlobalInit( Declaration& decl, Syntax* node )
+{
+    if ( mInGlobalVarDef && decl.Kind == DeclKind::Global && ((GlobalStorage&) decl).ModIndex != mModIndex )
+        mRep.ThrowSemanticsError( node, "Can't initialize global with external global" );
+}
+
 int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 {
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog() );
 
     auto optValue = folder.EvaluateInt( node );
 
@@ -1711,7 +1729,7 @@ int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 
 std::optional<int32_t> BinderVisitor::EvaluateOptionalInt( Syntax* node )
 {
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog() );
 
     return folder.EvaluateInt( node );
 }
@@ -1725,27 +1743,29 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     if ( node->Kind == SyntaxKind::ArrayInitializer
         || node->Kind == SyntaxKind::RecordInitializer )
     {
-        ConstRef constRef = { std::make_shared<std::vector<int32_t>>( type.GetSize() ) };
+        GlobalSize offset = mModuleAttrs->GrowConsts( type.GetSize() );
+
+        ConstRef constRef = { mModuleAttrs, offset };
 
         using namespace std::placeholders;
 
         GlobalDataGenerator constDataGenerator
         (
-            *constRef.Buffer,
+            constRef.Module->GetConsts(),
             std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3, _4 ),
             std::bind( &BinderVisitor::CopyConstAggregateBlock, this, _1, _2, _3 ),
-            mConstIndexFuncMap,
+            *constRef.Module,
             mRep
         );
 
-        constDataGenerator.GenerateGlobalInit( 0, node );
+        constDataGenerator.GenerateGlobalInit( constRef.Offset, node );
 
         value.SetAggregate( constRef );
     }
     else if ( IsIntegralType( type.GetKind() ) || IsPtrFuncType( type )
         || IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
     {
-        FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+        FolderVisitor folder( mRep.GetLog() );
 
         auto optValue = folder.Evaluate( node );
 
@@ -1767,40 +1787,25 @@ void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> op
     if ( !optFunc.has_value() )
         mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
 
-    std::shared_ptr<Function> func = optFunc.value();
-
-    auto funcIt = mConstFuncIndexMap.find( func.get() );
-    int32_t index;
-
-    if ( funcIt == mConstFuncIndexMap.end() )
-    {
-        index = static_cast<int32_t>(mConstFuncIndexMap.size());
-
-        mConstFuncIndexMap.insert( ConstFuncIndexMap::value_type( func.get(), index ) );
-        mConstIndexFuncMap.insert( ConstIndexFuncMap::value_type( index, func ) );
-    }
-    else
-    {
-        index = funcIt->second;
-    }
+    int32_t index = mGlobalAttrs.AddFunctionByIndex( optFunc.value() );
 
     buffer[offset] = index;
 }
 
 void BinderVisitor::CopyConstAggregateBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode )
 {
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog() );
 
     auto optVal = folder.Evaluate( valueNode );
 
     if ( !optVal.has_value() )
         mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
 
-    auto&      srcBuffer = *optVal.value().GetAggregate().Buffer;
+    auto&      srcModule = *optVal.value().GetAggregate().Module;
     GlobalSize srcOffset = optVal.value().GetAggregate().Offset;
 
     std::copy_n(
-        &srcBuffer[srcOffset],
+        &srcModule.GetConsts()[srcOffset],
         valueNode->Type->GetSize(),
         &buffer[offset] );
 }
@@ -1997,6 +2002,9 @@ void BinderVisitor::MakeStdEnv()
     AddType( &intSyntax, mIntType, false );
     AddConst( &falseSyntax, mIntType, 0, false );
     AddConst( &trueSyntax, mIntType, 1, false );
+
+    mModuleAttrs.reset( new ModuleAttrs( mModIndex, mGlobalAttrs ) );
+    mGlobalAttrs.AddModule( mModuleAttrs );
 }
 
 void BinderVisitor::BindProcs( Unit* program )

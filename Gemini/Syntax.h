@@ -720,10 +720,12 @@ struct UndefinedDeclaration : public CommonDeclaration
     UndefinedDeclaration();
 };
 
+class ModuleAttrs;
+
 struct ConstRef
 {
-    std::shared_ptr<std::vector<int32_t>>   Buffer;
-    GlobalSize                              Offset;
+    std::shared_ptr<ModuleAttrs>    Module;
+    GlobalSize                      Offset;
 };
 
 enum class ValueKind

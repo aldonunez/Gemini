@@ -30,9 +30,10 @@ namespace Gemini
 #endif
 
 
-Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
+Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, CompilerAttrs& globalAttrs, ModSize modIndex ) :
     mEnv( env ),
     mRep( log ),
+    mGlobalAttrs( globalAttrs ),
     mModIndex( modIndex )
 {
     if ( env == nullptr )
@@ -163,7 +164,7 @@ std::shared_ptr<ModuleDeclaration> Compiler::GetMetadata( const char* modName )
 
 void Compiler::BindAttributes()
 {
-    BinderVisitor binder( mModIndex, mGlobalTable, mModuleTable, mPublicTable, mRep.GetLog() );
+    BinderVisitor binder( mModIndex, mGlobalTable, mModuleTable, mPublicTable, mGlobalAttrs, mRep.GetLog() );
 
     for ( auto& unit : mUnits )
         binder.Declare( unit.get() );
@@ -177,13 +178,13 @@ void Compiler::BindAttributes()
     mGlobals.resize( binder.GetDataSize() );
     mConsts.resize( binder.GetConstSize() );
 
-    mConstIndexFuncMap = binder.ReleaseConstIndexFuncMap();
+    mModuleAttrs = binder.GetModuleAttrs();
 }
 
 void Compiler::FoldConstants()
 {
 #if !defined( GEMINIVM_DISABLE_FOLDING_PASS )
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog() );
 
     for ( auto& unit : mUnits )
         folder.Fold( unit.get() );
@@ -406,13 +407,13 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
 
             if ( constant->Value.Is( ValueKind::Aggregate ) )
             {
-                assert( (GlobalSize) offset < (constant->Value.GetAggregate().Buffer->size() - constant->Value.GetAggregate().Offset) );
+                assert( (GlobalSize) offset < (constant->Value.GetAggregate().Module->GetConsts().size() - constant->Value.GetAggregate().Offset) );
 
-                FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+                FolderVisitor folder( mRep.GetLog() );
 
                 GlobalSize bufOffset = static_cast<GlobalSize>(constant->Value.GetAggregate().Offset + offset);
 
-                value = folder.ReadConstValue( *node->Type, constant->Value.GetAggregate().Buffer, bufOffset );
+                value = folder.ReadConstValue( *node->Type, constant->Value.GetAggregate().Module, bufOffset );
             }
             else
             {
@@ -897,6 +898,8 @@ void Compiler::VisitProcDecl( ProcDecl* procDecl )
     auto func = (Function*) procDecl->Decl.get();
 
     func->Address = addr;
+
+    mGlobalAttrs.AddFunctionByAddress( std::static_pointer_cast<Function>(procDecl->Decl) );
 
     auto patchIt = mFuncPatchMap.find( func->Name );
     if ( patchIt != mFuncPatchMap.end() )
@@ -2256,13 +2259,13 @@ GlobalDataGenerator::GlobalDataGenerator(
     std::vector<int32_t>& globals,
     EmitFuncAddressFunctor emitFuncAddressFunctor,
     CopyAggregateFunctor copyAggregateFunctor,
-    ConstIndexFuncMap& constIndexFuncMap,
+    ModuleAttrs& mModuleAttrs,
     Reporter& reporter )
     :
     mGlobals( globals ),
     mEmitFuncAddressFunctor( emitFuncAddressFunctor ),
     mCopyAggregateFunctor( copyAggregateFunctor ),
-    mConstIndexFuncMap( constIndexFuncMap ),
+    mModuleAttrs( mModuleAttrs ),
     mRep( reporter )
 {
 }
@@ -2301,7 +2304,7 @@ void Compiler::VisitVarDecl( VarDecl* varDecl )
 
 void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
 {
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog() );
 
     auto optVal = folder.Evaluate( valueElem );
 
@@ -2339,17 +2342,20 @@ void Compiler::EmitGlobalFuncAddress( std::optional<std::shared_ptr<Function>> o
         if ( addr.decl->Kind != DeclKind::Global )
             mRep.ThrowSemanticsError( initializer, "Const or global expected" );
 
-        GlobalSize srcOffset = ((GlobalStorage*) addr.decl)->Offset + addr.offset;
+        auto       global    = (GlobalStorage*) addr.decl;
+        GlobalSize srcOffset = global->Offset + addr.offset;
 
-        PushDeferredGlobal( *initializer->Type, ModuleSection::Data, srcOffset, offset );
+        PushDeferredGlobal( *initializer->Type, ModuleSection::Data, global->ModIndex, srcOffset, offset );
     }
 }
 
-void Compiler::PushDeferredGlobal( Type& type, ModuleSection srcSection, GlobalSize srcOffset, GlobalSize dstOffset )
+void Compiler::PushDeferredGlobal( Type& type, ModuleSection srcSection, ModSize srcModIndex, GlobalSize srcOffset, GlobalSize dstOffset )
 {
     MemTransfer  transfer;
 
     transfer.SrcSection = srcSection;
+    transfer.SrcModIndex = srcModIndex;
+
     transfer.Src = srcOffset;
     transfer.Dst = dstOffset;
     transfer.Size = type.GetSize();
@@ -2365,17 +2371,20 @@ void Compiler::CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode )
 
     if ( srcAddr.decl->Kind == DeclKind::Global )
     {
-        GlobalSize srcOffset = ((GlobalStorage*) srcAddr.decl)->Offset + srcAddr.offset;
+        auto       global    = (GlobalStorage*) srcAddr.decl;
+        GlobalSize srcOffset = global->Offset + srcAddr.offset;
 
-        PushDeferredGlobal( *valueNode->Type, ModuleSection::Data, srcOffset, offset );
+        PushDeferredGlobal( *valueNode->Type, ModuleSection::Data, global->ModIndex, srcOffset, offset );
     }
     else if ( srcAddr.decl->Kind == DeclKind::Const )
     {
         assert( ((Constant*) srcAddr.decl)->Spilled );
+        assert( ((Constant*) srcAddr.decl)->Value.Is( ValueKind::Aggregate ) );
 
-        GlobalSize srcOffset = ((Constant*) srcAddr.decl)->Offset + srcAddr.offset;
+        auto       constant  = (Constant*) srcAddr.decl;
+        GlobalSize srcOffset = constant->Offset + srcAddr.offset;
 
-        PushDeferredGlobal( *valueNode->Type, ModuleSection::Const, srcOffset, offset );
+        PushDeferredGlobal( *valueNode->Type, ModuleSection::Const, constant->ModIndex, srcOffset, offset );
     }
     else
     {
@@ -2475,7 +2484,7 @@ void Compiler::SpillConstant( Constant* constant )
     {
         auto& aggregate = constant->Value.GetAggregate();
 
-        SpillConstPart( type.get(), *aggregate.Buffer, aggregate.Offset, mConsts, mTotalConst );
+        SpillConstPart( type.get(), aggregate.Module->GetConsts(), aggregate.Offset, mConsts, mTotalConst );
     }
     else
     {
@@ -2493,9 +2502,9 @@ void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcO
     }
     else if ( IsPtrFuncType( *type ) )
     {
-        auto funcIt = mConstIndexFuncMap.find( srcBuffer[srcOffset] );
+        auto func = mGlobalAttrs.GetFunction( srcBuffer[srcOffset] );
 
-        EmitFuncAddress( funcIt->second.get(), { CodeRefKind::Const, dstOffset }  );
+        EmitFuncAddress( func.get(), { CodeRefKind::Const, dstOffset }  );
     }
     else if ( type->GetKind() == TypeKind::Array )
     {
@@ -2667,6 +2676,27 @@ void Compiler::GenerateSentinel()
 void Compiler::FinalizeConstData()
 {
     mConsts.resize( mTotalConst );
+
+    // Replace original constants with final values and layout
+
+    mModuleAttrs->GetConsts() = mConsts;
+
+    // Point references to their values in the final layout
+
+    for ( auto& [name, decl] : mPublicTable )
+    {
+        if ( decl->Kind == DeclKind::Const )
+        {
+            auto& constant = (Constant&) *decl;
+
+            if ( constant.Value.Is( ValueKind::Aggregate ) )
+            {
+                assert( constant.Spilled );
+
+                constant.Value.GetAggregate().Offset = constant.Offset;
+            }
+        }
+    }
 }
 
 I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
@@ -2723,8 +2753,17 @@ void Compiler::CopyDeferredGlobals()
 
         switch ( transfer.SrcSection )
         {
-        case ModuleSection::Data:   pSrc = &mGlobals[transfer.Src]; break;
-        case ModuleSection::Const:  pSrc = &mConsts[transfer.Src]; break;
+        case ModuleSection::Data:
+            pSrc = &mGlobals[transfer.Src];
+            break;
+
+        case ModuleSection::Const:
+            if ( transfer.SrcModIndex == mModIndex )
+                pSrc = &mConsts[transfer.Src];
+            else
+                pSrc = &mGlobalAttrs.GetModule( transfer.SrcModIndex )->GetConsts()[transfer.Src];
+            break;
+
         default:
             THROW_INTERNAL_ERROR( "CopyDeferredGlobals: ModuleSection" );
         }

@@ -18,7 +18,6 @@ class BinderVisitor final : public Visitor
     using SymStack = std::vector<SymTable*>;
     using LambdaVec = std::vector<Unique<ProcDecl>>;
     using NatTypeMap = std::map<int32_t, std::shared_ptr<Type>>;
-    using ConstFuncIndexMap = std::map<Function*, int32_t>;
 
     friend class LocalScope;
     friend class BorrowedScope;
@@ -32,10 +31,8 @@ class BinderVisitor final : public Visitor
     NatTypeMap      mNativeTypeMap;
     Reporter        mRep;
 
-    ConstFuncIndexMap   mConstFuncIndexMap;
-    ConstIndexFuncMap   mConstIndexFuncMap;
-
     Function*       mCurFunc = nullptr;
+    bool            mInGlobalVarDef = false;
 
     ModSize         mModIndex = 0;
     LocalSize       mCurLevelLocalCount = 0;
@@ -53,12 +50,16 @@ class BinderVisitor final : public Visitor
     std::shared_ptr<XferType>   mXferType;
     std::shared_ptr<IntType>    mIntType;
 
+    CompilerAttrs&                  mGlobalAttrs;
+    std::shared_ptr<ModuleAttrs>    mModuleAttrs;
+
 public:
     BinderVisitor(
         ModSize modIndex,
         SymTable& globalTable,
         SymTable& moduleTable,
         SymTable& publicTable,
+        CompilerAttrs& globalAttrs,
         ICompilerLog* log );
 
     void Declare( Unit* unit );
@@ -67,7 +68,7 @@ public:
 
     size_t GetDataSize();
     size_t GetConstSize();
-    ConstIndexFuncMap ReleaseConstIndexFuncMap();
+    std::shared_ptr<ModuleAttrs> GetModuleAttrs();
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;
@@ -158,6 +159,8 @@ private:
     void CheckMissingRecordInitializer( const Unique<Syntax>& initializer );
     void CheckAllDescendantsHaveDefault( Type* type, Syntax* node );
     DataSize CheckArraySize( size_t rawSize, Type* elemType, Syntax* node );
+
+    void ForbidExternalGlobalInGlobalInit( Declaration& decl, Syntax* node );
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <assert.h>
+#include "VmCommon.h"
 
 
 enum OpCode : uint8_t

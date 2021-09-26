@@ -147,7 +147,7 @@ private:
         };
     };
 
-    enum class ModuleSection
+    enum class ModuleSection : uint8_t
     {
         Data,
         Const,
@@ -155,10 +155,12 @@ private:
 
     struct MemTransfer
     {
-        ModuleSection SrcSection;
         int32_t Src;
         int32_t Dst;
         int32_t Size;
+
+        ModuleSection SrcSection;
+        uint8_t SrcModIndex;
     };
 
     enum class ExprKind
@@ -283,13 +285,15 @@ private:
     AddrRefVec      mLocalAddrRefs;
     MemTransferVec  mDeferredGlobals;
 
-    ConstIndexFuncMap   mConstIndexFuncMap;
+    CompilerAttrs&                  mGlobalAttrs;
+    std::shared_ptr<ModuleAttrs>    mModuleAttrs;
+
     GlobalDataGenerator mGlobalDataGenerator
     {
         mGlobals,
         std::bind( &Compiler::EmitGlobalFuncAddress, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4 ),
         std::bind( &Compiler::CopyGlobalAggregateBlock, this, std::placeholders::_1, std::placeholders::_3 ),
-        mConstIndexFuncMap,
+        *mModuleAttrs,
         mRep
     };
 
@@ -316,7 +320,7 @@ private:
     std::shared_ptr<LoadedAddressDeclaration>   mLoadedAddrDeclConst;
 
 public:
-    Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex = 0 );
+    Compiler( ICompilerEnv* env, ICompilerLog* log, CompilerAttrs& globalAttrs, ModSize modIndex = 0 );
 
     void AddUnit( Unique<Unit>&& unit );
     void AddModule( std::shared_ptr<ModuleDeclaration> moduleDecl );
@@ -366,7 +370,7 @@ private:
 
     void EmitGlobalFuncAddress( std::optional<std::shared_ptr<Function>> func, GlobalSize offset, int32_t* buffer, Syntax* initializer );
     void CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode );
-    void PushDeferredGlobal( Type& type, ModuleSection srcSection, GlobalSize srcOffset, GlobalSize dstOffset );
+    void PushDeferredGlobal( Type& type, ModuleSection srcSection, ModSize srcModIndex, GlobalSize srcOffset, GlobalSize dstOffset );
 
     void EmitLoadConstant( int32_t value );
     void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "LangCommon.h"
+#include "OpCodes.h"
 #include "Syntax.h"
 #include <stdarg.h>
 
@@ -80,6 +81,100 @@ void Reporter::LogWarning( const char* fileName, int line, int col, const char* 
     va_start( args, format );
     Log( LogCategory::WARNING, fileName, line, col, format, args );
     va_end( args );
+}
+
+
+//----------------------------------------------------------------------------
+//  CompilerAttrs
+//----------------------------------------------------------------------------
+
+int32_t CompilerAttrs::AddFunctionByIndex( std::shared_ptr<Function> func )
+{
+    auto funcIt = mConstFuncIndexMap.find( func.get() );
+    int32_t index;
+
+    if ( funcIt == mConstFuncIndexMap.end() )
+    {
+        index = -static_cast<int32_t>(mConstFuncIndexMap.size()) - 1;
+
+        mConstFuncIndexMap.insert( ConstFuncIndexMap::value_type( func.get(), index ) );
+        mConstIndexFuncMap.insert( ConstIndexFuncMap::value_type( index, func ) );
+    }
+    else
+    {
+        index = funcIt->second;
+    }
+
+    return index;
+}
+
+void CompilerAttrs::AddFunctionByAddress( std::shared_ptr<Function> func )
+{
+    uint32_t address = CodeAddr::Build( func->Address, func->ModIndex );
+
+    mAddressFuncMap.insert( AddressFuncMap::value_type( address, func ) );
+}
+
+std::shared_ptr<Function> CompilerAttrs::GetFunction( int32_t id ) const
+{
+    if ( id < 0 )
+        return mConstIndexFuncMap.find( id )->second;
+    else
+        return mAddressFuncMap.find( id )->second;
+}
+
+void CompilerAttrs::AddModule( std::shared_ptr<ModuleAttrs> module )
+{
+    assert( module->GetIndex() < ModSizeMax );
+
+    if ( module->GetIndex() >= mModules.size() )
+    {
+        mModules.resize( module->GetIndex() + 1 );
+    }
+
+    mModules[module->GetIndex()] = module;
+}
+
+std::shared_ptr<ModuleAttrs> CompilerAttrs::GetModule( int32_t index ) const
+{
+    return mModules[index];
+}
+
+
+//----------------------------------------------------------------------------
+//  ModuleAttrs
+//----------------------------------------------------------------------------
+
+ModuleAttrs::ModuleAttrs( uint_least8_t modIndex, CompilerAttrs& globalAttrs ) :
+    mModIndex( modIndex ),
+    mGlobalAttrs( globalAttrs )
+{
+}
+
+ModSize ModuleAttrs::GetIndex()
+{
+    return mModIndex;
+}
+
+CompilerAttrs& ModuleAttrs::GetGlobalAttrs()
+{
+    return mGlobalAttrs;
+}
+
+std::vector<int32_t>& ModuleAttrs::GetConsts()
+{
+    return mConsts;
+}
+
+GlobalSize ModuleAttrs::GrowConsts( GlobalSize amount )
+{
+    auto oldSize = mConsts.size();
+
+    assert( amount <= (GlobalSizeMax - oldSize) );
+
+    mConsts.resize( oldSize + amount );
+
+    return static_cast<GlobalSize>(oldSize);
 }
 
 }

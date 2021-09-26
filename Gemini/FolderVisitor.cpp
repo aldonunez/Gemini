@@ -13,9 +13,8 @@
 namespace Gemini
 {
 
-FolderVisitor::FolderVisitor( ICompilerLog* log, const ConstIndexFuncMap& constIndexFuncMap ) :
-    mRep( log ),
-    mConstIndexFuncMap( constIndexFuncMap )
+FolderVisitor::FolderVisitor( ICompilerLog* log ) :
+    mRep( log )
 {
 }
 
@@ -234,7 +233,7 @@ void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
     {
         dotExpr->Head->Accept( this );
 
-        if ( mBufOffset.has_value() && mBuffer )
+        if ( mBufOffset.has_value() && mModule )
         {
             auto& recordType = (RecordType&) *dotExpr->Head->Type;
 
@@ -246,7 +245,7 @@ void FolderVisitor::VisitFieldAccess( DotExpr* dotExpr )
         {
             mLastValue.reset();
             mBufOffset.reset();
-            mBuffer.reset();
+            mModule.reset();
         }
     }
     else
@@ -302,7 +301,7 @@ void FolderVisitor::CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index )
 
     head->Accept( this );
 
-    if ( lastValue.has_value() && mBufOffset.has_value() && mBuffer )
+    if ( lastValue.has_value() && mBufOffset.has_value() && mModule )
     {
         auto arrayType = (ArrayType&) *head->Type;
         mBufOffset = (lastValue.value().GetInteger() * arrayType.ElemType->GetSize()) + mBufOffset.value();
@@ -310,7 +309,7 @@ void FolderVisitor::CalcIndexAddr( Unique<Syntax>& head, Unique<Syntax>& index )
     else
     {
         mBufOffset.reset();
-        mBuffer.reset();
+        mModule.reset();
     }
 
     mLastValue.reset();
@@ -371,12 +370,12 @@ void FolderVisitor::VisitNameAccess( Syntax* nameExpr )
         if ( nameExpr->GetDecl()->Kind == DeclKind::Const
             && ((Constant*) nameExpr->GetDecl())->Value.Is( ValueKind::Aggregate ) )
         {
-            mBufOffset = 0;
-            mBuffer = ((Constant*) nameExpr->GetDecl())->Value.GetAggregate().Buffer;
+            mBufOffset = ((Constant*) nameExpr->GetDecl())->Value.GetAggregate().Offset;
+            mModule = ((Constant*) nameExpr->GetDecl())->Value.GetAggregate().Module;
         }
         else
         {
-            mBuffer.reset();
+            mModule.reset();
             mBufOffset.reset();
         }
     }
@@ -513,13 +512,13 @@ void FolderVisitor::VisitWhileStatement( WhileStatement* whileStmt )
 
 void FolderVisitor::ReadValue( Syntax* expr )
 {
-    mBuffer.reset();
+    mModule.reset();
 
     mCalcOffset = true;
     expr->Accept( this );
     mCalcOffset = false;
 
-    if ( mBufOffset.has_value() && mBuffer )
+    if ( mBufOffset.has_value() && mModule )
     {
         mLastValue = ReadValueAtCurrentOffset( *expr->Type );
     }
@@ -527,35 +526,33 @@ void FolderVisitor::ReadValue( Syntax* expr )
     {
         mLastValue.reset();
         mBufOffset.reset();
-        mBuffer.reset();
+        mModule.reset();
     }
 }
 
 ValueVariant FolderVisitor::ReadValueAtCurrentOffset( Type& type )
 {
-    return ReadConstValue( type, mBuffer, static_cast<GlobalSize>(mBufOffset.value()) );
+    return ReadConstValue( type, mModule, static_cast<GlobalSize>(mBufOffset.value()) );
 }
 
-ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<std::vector<int32_t>> buffer, GlobalSize offset )
+ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<ModuleAttrs> module, GlobalSize offset )
 {
     if ( IsIntegralType( type.GetKind() ) )
     {
-        return (*buffer)[offset];
+        return module->GetConsts()[offset];
     }
     else if ( IsPtrFuncType( type ) )
     {
-        auto funcIndex = (*buffer)[offset];
-        auto funcIt = mConstIndexFuncMap.find( funcIndex );
+        auto funcId = module->GetConsts()[offset];
+        auto func = module->GetGlobalAttrs().GetFunction( funcId );
 
-        assert( funcIt != mConstIndexFuncMap.end() );
-
-        return funcIt->second;
+        return func;
     }
     else if ( IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
     {
         ConstRef constRef;
 
-        constRef.Buffer = buffer;
+        constRef.Module = module;
         constRef.Offset = offset;
 
         return constRef;

@@ -54,6 +54,9 @@
     <ClCompile Include="TestAlgolyNegativeLimits.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestAlgolyPtrConstMod.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h">
