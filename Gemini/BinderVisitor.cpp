@@ -268,9 +268,9 @@ size_t BinderVisitor::GetConstSize()
     return mConstSize;
 }
 
-ConstIndexFuncMap BinderVisitor::ReleaseConstIndexFuncMap()
+ModuleAttrs BinderVisitor::ReleaseModuleAttrs()
 {
-    return std::move( mConstIndexFuncMap );
+    return std::move( mModuleAttrs );
 }
 
 void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
@@ -1696,7 +1696,7 @@ void BinderVisitor::CheckAndConsolidateClauseType( Syntax* clause, std::shared_p
 
 int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 {
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
 
     auto optValue = folder.EvaluateInt( node );
 
@@ -1711,7 +1711,7 @@ int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 
 std::optional<int32_t> BinderVisitor::EvaluateOptionalInt( Syntax* node )
 {
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
 
     return folder.EvaluateInt( node );
 }
@@ -1734,7 +1734,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
             *constRef.Buffer,
             std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3, _4 ),
             std::bind( &BinderVisitor::CopyConstAggregateBlock, this, _1, _2, _3 ),
-            mConstIndexFuncMap,
+            mModuleAttrs,
             mRep
         );
 
@@ -1745,7 +1745,7 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     else if ( IsIntegralType( type.GetKind() ) || IsPtrFuncType( type )
         || IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
     {
-        FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+        FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
 
         auto optValue = folder.Evaluate( node );
 
@@ -1762,13 +1762,8 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     return value;
 }
 
-void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueNode )
+int32_t ModuleAttrs::AddFunction( std::shared_ptr<Function> func )
 {
-    if ( !optFunc.has_value() )
-        mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
-
-    std::shared_ptr<Function> func = optFunc.value();
-
     auto funcIt = mConstFuncIndexMap.find( func.get() );
     int32_t index;
 
@@ -1784,12 +1779,29 @@ void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> op
         index = funcIt->second;
     }
 
+    return index;
+}
+
+std::shared_ptr<Function> ModuleAttrs::GetFunction( int32_t index ) const
+{
+    auto funcIt = mConstIndexFuncMap.find( index );
+
+    return funcIt->second;
+}
+
+void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueNode )
+{
+    if ( !optFunc.has_value() )
+        mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
+
+    int32_t index = mModuleAttrs.AddFunction( optFunc.value() );
+
     buffer[offset] = index;
 }
 
 void BinderVisitor::CopyConstAggregateBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode )
 {
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
 
     auto optVal = folder.Evaluate( valueNode );
 

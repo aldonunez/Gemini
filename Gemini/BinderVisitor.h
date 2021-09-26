@@ -32,8 +32,7 @@ class BinderVisitor final : public Visitor
     NatTypeMap      mNativeTypeMap;
     Reporter        mRep;
 
-    ConstFuncIndexMap   mConstFuncIndexMap;
-    ConstIndexFuncMap   mConstIndexFuncMap;
+    ModuleAttrs     mModuleAttrs;
 
     Function*       mCurFunc = nullptr;
 
@@ -67,7 +66,7 @@ public:
 
     size_t GetDataSize();
     size_t GetConstSize();
-    ConstIndexFuncMap ReleaseConstIndexFuncMap();
+    ModuleAttrs ReleaseModuleAttrs();
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;

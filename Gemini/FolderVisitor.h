@@ -24,10 +24,10 @@ class FolderVisitor final : public Visitor
     std::optional<int32_t>      mBufOffset;
     std::shared_ptr<std::vector<int32_t>> mBuffer;
 
-    const ConstIndexFuncMap&    mConstIndexFuncMap;
+    const ModuleAttrs&          mModuleAttrs;
 
 public:
-    FolderVisitor( ICompilerLog* log, const ConstIndexFuncMap& constIndexFuncMap );
+    FolderVisitor( ICompilerLog* log, const ModuleAttrs& moduleAttrs );
 
     std::optional<int32_t> EvaluateInt( Syntax* node );
     std::optional<ValueVariant> Evaluate( Syntax* node );

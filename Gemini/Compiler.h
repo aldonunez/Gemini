@@ -300,13 +300,13 @@ private:
     AddrRefVec      mLocalAddrRefs;
     MemTransferVec  mDeferredGlobals;
 
-    ConstIndexFuncMap   mConstIndexFuncMap;
+    ModuleAttrs         mModuleAttrs;
     GlobalDataGenerator mGlobalDataGenerator
     {
         mGlobals,
         std::bind( &Compiler::EmitGlobalFuncAddress, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4 ),
         std::bind( &Compiler::CopyGlobalAggregateBlock, this, std::placeholders::_1, std::placeholders::_3 ),
-        mConstIndexFuncMap,
+        mModuleAttrs,
         mRep
     };
 

@@ -177,13 +177,13 @@ void Compiler::BindAttributes()
     mGlobals.resize( binder.GetDataSize() );
     mConsts.resize( binder.GetConstSize() );
 
-    mConstIndexFuncMap = binder.ReleaseConstIndexFuncMap();
+    mModuleAttrs = binder.ReleaseModuleAttrs();
 }
 
 void Compiler::FoldConstants()
 {
 #if !defined( GEMINIVM_DISABLE_FOLDING_PASS )
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
 
     for ( auto& unit : mUnits )
         folder.Fold( unit.get() );
@@ -408,7 +408,7 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
             {
                 assert( (GlobalSize) offset < (constant->Value.GetAggregate().Buffer->size() - constant->Value.GetAggregate().Offset) );
 
-                FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+                FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
 
                 GlobalSize bufOffset = static_cast<GlobalSize>(constant->Value.GetAggregate().Offset + offset);
 
@@ -2256,13 +2256,13 @@ GlobalDataGenerator::GlobalDataGenerator(
     std::vector<int32_t>& globals,
     EmitFuncAddressFunctor emitFuncAddressFunctor,
     CopyAggregateFunctor copyAggregateFunctor,
-    ConstIndexFuncMap& constIndexFuncMap,
+    ModuleAttrs& mModuleAttrs,
     Reporter& reporter )
     :
     mGlobals( globals ),
     mEmitFuncAddressFunctor( emitFuncAddressFunctor ),
     mCopyAggregateFunctor( copyAggregateFunctor ),
-    mConstIndexFuncMap( constIndexFuncMap ),
+    mModuleAttrs( mModuleAttrs ),
     mRep( reporter )
 {
 }
@@ -2301,7 +2301,7 @@ void Compiler::VisitVarDecl( VarDecl* varDecl )
 
 void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
 {
-    FolderVisitor folder( mRep.GetLog(), mConstIndexFuncMap );
+    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
 
     auto optVal = folder.Evaluate( valueElem );
 
@@ -2493,9 +2493,9 @@ void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcO
     }
     else if ( IsPtrFuncType( *type ) )
     {
-        auto funcIt = mConstIndexFuncMap.find( srcBuffer[srcOffset] );
+        auto func = mModuleAttrs.GetFunction( srcBuffer[srcOffset] );
 
-        EmitFuncAddress( funcIt->second.get(), { CodeRefKind::Const, dstOffset }  );
+        EmitFuncAddress( func.get(), { CodeRefKind::Const, dstOffset }  );
     }
     else if ( type->GetKind() == TypeKind::Array )
     {

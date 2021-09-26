@@ -13,9 +13,9 @@
 namespace Gemini
 {
 
-FolderVisitor::FolderVisitor( ICompilerLog* log, const ConstIndexFuncMap& constIndexFuncMap ) :
+FolderVisitor::FolderVisitor( ICompilerLog* log, const ModuleAttrs& moduleAttrs ) :
     mRep( log ),
-    mConstIndexFuncMap( constIndexFuncMap )
+    mModuleAttrs( moduleAttrs )
 {
 }
 
@@ -545,11 +545,11 @@ ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<std::vec
     else if ( IsPtrFuncType( type ) )
     {
         auto funcIndex = (*buffer)[offset];
-        auto funcIt = mConstIndexFuncMap.find( funcIndex );
+        auto func = mModuleAttrs.GetFunction( funcIndex );
 
-        assert( funcIt != mConstIndexFuncMap.end() );
+        assert( func );
 
-        return funcIt->second;
+        return func;
     }
     else if ( IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
     {

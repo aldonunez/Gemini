@@ -74,6 +74,19 @@ class RecordInitializer;
 using ConstIndexFuncMap = std::map<int32_t, std::shared_ptr<Function>>;
 
 
+class ModuleAttrs
+{
+    using ConstFuncIndexMap = std::map<Function*, int32_t>;
+
+    ConstFuncIndexMap   mConstFuncIndexMap;
+    ConstIndexFuncMap   mConstIndexFuncMap;
+
+public:
+    int32_t AddFunction( std::shared_ptr<Function> func );
+    std::shared_ptr<Function> GetFunction( int32_t index ) const;
+};
+
+
 class GlobalDataGenerator
 {
 public:
@@ -86,7 +99,7 @@ private:
     std::vector<int32_t>&   mGlobals;
     EmitFuncAddressFunctor  mEmitFuncAddressFunctor;
     CopyAggregateFunctor    mCopyAggregateFunctor;
-    ConstIndexFuncMap&      mConstIndexFuncMap;
+    ModuleAttrs&            mModuleAttrs;
     Reporter&               mRep;
 
 public:
@@ -94,7 +107,7 @@ public:
         std::vector<int32_t>& globals,
         EmitFuncAddressFunctor emitFuncAddressFunctor,
         CopyAggregateFunctor copyAggregateFunctor,
-        ConstIndexFuncMap& constIndexFuncMap,
+        ModuleAttrs& moduleAttrs,
         Reporter& reporter );
 
     void GenerateGlobalInit( GlobalSize offset, Syntax* initializer );
