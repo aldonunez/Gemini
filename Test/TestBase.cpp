@@ -396,6 +396,7 @@ void TestCompileAndRun( const TestConfig& config )
     CodeGenBuffer<CELL> dataBuf;
     CodeGenBuffer<CELL> constBuf;
 
+    CompilerAttrs compilerAttrs;
     CompilerEnv env;
     CompilerLog log{ GetKind( config.expectedResult ) == ResultKind::Compiler };
 
@@ -405,7 +406,7 @@ void TestCompileAndRun( const TestConfig& config )
         moduleSource != config.moduleSources.end();
         moduleSource++ )
     {
-        Compiler compiler1( &env, &log, env.GetModuleCount() );
+        Compiler compiler1( &env, &log, compilerAttrs, env.GetModuleCount() );
 
         for ( const char** unitSource = moduleSource->Units.begin();
             unitSource != moduleSource->Units.end();

@@ -71,7 +71,18 @@ class InitList;
 class RecordInitializer;
 
 
-using ConstIndexFuncMap = std::map<int32_t, std::shared_ptr<Function>>;
+class CompilerAttrs
+{
+    using ConstFuncIndexMap = std::map<Function*, int32_t>;
+    using ConstIndexFuncMap = std::map<int32_t, std::shared_ptr<Function>>;
+
+    ConstFuncIndexMap   mConstFuncIndexMap;
+    ConstIndexFuncMap   mConstIndexFuncMap;
+
+public:
+    int32_t AddFunction( std::shared_ptr<Function> func );
+    std::shared_ptr<Function> GetFunction( int32_t index ) const;
+};
 
 
 class ModuleAttrs
@@ -80,16 +91,15 @@ class ModuleAttrs
 
     static constexpr GlobalSize GlobalSizeMax = 65535;
 
-    using ConstFuncIndexMap = std::map<Function*, int32_t>;
     using ConstVec = std::vector<int32_t>;
 
-    ConstFuncIndexMap   mConstFuncIndexMap;
-    ConstIndexFuncMap   mConstIndexFuncMap;
+    CompilerAttrs&      mGlobalAttrs;
     ConstVec            mConsts;
 
 public:
-    int32_t AddFunction( std::shared_ptr<Function> func );
-    std::shared_ptr<Function> GetFunction( int32_t index ) const;
+    ModuleAttrs( CompilerAttrs& globalAttrs );
+
+    CompilerAttrs& GetGlobalAttrs();
 
     std::vector<int32_t>& GetConsts();
     GlobalSize GrowConsts( GlobalSize amount );

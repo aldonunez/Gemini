@@ -50,6 +50,7 @@ class BinderVisitor final : public Visitor
     std::shared_ptr<XferType>   mXferType;
     std::shared_ptr<IntType>    mIntType;
 
+    CompilerAttrs&                  mGlobalAttrs;
     std::shared_ptr<ModuleAttrs>    mModuleAttrs;
 
 public:
@@ -58,6 +59,7 @@ public:
         SymTable& globalTable,
         SymTable& moduleTable,
         SymTable& publicTable,
+        CompilerAttrs& globalAttrs,
         ICompilerLog* log );
 
     void Declare( Unit* unit );

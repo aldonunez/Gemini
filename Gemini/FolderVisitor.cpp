@@ -544,7 +544,7 @@ ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<ModuleAt
     else if ( IsPtrFuncType( type ) )
     {
         auto funcIndex = buffer->GetConsts()[offset];
-        auto func = buffer->GetFunction( funcIndex );
+        auto func = buffer->GetGlobalAttrs().GetFunction( funcIndex );
 
         return func;
     }

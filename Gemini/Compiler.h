@@ -300,6 +300,7 @@ private:
     AddrRefVec      mLocalAddrRefs;
     MemTransferVec  mDeferredGlobals;
 
+    CompilerAttrs&                  mGlobalAttrs;
     std::shared_ptr<ModuleAttrs>    mModuleAttrs;
 
     GlobalDataGenerator mGlobalDataGenerator
@@ -334,7 +335,7 @@ private:
     std::shared_ptr<LoadedAddressDeclaration>   mLoadedAddrDeclConst;
 
 public:
-    Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex = 0 );
+    Compiler( ICompilerEnv* env, ICompilerLog* log, CompilerAttrs& globalAttrs, ModSize modIndex = 0 );
 
     void AddUnit( Unique<Unit>&& unit );
     void AddModule( std::shared_ptr<ModuleDeclaration> moduleDecl );

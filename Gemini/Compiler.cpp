@@ -30,9 +30,10 @@ namespace Gemini
 #endif
 
 
-Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, ModSize modIndex ) :
+Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, CompilerAttrs& globalAttrs, ModSize modIndex ) :
     mEnv( env ),
     mRep( log ),
+    mGlobalAttrs( globalAttrs ),
     mModIndex( modIndex )
 {
     if ( env == nullptr )
@@ -163,7 +164,7 @@ std::shared_ptr<ModuleDeclaration> Compiler::GetMetadata( const char* modName )
 
 void Compiler::BindAttributes()
 {
-    BinderVisitor binder( mModIndex, mGlobalTable, mModuleTable, mPublicTable, mRep.GetLog() );
+    BinderVisitor binder( mModIndex, mGlobalTable, mModuleTable, mPublicTable, mGlobalAttrs, mRep.GetLog() );
 
     for ( auto& unit : mUnits )
         binder.Declare( unit.get() );
@@ -2493,7 +2494,7 @@ void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcO
     }
     else if ( IsPtrFuncType( *type ) )
     {
-        auto func = mModuleAttrs->GetFunction( srcBuffer[srcOffset] );
+        auto func = mGlobalAttrs.GetFunction( srcBuffer[srcOffset] );
 
         EmitFuncAddress( func.get(), { CodeRefKind::Const, dstOffset }  );
     }

@@ -225,11 +225,13 @@ BinderVisitor::BinderVisitor(
     SymTable& globalTable,
     SymTable& moduleTable,
     SymTable& publicTable,
+    CompilerAttrs& globalAttrs,
     ICompilerLog* log )
     :
     mGlobalTable( globalTable ),
     mModuleTable( moduleTable ),
     mPublicTable( publicTable ),
+    mGlobalAttrs( globalAttrs ),
     mRep( log ),
     mModIndex( modIndex )
 {
@@ -1764,7 +1766,12 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     return value;
 }
 
-int32_t ModuleAttrs::AddFunction( std::shared_ptr<Function> func )
+ModuleAttrs::ModuleAttrs( CompilerAttrs& globalAttrs ) :
+    mGlobalAttrs( globalAttrs )
+{
+}
+
+int32_t CompilerAttrs::AddFunction( std::shared_ptr<Function> func )
 {
     auto funcIt = mConstFuncIndexMap.find( func.get() );
     int32_t index;
@@ -1784,11 +1791,16 @@ int32_t ModuleAttrs::AddFunction( std::shared_ptr<Function> func )
     return index;
 }
 
-std::shared_ptr<Function> ModuleAttrs::GetFunction( int32_t index ) const
+std::shared_ptr<Function> CompilerAttrs::GetFunction( int32_t index ) const
 {
     auto funcIt = mConstIndexFuncMap.find( index );
 
     return funcIt->second;
+}
+
+CompilerAttrs& ModuleAttrs::GetGlobalAttrs()
+{
+    return mGlobalAttrs;
 }
 
 std::vector<int32_t>& ModuleAttrs::GetConsts()
@@ -1812,7 +1824,7 @@ void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> op
     if ( !optFunc.has_value() )
         mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
 
-    int32_t index = mModuleAttrs->AddFunction( optFunc.value() );
+    int32_t index = mGlobalAttrs.AddFunction( optFunc.value() );
 
     buffer[offset] = index;
 }
@@ -2028,7 +2040,7 @@ void BinderVisitor::MakeStdEnv()
     AddConst( &falseSyntax, mIntType, 0, false );
     AddConst( &trueSyntax, mIntType, 1, false );
 
-    mModuleAttrs.reset( new ModuleAttrs() );
+    mModuleAttrs.reset( new ModuleAttrs( mGlobalAttrs ) );
 }
 
 void BinderVisitor::BindProcs( Unit* program )
