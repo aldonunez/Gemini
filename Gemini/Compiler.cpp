@@ -2473,7 +2473,7 @@ void Compiler::SpillConstant( Constant* constant )
 
     if ( constant->Value.Is( ValueKind::Aggregate ) )
     {
-        auto aggregate = constant->Value.GetAggregate();
+        auto& aggregate = constant->Value.GetAggregate();
 
         SpillConstPart( type.get(), *aggregate.Buffer, aggregate.Offset, mConsts, mTotalConst );
     }
