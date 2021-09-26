@@ -76,14 +76,23 @@ using ConstIndexFuncMap = std::map<int32_t, std::shared_ptr<Function>>;
 
 class ModuleAttrs
 {
+    using GlobalSize = uint16_t;
+
+    static constexpr GlobalSize GlobalSizeMax = 65535;
+
     using ConstFuncIndexMap = std::map<Function*, int32_t>;
+    using ConstVec = std::vector<int32_t>;
 
     ConstFuncIndexMap   mConstFuncIndexMap;
     ConstIndexFuncMap   mConstIndexFuncMap;
+    ConstVec            mConsts;
 
 public:
     int32_t AddFunction( std::shared_ptr<Function> func );
     std::shared_ptr<Function> GetFunction( int32_t index ) const;
+
+    std::vector<int32_t>& GetConsts();
+    GlobalSize GrowConsts( GlobalSize amount );
 };
 
 

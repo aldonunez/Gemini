@@ -720,10 +720,13 @@ struct UndefinedDeclaration : public CommonDeclaration
     UndefinedDeclaration();
 };
 
+// TODO: forward declared. But where to fully declare it?
+class ModuleAttrs;
+
 struct ConstRef
 {
-    std::shared_ptr<std::vector<int32_t>>   Buffer;
-    GlobalSize                              Offset;
+    std::shared_ptr<ModuleAttrs>    Buffer;
+    GlobalSize                      Offset;
 };
 
 enum class ValueKind

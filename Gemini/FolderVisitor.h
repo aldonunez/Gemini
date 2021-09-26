@@ -22,18 +22,16 @@ class FolderVisitor final : public Visitor
     Reporter                    mRep;
 
     std::optional<int32_t>      mBufOffset;
-    std::shared_ptr<std::vector<int32_t>> mBuffer;
-
-    const ModuleAttrs&          mModuleAttrs;
+    std::shared_ptr<ModuleAttrs> mBuffer;
 
 public:
-    FolderVisitor( ICompilerLog* log, const ModuleAttrs& moduleAttrs );
+    FolderVisitor( ICompilerLog* log );
 
     std::optional<int32_t> EvaluateInt( Syntax* node );
     std::optional<ValueVariant> Evaluate( Syntax* node );
     void Fold( Syntax* node );
 
-    ValueVariant ReadConstValue( Type& type, std::shared_ptr<std::vector<int32_t>> buffer, GlobalSize offset );
+    ValueVariant ReadConstValue( Type& type, std::shared_ptr<ModuleAttrs> buffer, GlobalSize offset );
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;

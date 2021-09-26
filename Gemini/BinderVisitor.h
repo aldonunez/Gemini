@@ -32,8 +32,6 @@ class BinderVisitor final : public Visitor
     NatTypeMap      mNativeTypeMap;
     Reporter        mRep;
 
-    ModuleAttrs     mModuleAttrs;
-
     Function*       mCurFunc = nullptr;
 
     ModSize         mModIndex = 0;
@@ -52,6 +50,8 @@ class BinderVisitor final : public Visitor
     std::shared_ptr<XferType>   mXferType;
     std::shared_ptr<IntType>    mIntType;
 
+    std::shared_ptr<ModuleAttrs>    mModuleAttrs;
+
 public:
     BinderVisitor(
         ModSize modIndex,
@@ -66,7 +66,7 @@ public:
 
     size_t GetDataSize();
     size_t GetConstSize();
-    ModuleAttrs ReleaseModuleAttrs();
+    std::shared_ptr<ModuleAttrs> GetModuleAttrs();
 
     // Visitor
     virtual void VisitAddrOfExpr( AddrOfExpr* addrOf ) override;

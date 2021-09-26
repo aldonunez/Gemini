@@ -300,13 +300,14 @@ private:
     AddrRefVec      mLocalAddrRefs;
     MemTransferVec  mDeferredGlobals;
 
-    ModuleAttrs         mModuleAttrs;
+    std::shared_ptr<ModuleAttrs>    mModuleAttrs;
+
     GlobalDataGenerator mGlobalDataGenerator
     {
         mGlobals,
         std::bind( &Compiler::EmitGlobalFuncAddress, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4 ),
         std::bind( &Compiler::CopyGlobalAggregateBlock, this, std::placeholders::_1, std::placeholders::_3 ),
-        mModuleAttrs,
+        *mModuleAttrs,
         mRep
     };
 

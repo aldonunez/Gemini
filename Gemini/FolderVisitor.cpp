@@ -13,9 +13,8 @@
 namespace Gemini
 {
 
-FolderVisitor::FolderVisitor( ICompilerLog* log, const ModuleAttrs& moduleAttrs ) :
-    mRep( log ),
-    mModuleAttrs( moduleAttrs )
+FolderVisitor::FolderVisitor( ICompilerLog* log ) :
+    mRep( log )
 {
 }
 
@@ -371,7 +370,7 @@ void FolderVisitor::VisitNameAccess( Syntax* nameExpr )
         if ( nameExpr->GetDecl()->Kind == DeclKind::Const
             && ((Constant*) nameExpr->GetDecl())->Value.Is( ValueKind::Aggregate ) )
         {
-            mBufOffset = 0;
+            mBufOffset = ((Constant*) nameExpr->GetDecl())->Value.GetAggregate().Offset;
             mBuffer = ((Constant*) nameExpr->GetDecl())->Value.GetAggregate().Buffer;
         }
         else
@@ -536,18 +535,16 @@ ValueVariant FolderVisitor::ReadValueAtCurrentOffset( Type& type )
     return ReadConstValue( type, mBuffer, static_cast<GlobalSize>(mBufOffset.value()) );
 }
 
-ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<std::vector<int32_t>> buffer, GlobalSize offset )
+ValueVariant FolderVisitor::ReadConstValue( Type& type, std::shared_ptr<ModuleAttrs> buffer, GlobalSize offset )
 {
     if ( IsIntegralType( type.GetKind() ) )
     {
-        return (*buffer)[offset];
+        return buffer->GetConsts()[offset];
     }
     else if ( IsPtrFuncType( type ) )
     {
-        auto funcIndex = (*buffer)[offset];
-        auto func = mModuleAttrs.GetFunction( funcIndex );
-
-        assert( func );
+        auto funcIndex = buffer->GetConsts()[offset];
+        auto func = buffer->GetFunction( funcIndex );
 
         return func;
     }

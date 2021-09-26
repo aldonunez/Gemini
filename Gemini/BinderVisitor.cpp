@@ -268,9 +268,9 @@ size_t BinderVisitor::GetConstSize()
     return mConstSize;
 }
 
-ModuleAttrs BinderVisitor::ReleaseModuleAttrs()
+std::shared_ptr<ModuleAttrs> BinderVisitor::GetModuleAttrs()
 {
-    return std::move( mModuleAttrs );
+    return mModuleAttrs;
 }
 
 void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
@@ -1696,7 +1696,7 @@ void BinderVisitor::CheckAndConsolidateClauseType( Syntax* clause, std::shared_p
 
 int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 {
-    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
+    FolderVisitor folder( mRep.GetLog() );
 
     auto optValue = folder.EvaluateInt( node );
 
@@ -1711,7 +1711,7 @@ int32_t BinderVisitor::EvaluateInt( Syntax* node, const char* message )
 
 std::optional<int32_t> BinderVisitor::EvaluateOptionalInt( Syntax* node )
 {
-    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
+    FolderVisitor folder( mRep.GetLog() );
 
     return folder.EvaluateInt( node );
 }
@@ -1725,27 +1725,29 @@ ValueVariant BinderVisitor::EvaluateVariant( Syntax* node )
     if ( node->Kind == SyntaxKind::ArrayInitializer
         || node->Kind == SyntaxKind::RecordInitializer )
     {
-        ConstRef constRef = { std::make_shared<std::vector<int32_t>>( type.GetSize() ) };
+        GlobalSize offset = mModuleAttrs->GrowConsts( type.GetSize() );
+
+        ConstRef constRef = { mModuleAttrs, offset };
 
         using namespace std::placeholders;
 
         GlobalDataGenerator constDataGenerator
         (
-            *constRef.Buffer,
+            constRef.Buffer->GetConsts(),
             std::bind( &BinderVisitor::EmitFuncAddress, this, _1, _2, _3, _4 ),
             std::bind( &BinderVisitor::CopyConstAggregateBlock, this, _1, _2, _3 ),
-            mModuleAttrs,
+            *constRef.Buffer,
             mRep
         );
 
-        constDataGenerator.GenerateGlobalInit( 0, node );
+        constDataGenerator.GenerateGlobalInit( constRef.Offset, node );
 
         value.SetAggregate( constRef );
     }
     else if ( IsIntegralType( type.GetKind() ) || IsPtrFuncType( type )
         || IsClosedArrayType( type ) || type.GetKind() == TypeKind::Record )
     {
-        FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
+        FolderVisitor folder( mRep.GetLog() );
 
         auto optValue = folder.Evaluate( node );
 
@@ -1789,19 +1791,35 @@ std::shared_ptr<Function> ModuleAttrs::GetFunction( int32_t index ) const
     return funcIt->second;
 }
 
+std::vector<int32_t>& ModuleAttrs::GetConsts()
+{
+    return mConsts;
+}
+
+GlobalSize ModuleAttrs::GrowConsts( GlobalSize amount )
+{
+    auto oldSize = mConsts.size();
+
+    assert( amount <= (GlobalSizeMax - oldSize) );
+
+    mConsts.resize( oldSize + amount );
+
+    return static_cast<GlobalSize>(oldSize);
+}
+
 void BinderVisitor::EmitFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* valueNode )
 {
     if ( !optFunc.has_value() )
         mRep.ThrowSemanticsError( valueNode, "Expected a constant value" );
 
-    int32_t index = mModuleAttrs.AddFunction( optFunc.value() );
+    int32_t index = mModuleAttrs->AddFunction( optFunc.value() );
 
     buffer[offset] = index;
 }
 
 void BinderVisitor::CopyConstAggregateBlock( GlobalSize offset, int32_t* buffer, Syntax* valueNode )
 {
-    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
+    FolderVisitor folder( mRep.GetLog() );
 
     auto optVal = folder.Evaluate( valueNode );
 
@@ -1812,7 +1830,7 @@ void BinderVisitor::CopyConstAggregateBlock( GlobalSize offset, int32_t* buffer,
     GlobalSize srcOffset = optVal.value().GetAggregate().Offset;
 
     std::copy_n(
-        &srcBuffer[srcOffset],
+        &srcBuffer.GetConsts()[srcOffset],
         valueNode->Type->GetSize(),
         &buffer[offset] );
 }
@@ -2009,6 +2027,8 @@ void BinderVisitor::MakeStdEnv()
     AddType( &intSyntax, mIntType, false );
     AddConst( &falseSyntax, mIntType, 0, false );
     AddConst( &trueSyntax, mIntType, 1, false );
+
+    mModuleAttrs.reset( new ModuleAttrs() );
 }
 
 void BinderVisitor::BindProcs( Unit* program )

@@ -177,13 +177,13 @@ void Compiler::BindAttributes()
     mGlobals.resize( binder.GetDataSize() );
     mConsts.resize( binder.GetConstSize() );
 
-    mModuleAttrs = binder.ReleaseModuleAttrs();
+    mModuleAttrs = binder.GetModuleAttrs();
 }
 
 void Compiler::FoldConstants()
 {
 #if !defined( GEMINIVM_DISABLE_FOLDING_PASS )
-    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
+    FolderVisitor folder( mRep.GetLog() );
 
     for ( auto& unit : mUnits )
         folder.Fold( unit.get() );
@@ -406,9 +406,9 @@ void Compiler::EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset )
 
             if ( constant->Value.Is( ValueKind::Aggregate ) )
             {
-                assert( (GlobalSize) offset < (constant->Value.GetAggregate().Buffer->size() - constant->Value.GetAggregate().Offset) );
+                assert( (GlobalSize) offset < (constant->Value.GetAggregate().Buffer->GetConsts().size() - constant->Value.GetAggregate().Offset) );
 
-                FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
+                FolderVisitor folder( mRep.GetLog() );
 
                 GlobalSize bufOffset = static_cast<GlobalSize>(constant->Value.GetAggregate().Offset + offset);
 
@@ -2301,7 +2301,7 @@ void Compiler::VisitVarDecl( VarDecl* varDecl )
 
 void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
 {
-    FolderVisitor folder( mRep.GetLog(), mModuleAttrs );
+    FolderVisitor folder( mRep.GetLog() );
 
     auto optVal = folder.Evaluate( valueElem );
 
@@ -2475,7 +2475,7 @@ void Compiler::SpillConstant( Constant* constant )
     {
         auto& aggregate = constant->Value.GetAggregate();
 
-        SpillConstPart( type.get(), *aggregate.Buffer, aggregate.Offset, mConsts, mTotalConst );
+        SpillConstPart( type.get(), aggregate.Buffer->GetConsts(), aggregate.Offset, mConsts, mTotalConst );
     }
     else
     {
@@ -2493,7 +2493,7 @@ void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcO
     }
     else if ( IsPtrFuncType( *type ) )
     {
-        auto func = mModuleAttrs.GetFunction( srcBuffer[srcOffset] );
+        auto func = mModuleAttrs->GetFunction( srcBuffer[srcOffset] );
 
         EmitFuncAddress( func.get(), { CodeRefKind::Const, dstOffset }  );
     }
