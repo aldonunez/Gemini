@@ -116,7 +116,7 @@ struct TestConfig
 
     TestConfig() = default;
 
-    TestConfig( const ParamSpan& params ) :
+    TestConfig( ParamSpan params ) :
         params( params )
     {
     }
@@ -125,7 +125,7 @@ struct TestConfig
 
 void TestCompileAndRunAlgoly( const char* code, int result, int param = DefaultParam, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, int result, const std::initializer_list<int>& params, int expectedStack = 0 );
-void TestCompileAndRunAlgoly( const char* code, int result, const ParamSpan& params, int expectedStack = 0 );
+void TestCompileAndRunAlgoly( const char* code, int result, ParamSpan params, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, Gemini::CompilerErr result );
 void TestCompileAndRunAlgoly( const char* code, VmError result );
 
@@ -144,7 +144,7 @@ void TestCompileAndRun(
     Language lang,
     Span<const ModuleSource> moduleSources,
     ResultVariant expectedResult,
-    const ParamSpan& params,
+    ParamSpan params,
     int expectedStack = 0,
     NativePair* natives = nullptr
 );
