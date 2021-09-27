@@ -773,8 +773,6 @@ TEST_CASE( "Algoly: Case-when, mod dotted key", "[algoly]" )
     const char* modeCodeA[] =
     {
         "const N = 2\n"
-        ,
-        nullptr
     };
 
     const char* mainCode[] =
@@ -783,15 +781,12 @@ TEST_CASE( "Algoly: Case-when, mod dotted key", "[algoly]" )
         "def a\n"
         "  case 2 when ModA.N then 3 end\n"
         "end\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "ModA",   modeCodeA },
-        { "Main",   mainCode },
-        { },
+        { "ModA",   Span( modeCodeA ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 3, 0 );
@@ -1575,14 +1570,11 @@ TEST_CASE( "Algoly: native basic", "[algoly]" )
         "end\n"
         "native Add(a, b)\n"
         "native Mul(a, b)\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gNatives );
@@ -1609,14 +1601,11 @@ TEST_CASE( "Algoly: native no return value", "[algoly]" )
         "  NoReturnValue(20, 30)\n"
         "end\n"
         "native NoReturnValue(a, b)\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 0, 0, 0, gNoRetNatives );
@@ -1638,14 +1627,11 @@ TEST_CASE( "Algoly: native high", "[algoly]" )
         "end\n"
         "native Add(a, b) = 2147483646\n"
         "native Mul(a, b)\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gHighNatives );
@@ -1667,14 +1653,11 @@ TEST_CASE( "Algoly: native low and high", "[algoly]" )
         "end\n"
         "native Add(a, b) = 2147483647\n"
         "native Mul(a, b) = 1\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gLowHighNatives );
@@ -1692,14 +1675,11 @@ TEST_CASE( "Algoly: native reuse ID", "[algoly]" )
         "native Mul(a, b)\n"
         "native AddEx(a, b) = 0\n"
         "native MulEx(a, b) = 1\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 56+110, 0, 0, gNatives );
@@ -1717,14 +1697,11 @@ TEST_CASE( "Algoly: native refer other", "[algoly]" )
         "native Mul(a, b)\n"
         "native AddEx(a, b) = Add\n"
         "native MulEx(a, b) = Mul\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 56 + 110, 0, 0, gNatives );
@@ -1740,14 +1717,11 @@ TEST_CASE( "Algoly: native separate units, out of order", "[algoly]" )
         ,
         "native Add(a, b)\n"
         "native Mul(a, b)\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 56, 0, 0, gNatives );
@@ -1782,14 +1756,11 @@ TEST_CASE( "Algoly: native yield", "[algoly]" )
         "  Yielder(20, 30)\n"
         "end\n"
         "native Yielder(a, b)\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 150, 0, 0, gYieldNatives );
@@ -1856,14 +1827,11 @@ TEST_CASE( "Algoly: native call back nested", "[algoly]" )
         "def B(x) 20+x end\n"
         "native CallA(callback: &proc(int), addend: int)\n"
         "native CallB(callback: &proc(int), addend: int)\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 40, 0, 0, gNestedNatives );
@@ -1900,14 +1868,11 @@ TEST_CASE( "Algoly: native call back nested yield", "[algoly][negative]" )
         "def B(x) 20+x end\n"
         "native CallA(callback: &proc(int), addend: int)\n"
         "native CallB(callback: &proc(int), addend: int)\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, Emplace<ResultKind::Vm>( ERR_NATIVE_ERROR ), ParamSpan(), 0, gNestedYieldNatives );
@@ -1926,9 +1891,6 @@ TEST_CASE( "Algoly: mod dotted slice index", "[algoly]" )
     const char* modeCodeA[] =
     {
         "const N = 1\n"
-        ,
-
-        nullptr
     };
 
     const char* mainCode[] =
@@ -1939,16 +1901,12 @@ TEST_CASE( "Algoly: mod dotted slice index", "[algoly]" )
         "  ar[ModA.N..3][1] := 30\n"
         "  ar[2]\n"
         "end\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "ModA",   modeCodeA },
-        { "Main",   mainCode },
-        { },
+        { "ModA",   Span( modeCodeA ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 30, 0 );
@@ -1959,9 +1917,6 @@ TEST_CASE( "Algoly: mod dotted array count", "[algoly]" )
     const char* modeCodeA[] =
     {
         "const N = 3\n"
-        ,
-
-        nullptr
     };
 
     const char* mainCode[] =
@@ -1970,16 +1925,12 @@ TEST_CASE( "Algoly: mod dotted array count", "[algoly]" )
         "def a\n"
         "  var ar: [ModA.N] := [1, 2, 3]\n"
         "end\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "ModA",   modeCodeA },
-        { "Main",   mainCode },
-        { },
+        { "ModA",   Span( modeCodeA ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 0, 0 );
@@ -1990,25 +1941,18 @@ TEST_CASE( "Algoly: mod dotted type alias", "[algoly]" )
     const char* modeCodeA[] =
     {
         "type T = int\n"
-        ,
-
-        nullptr
     };
 
     const char* mainCode[] =
     {
         "import ModA\n"
         "def a var i: ModA.T := 3; i end\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "ModA",   modeCodeA },
-        { "Main",   mainCode },
-        { },
+        { "ModA",   Span( modeCodeA ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 3, 0 );
@@ -2021,8 +1965,6 @@ TEST_CASE( "Algoly: mod dotted callOrSymbol", "[algoly]" )
         "const C = 10\n"
         "var I := 3\n"
         "def X 4 end\n"
-        ,
-        nullptr
     };
 
     const char* mainCode[] =
@@ -2032,15 +1974,12 @@ TEST_CASE( "Algoly: mod dotted callOrSymbol", "[algoly]" )
         "def A ModA.C end\n"
         "def B ModA.I end\n"
         "def C ModA.X end\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "ModA",   modeCodeA },
-        { "Main",   mainCode },
-        { },
+        { "ModA",   Span( modeCodeA ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 17, 0 );
@@ -2051,23 +1990,18 @@ TEST_CASE( "Algoly: mod dotted callOrSymbol, 1 arg", "[algoly]" )
     const char* modeCodeA[] =
     {
         "def X(n) n+2 end\n"
-        ,
-        nullptr
     };
 
     const char* mainCode[] =
     {
         "import ModA\n"
         "def a ModA.X 3 end\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "ModA",   modeCodeA },
-        { "Main",   mainCode },
-        { },
+        { "ModA",   Span( modeCodeA ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 5, 0 );
@@ -2079,11 +2013,7 @@ TEST_CASE( "Algoly: multi unit and mod", "[algoly]" )
     {
         "var X := 1"
         ,
-
         "def B(x) X := x + 1 end\n"
-        ,
-
-        nullptr
     };
 
     const char* mainCode[] =
@@ -2091,25 +2021,19 @@ TEST_CASE( "Algoly: multi unit and mod", "[algoly]" )
         "import M2\n"
         "const CA1 = 3\n"
         ,
-
         "def a\n"
         "  var x := M2.X\n"
         "  M2.B(2)\n"
         "  x + M2.X + CC1\n"
         "end\n"
         ,
-
         "const CC1 = CA1 + 4\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "M2",     modeCodeM2 },
-        { "Main",   mainCode },
-        { },
+        { "M2",     Span( modeCodeM2 ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 11, 0 );
@@ -2123,7 +2047,6 @@ TEST_CASE( "Algoly: multi unit", "[algoly]" )
         //"def FC1 9 end\n"
         "def FA1(x) x + VB1 + FC1() end\n"
         ,
-
         //"def a CC1 + FC1() end\n"
 
         "def a\n"
@@ -2133,18 +2056,13 @@ TEST_CASE( "Algoly: multi unit", "[algoly]" )
         "const C2 = 200\n"
         "var VB1 := 5\n"
         ,
-
         "const CC1 = CA1 + 4\n"
         "def FC1 2 end\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 314, 0 );
@@ -2165,14 +2083,11 @@ TEST_CASE( "Algoly: multi unit, lambdas", "[algoly]" )
         "  var i := lambda 4 end\n"
         "  (h)() + (i)()\n"
         "end\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 10, 0 );
@@ -2184,9 +2099,6 @@ TEST_CASE( "Algoly: import as", "[algoly]" )
     {
         "const C1 = 99\n"
         "var V1 := 2\n"
-        ,
-
-        nullptr
     };
 
     // Output: 12
@@ -2197,16 +2109,12 @@ TEST_CASE( "Algoly: import as", "[algoly]" )
         "  M1.V1 := M1.V1 + 2\n"
         "  M1.C1 + M1.V1\n"
         "end\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "M2",     modCodeM2 },
-        { "Main",   mainCode },
-        { },
+        { "M2",     Span( modCodeM2 ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 103, 0 );
@@ -2219,9 +2127,6 @@ TEST_CASE( "Algoly: mod basic", "[algoly]" )
         "type P = &proc(int)\n"
         "const I = 3\n"
         "def C(x) x+2 end\n"
-        ,
-
-        nullptr
     };
 
     // Output: 12
@@ -2237,22 +2142,12 @@ TEST_CASE( "Algoly: mod basic", "[algoly]" )
         "end\n"
         "def B( x ) x end\n"
         "def C( x ) x+1 end\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        {
-            "ModA",
-            modCodeA,
-        },
-        {
-            "Main",
-            mainCode,
-        },
-        { },
+        { "ModA", Span( modCodeA ) },
+        { "Main", Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 17 + 6, 0 );
@@ -2265,9 +2160,6 @@ TEST_CASE( "Algoly: mod var proc exchange", "[algoly]" )
         "var d1 := 3, d2 := &C\n"
         "def C(x) x+2 end\n"
         "def D() d1 + (d2)(1) end\n"
-        ,
-
-        nullptr
     };
 
     // Output: 12
@@ -2285,22 +2177,12 @@ TEST_CASE( "Algoly: mod var proc exchange", "[algoly]" )
         "  n + ModA.D()\n"
         "end\n"
         "def C(x) x+20 end\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        {
-            "ModA",
-            modCodeA,
-        },
-        {
-            "Main",
-            mainCode,
-        },
-        { },
+        { "ModA", Span( modCodeA ) },
+        { "Main", Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 12 + 31, 0 );
@@ -2312,9 +2194,6 @@ TEST_CASE( "Algoly: mod array 1", "[algoly]" )
     {
         "var ar1 := [[1, 2], [3, 4]]\n"
         "def B(i, j) ar1[i][j] end\n"
-        ,
-
-        nullptr
     };
 
     // Output: 12
@@ -2328,22 +2207,12 @@ TEST_CASE( "Algoly: mod array 1", "[algoly]" )
         "  ModA.ar1[0][1] + ModA.B(1, 0) +\n"
         "  ModA.B(0, 0) + ModA.ar1[1][1]\n"
         "end\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        {
-            "ModA",
-            modCodeA,
-        },
-        {
-            "Main",
-            mainCode,
-        },
-        { },
+        { "ModA", Span( modCodeA ) },
+        { "Main", Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 5 + 30, 0 );
@@ -2417,14 +2286,11 @@ TEST_CASE( "Algoly: fail nested managed yield", "[algoly][negative]" )
         "end\n"
         "def A() yield end\n"
         "native Call(callback: &proc)\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, Emplace<ResultKind::Vm>( ERR_BAD_STATE ), ParamSpan(), 0, gNestedManagedYieldNatives );

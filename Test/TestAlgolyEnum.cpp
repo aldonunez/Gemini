@@ -179,8 +179,6 @@ TEST_CASE( "Algoly: enum as mod dotted int alias", "[algoly][enum]" )
     const char* modeCodeA[] =
     {
         "type T = int\n"
-        ,
-        nullptr
     };
 
     const char* mainCode[] =
@@ -188,15 +186,12 @@ TEST_CASE( "Algoly: enum as mod dotted int alias", "[algoly][enum]" )
         "import ModA\n"
         "type E = enum E3 = 3 end\n"
         "def a var i := E.E3; i as ModA.T end\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "ModA",   modeCodeA },
-        { "Main",   mainCode },
-        { },
+        { "ModA",   Span( modeCodeA ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 3, 0 );
@@ -207,23 +202,18 @@ TEST_CASE( "Algoly: int as mod enum", "[algoly][enum]" )
     const char* modeCodeA[] =
     {
         "type E = enum E3 = 3 end\n"
-        ,
-        nullptr
     };
 
     const char* mainCode[] =
     {
         "import ModA\n"
         "def a -> ModA.E var i := 3; i as ModA.E end\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "ModA",   modeCodeA },
-        { "Main",   mainCode },
-        { },
+        { "ModA",   Span( modeCodeA ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 3, 0 );

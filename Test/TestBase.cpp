@@ -332,17 +332,12 @@ void TestCompileAndRun( Language lang, const char* code, ResultVariant result, c
 {
     const char* sources[] =
     {
-        code,
-        nullptr
+        code
     };
 
     const ModuleSource modSources[] =
     {
-        {
-            "Main",
-            sources,
-        },
-        nullptr
+        { "Main", Span( sources ) },
     };
 
     TestCompileAndRun( lang, modSources, result, params, expectedStack );
@@ -350,7 +345,7 @@ void TestCompileAndRun( Language lang, const char* code, ResultVariant result, c
 
 void TestCompileAndRun(
     Language lang,
-    const ModuleSource* moduleSources,
+    Span<const ModuleSource> moduleSources,
     int expectedResult,
     int param,
     int expectedStack,
@@ -372,7 +367,7 @@ void TestCompileAndRun(
 
 void TestCompileAndRun(
     Language lang,
-    const ModuleSource* moduleSources,
+    Span<const ModuleSource> moduleSources,
     ResultVariant expectedResult,
     const ParamSpan& params,
     int expectedStack,
@@ -392,7 +387,7 @@ void TestCompileAndRun(
 
 void TestCompileAndRun( const TestConfig& config )
 {
-    if ( config.moduleSources == nullptr )
+    if ( config.moduleSources.size() == 0 )
         throw std::invalid_argument( "config.moduleSources" );
 
     uint32_t    maxStack = 0;
@@ -406,14 +401,14 @@ void TestCompileAndRun( const TestConfig& config )
 
     std::vector<std::shared_ptr<ModuleDeclaration>> modDecls;
 
-    for ( const ModuleSource* moduleSource = config.moduleSources;
-        moduleSource->UnitTexts != nullptr;
+    for ( const ModuleSource* moduleSource = config.moduleSources.begin();
+        moduleSource != config.moduleSources.end();
         moduleSource++ )
     {
         Compiler compiler1( &env, &log, env.GetModuleCount() );
 
-        for ( const char** unitSource = moduleSource->UnitTexts;
-            *unitSource != nullptr;
+        for ( const char** unitSource = moduleSource->Units.begin();
+            unitSource != moduleSource->Units.end();
             unitSource++ )
         {
             Unique<Unit> unit;
