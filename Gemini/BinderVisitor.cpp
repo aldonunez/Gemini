@@ -647,6 +647,12 @@ void BinderVisitor::VisitCountofExpr( CountofExpr* countofExpr )
     countofExpr->Type = mIntType;
 }
 
+void BinderVisitor::ForbidExternalGlobalInGlobalInit( Declaration& decl, Syntax* node )
+{
+    if ( mInGlobalVarDef && decl.Kind == DeclKind::Global && ((GlobalStorage&) decl).ModIndex != mModIndex )
+        mRep.ThrowSemanticsError( node, "Can't initialize global with external global" );
+}
+
 void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
 {
     Visit( dotExpr->Head );
@@ -666,6 +672,8 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
 
         dotExpr->Decl = it->second;
         dotExpr->Type = dotExpr->Decl->GetType();
+
+        ForbidExternalGlobalInGlobalInit( *dotExpr->Decl, dotExpr );
     }
     else if ( dotExpr->Head->Type->GetKind() == TypeKind::Type )
     {
@@ -945,6 +953,9 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 {
     std::shared_ptr<Type> type;
 
+    if ( declKind == DeclKind::Global )
+        mInGlobalVarDef = true;
+
     if ( varDecl->TypeRef == nullptr )
     {
         if ( varDecl->Initializer != nullptr )
@@ -980,6 +991,9 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
     if ( size == 0 )
         THROW_INTERNAL_ERROR( "Bad type" );
+
+    if ( declKind == DeclKind::Global )
+        mInGlobalVarDef = false;
 
     varDecl->Decl = AddStorage( varDecl, type, size, declKind );
     varDecl->Type = type;
@@ -1160,6 +1174,8 @@ void BinderVisitor::VisitNameExpr( NameExpr* nameExpr )
 
     if ( decl != nullptr )
     {
+        ForbidExternalGlobalInGlobalInit( *decl, nameExpr );
+
         if ( decl->Kind == DeclKind::Undefined )
             decl = DefineNode( nameExpr->String, (UndefinedDeclaration*) decl.get() );
 

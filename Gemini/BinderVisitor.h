@@ -33,6 +33,7 @@ class BinderVisitor final : public Visitor
     Reporter        mRep;
 
     Function*       mCurFunc = nullptr;
+    bool            mInGlobalVarDef = false;
 
     ModSize         mModIndex = 0;
     LocalSize       mCurLevelLocalCount = 0;
@@ -159,6 +160,8 @@ private:
     void CheckMissingRecordInitializer( const Unique<Syntax>& initializer );
     void CheckAllDescendantsHaveDefault( Type* type, Syntax* node );
     DataSize CheckArraySize( size_t rawSize, Type* elemType, Syntax* node );
+
+    void ForbidExternalGlobalInGlobalInit( Declaration& decl, Syntax* node );
 
     // Symbol table
     std::shared_ptr<Declaration> FindSymbol( const std::string& symbol );
