@@ -283,7 +283,7 @@ public:
 static CELL gStack[1024];
 
 
-void TestCompileAndRun( Language lang, const char* code, ResultVariant result, const ParamSpan& params, int expectedStack );
+void TestCompileAndRun( Language lang, const char* code, ResultVariant result, ParamSpan params, int expectedStack );
 
 
 void TestCompileAndRunAlgoly( const char* code, int result, int param, int expectedStack )
@@ -301,7 +301,7 @@ void TestCompileAndRunAlgoly( const char* code, int result, const std::initializ
     TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Stack>( result ), paramSpan, expectedStack );
 }
 
-void TestCompileAndRunAlgoly( const char* code, int result, const ParamSpan& params, int expectedStack )
+void TestCompileAndRunAlgoly( const char* code, int result, ParamSpan params, int expectedStack )
 {
     TestCompileAndRun( Language::Gema, code, Emplace<ResultKind::Stack>( result ), params, expectedStack );
 }
@@ -328,7 +328,7 @@ void TestCompileAndRunLispy( const char* code, int result, int param, int expect
 }
 
 
-void TestCompileAndRun( Language lang, const char* code, ResultVariant result, const ParamSpan& params, int expectedStack )
+void TestCompileAndRun( Language lang, const char* code, ResultVariant result, ParamSpan params, int expectedStack )
 {
     const char* sources[] =
     {
@@ -369,7 +369,7 @@ void TestCompileAndRun(
     Language lang,
     Span<const ModuleSource> moduleSources,
     ResultVariant expectedResult,
-    const ParamSpan& params,
+    ParamSpan params,
     int expectedStack,
     NativePair* natives
 )
