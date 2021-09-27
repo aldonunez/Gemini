@@ -618,15 +618,11 @@ TEST_CASE( "Algoly: StackUse: native basic 2", "[algoly][stack]" )
         "end\n"
         "native Add(a, b)\n"
         "native Mul(a, b)\n"
-        ,
-
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 56, 0, 6, gNatives );
@@ -1142,8 +1138,6 @@ TEST_CASE( "Algoly: calls across 3 modules", "[algoly][stack]" )
     const char* modeCodeB[] =
     {
         "def Z(x) var q := x+2; q end\n"
-        ,
-        nullptr
     };
 
     const char* modeCodeA[] =
@@ -1152,24 +1146,19 @@ TEST_CASE( "Algoly: calls across 3 modules", "[algoly][stack]" )
         "def Y(p) ModB.Z(p) end\n"
         "def X var n := 3; Y(n) end\n"
         "def W X() end\n"
-        ,
-        nullptr
     };
 
     const char* mainCode[] =
     {
         "import ModA\n"
         "def a ModA.W() end\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "ModB",   modeCodeB },
-        { "ModA",   modeCodeA },
-        { "Main",   mainCode },
-        { },
+        { "ModB",   Span( modeCodeB ) },
+        { "ModA",   Span( modeCodeA ) },
+        { "Main",   Span( mainCode ) },
     };
 
     TestCompileAndRun( Language::Gema, modSources, 5, 0, 16 );

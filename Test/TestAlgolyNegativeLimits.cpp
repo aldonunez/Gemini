@@ -653,14 +653,11 @@ TEST_CASE( "Algoly: native call back nesting limit", "[algoly][limit]" )
         "end\n"
         "def A(x) CallA(&A, x) end\n"
         "native CallA(callback: &proc(int), level: int)\n"
-        ,
-        nullptr
     };
 
     const ModuleSource modSources[] =
     {
-        { "Main",   mainCode },
-        { },
+        { "Main",   Span( mainCode ) },
     };
 
     WHEN( "max" )

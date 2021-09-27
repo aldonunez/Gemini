@@ -13,10 +13,55 @@ enum class Language
 };
 
 
+template <typename T>
+class Span
+{
+    T*          mFirst = nullptr;
+    size_t      mSize = 0;
+
+public:
+    Span() = default;
+
+    template <size_t N>
+    Span( T (&array)[N] ) :
+        mFirst( &array[0] ),
+        mSize( N )
+    {
+    }
+
+    Span( T* first, T* last ) :
+        mFirst( first ),
+        mSize( last - first )
+    {
+    }
+
+    size_t size() const
+    {
+        return mSize;
+    }
+
+    T* begin() const
+    {
+        return mFirst;
+    }
+
+    T* end() const
+    {
+        return mFirst + mSize;
+    }
+};
+
+
 struct ModuleSource
 {
-    const char* Name;
-    const char** UnitTexts;
+    const char*         Name = nullptr;
+    Span<const char*>   Units;
+
+    ModuleSource( const char* name, Span<const char*> unitTexts ) :
+        Name( name ),
+        Units( unitTexts )
+    {
+    }
 };
 
 
@@ -54,42 +99,7 @@ constexpr ResultVariant Emplace( T value )
 }
 
 
-class ParamSpan
-{
-    const int*  mFirst = nullptr;
-    size_t      mSize = 0;
-
-public:
-    ParamSpan() = default;
-
-    template <size_t N>
-    ParamSpan( int (&array)[N] ) :
-        mFirst( &array[0] ),
-        mSize( N )
-    {
-    }
-
-    ParamSpan( const int* first, const int* last ) :
-        mFirst( first ),
-        mSize( last - first )
-    {
-    }
-
-    size_t size() const
-    {
-        return mSize;
-    }
-
-    const int* begin() const
-    {
-        return mFirst;
-    }
-
-    const int* end() const
-    {
-        return mFirst + mSize;
-    }
-};
+using ParamSpan = Span<const int>;
 
 
 constexpr int32_t DefaultParam = INT32_MAX;
@@ -98,11 +108,13 @@ constexpr int32_t DefaultParam = INT32_MAX;
 struct TestConfig
 {
     Language            lang = Language::Gema;
-    const ModuleSource* moduleSources = nullptr;
+    Span<const ModuleSource> moduleSources;
     ParamSpan           params;
     ResultVariant       expectedResult = ResultVariant();
     int                 expectedStack = 0;
     NativePair*         natives = nullptr;
+
+    TestConfig() = default;
 
     TestConfig( const ParamSpan& params ) :
         params( params )
@@ -121,7 +133,7 @@ void TestCompileAndRunLispy( const char* code, int result, int param = DefaultPa
 
 void TestCompileAndRun(
     Language lang,
-    const ModuleSource* moduleSources,
+    Span<const ModuleSource> moduleSources,
     int expectedResult,
     int param,
     int expectedStack = 0,
@@ -130,7 +142,7 @@ void TestCompileAndRun(
 
 void TestCompileAndRun(
     Language lang,
-    const ModuleSource* moduleSources,
+    Span<const ModuleSource> moduleSources,
     ResultVariant expectedResult,
     const ParamSpan& params,
     int expectedStack = 0,
