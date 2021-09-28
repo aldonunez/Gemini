@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <exception>
 #include <functional>
 #include <map>
 #include <memory>
@@ -64,6 +65,23 @@ public:
 
 #define THROW_INTERNAL_ERROR( ... ) \
     do { assert( false ); mRep.ThrowInternalError( __FILE__, __LINE__, __VA_ARGS__ ); } while ( 0 )
+
+
+class CompilerException : public std::exception
+{
+    CompilerErr     mError;
+
+public:
+    CompilerException( CompilerErr error )
+        : mError( error )
+    {
+    }
+
+    CompilerErr GetError() const
+    {
+        return mError;
+    }
+};
 
 
 struct Function;

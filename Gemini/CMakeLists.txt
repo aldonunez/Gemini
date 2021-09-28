@@ -4,6 +4,7 @@ add_library(geminivm
     Compiler.cpp
     Disassembler.cpp
     FolderVisitor.cpp
+    LangCommon.cpp
     LispyParser.cpp
     Machine.cpp
     pch.cpp

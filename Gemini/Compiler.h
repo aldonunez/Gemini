@@ -62,23 +62,6 @@ struct CompilerStats
 };
 
 
-class CompilerException : public std::exception
-{
-    CompilerErr     mError;
-
-public:
-    CompilerException( CompilerErr error )
-        : mError( error )
-    {
-    }
-
-    CompilerErr GetError() const
-    {
-        return mError;
-    }
-};
-
-
 class Compiler final : public Visitor
 {
 public:
