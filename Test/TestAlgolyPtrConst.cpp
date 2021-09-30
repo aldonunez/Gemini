@@ -1138,6 +1138,20 @@ TEST_CASE( "Algoly: pass closed slice of var array in array to const param open 
     TestCompileAndRunAlgoly( code, 11 );
 }
 
+TEST_CASE( "Algoly: pass var array in array to const param open array, var index array and param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "var ar1 := [[1, 2], [3, 4]]\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  B(ar1[one])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[zero] + ARRAY[one] + countof(ARRAY) end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 9 );
+}
+
 
 //----------------------------------------------------------------------------
 // Modify const parameters
@@ -1444,6 +1458,20 @@ TEST_CASE( "Algoly: pass closed slice of const array in array to const param ope
         ;
 
     TestCompileAndRunAlgoly( code, 11 );
+}
+
+TEST_CASE( "Algoly: pass const array in array to const param open array, var index array and param", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const ar1 = [[1, 2], [3, 4]]\n"
+        "var zero := 0, one := 1\n"
+        "def a\n"
+        "  B(ar1[one])\n"
+        "end\n"
+        "def B(const ARRAY: []) ARRAY[zero] + ARRAY[one] + countof(ARRAY) end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 9 );
 }
 
 
