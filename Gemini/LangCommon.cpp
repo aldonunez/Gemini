@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "LangCommon.h"
-#include "OpCodes.h"
 #include "Syntax.h"
+#include "VmCommon.h"
 #include <stdarg.h>
 
 
@@ -145,7 +145,7 @@ std::shared_ptr<ModuleAttrs> CompilerAttrs::GetModule( int32_t index ) const
 //  ModuleAttrs
 //----------------------------------------------------------------------------
 
-ModuleAttrs::ModuleAttrs( uint_least8_t modIndex, CompilerAttrs& globalAttrs ) :
+ModuleAttrs::ModuleAttrs( ModSize modIndex, CompilerAttrs& globalAttrs ) :
     mModIndex( modIndex ),
     mGlobalAttrs( globalAttrs )
 {

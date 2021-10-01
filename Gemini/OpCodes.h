@@ -6,9 +6,6 @@
 
 #pragma once
 
-#include <assert.h>
-#include "VmCommon.h"
-
 
 enum OpCode : uint8_t
 {
@@ -79,90 +76,11 @@ enum : uint8_t
 };
 
 
-enum
+enum : uint8_t
 {
     MODINDEX_STACK  = 0xFE,
     MODINDEX_NATIVE = 0xFF,
 };
 
 
-class CallFlags
-{
-    enum
-    {
-        AutoPop     = 0x80,
-        CountMask   = 0x7F,
-    };
-
-public:
-    static U8 Build( U8 count, bool autoPop )
-    {
-        assert( (count & CountMask) == count );
-
-        U8 flags = count;
-
-        if ( autoPop )
-            flags |= AutoPop;
-
-        return flags;
-    }
-
-    static bool GetAutoPop( U8 flags )
-    {
-        return flags & AutoPop;
-    }
-
-    static U8 GetCount( U8 flags )
-    {
-        return flags & CountMask;
-    }
-};
-
-
-struct BranchInst
-{
-    using TOffset = int16_t;
-
-    static constexpr int Size = 1 + sizeof( TOffset );
-    static constexpr int OffsetMin = INT16_MIN;
-    static constexpr int OffsetMax = INT16_MAX;
-
-    static void StoreOffset( uint8_t* p, TOffset offset )
-    {
-        StoreI16( p, offset );
-    }
-
-    static TOffset ReadOffset( const uint8_t*& p )
-    {
-        return ReadI16( p );
-    }
-
-    static void WriteOffset( uint8_t*& p, TOffset offset )
-    {
-        WriteI16( p, offset );
-    }
-};
-
-
-struct CodeAddr
-{
-    static uint32_t Build( uint32_t address, uint8_t module )
-    {
-        return address | (module << 24);
-    }
-
-    static uint32_t GetAddress( uint32_t addrWord )
-    {
-        return addrWord & 0xFFFFFF;
-    }
-
-    static uint8_t GetModule( uint32_t addrWord )
-    {
-        return addrWord >> 24;
-    }
-
-    static uint32_t ToModuleMax( uint32_t addrWord )
-    {
-        return addrWord | 0xFFFFFF;
-    }
-};
+constexpr uint8_t   CONST_SECTION_MOD_INDEX_MASK = 0x80;

@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "Common.h"
 #include <list>
 #include <map>
 #include <memory>
@@ -42,20 +43,6 @@ enum class SyntaxKind
     Other,
 };
 
-
-using CodeSize      = uint_least32_t;
-using GlobalSize    = uint_least16_t;
-using LocalSize     = uint_least8_t;
-using ParamSize     = uint_least8_t;
-using DataSize      = GlobalSize;
-using ModSize       = uint_least8_t;
-
-constexpr CodeSize      CodeSizeMax = 16777215;
-constexpr GlobalSize    GlobalSizeMax = 65535;
-constexpr LocalSize     LocalSizeMax = 255;
-constexpr ParamSize     ParamSizeMax = 127;
-constexpr DataSize      DataSizeMax = GlobalSizeMax;
-constexpr ModSize       ModSizeMax = 126;
 
 constexpr CodeSize      UndefinedAddr = 16777215;
 

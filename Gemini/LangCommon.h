@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "Common.h"
 #include <exception>
 #include <functional>
 #include <map>
@@ -85,8 +86,6 @@ public:
 
 
 struct Function;
-class InitList;
-class RecordInitializer;
 class ModuleAttrs;
 
 
@@ -114,11 +113,6 @@ public:
 
 class ModuleAttrs
 {
-    using GlobalSize = uint16_t;
-    using ModSize = uint_least8_t;
-
-    static constexpr GlobalSize GlobalSizeMax = 65535;
-
     using ConstVec = std::vector<int32_t>;
 
     ModSize             mModIndex;
@@ -126,9 +120,9 @@ class ModuleAttrs
     ConstVec            mConsts;
 
 public:
-    ModuleAttrs( uint_least8_t modIndex, CompilerAttrs& globalAttrs );
+    ModuleAttrs( ModSize modIndex, CompilerAttrs& globalAttrs );
 
-    uint_least8_t GetIndex();
+    ModSize GetIndex();
     CompilerAttrs& GetGlobalAttrs();
 
     std::vector<int32_t>& GetConsts();
@@ -136,11 +130,12 @@ public:
 };
 
 
+class InitList;
+class RecordInitializer;
+
 class GlobalDataGenerator
 {
 public:
-    using GlobalSize = uint16_t;
-
     using EmitFuncAddressFunctor = std::function<void( std::optional<std::shared_ptr<Function>>, GlobalSize, int32_t*, Syntax* )>;
     using CopyAggregateFunctor = std::function<void( GlobalSize, int32_t*, Syntax* )>;
 

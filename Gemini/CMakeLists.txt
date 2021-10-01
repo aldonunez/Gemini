@@ -14,6 +14,7 @@ add_library(geminivm
 
 set(GEMINI_PUBLIC_HEADERS
     AlgolyParser.h
+    Common.h
     Compiler.h
     Disassembler.h
     LangCommon.h
