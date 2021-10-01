@@ -405,7 +405,8 @@ void TestCompileAndRun( const TestConfig& config )
         moduleSource != config.moduleSources.end();
         moduleSource++ )
     {
-        Compiler compiler1( &env, &log, env.GetModuleCount() );
+        ModSize  modIndex = env.GetModuleCount();
+        Compiler compiler1( &env, &log, modIndex );
 
         for ( const char** unitSource = moduleSource->Units.begin();
             unitSource != moduleSource->Units.end();
@@ -445,7 +446,8 @@ void TestCompileAndRun( const TestConfig& config )
 
         maxStack = std::max( maxStack, stats.Static.MaxStackUsage );
 
-        if ( GetKind( config.expectedResult ) == ResultKind::Compiler )
+        if ( GetKind( config.expectedResult ) == ResultKind::Compiler
+            && (modIndex == config.moduleSources.size() - 1) )
         {
             REQUIRE( compilerErr == Get<ResultKind::Compiler>( config.expectedResult ) );
             return;
