@@ -974,7 +974,7 @@ void BinderVisitor::CheckStorageType(
 
 void BinderVisitor::CheckInitializer(
     const std::shared_ptr<Type>& type,
-    const Unique<Syntax>& initializer )
+    Unique<Syntax>& initializer )
 {
     if ( initializer->Kind == SyntaxKind::ArrayInitializer )
     {
@@ -1057,7 +1057,7 @@ void BinderVisitor::CheckInitializer(
     }
     else
     {
-        initializer->Accept( this );
+        Visit( initializer );
 
         CheckType( type, initializer->Type, initializer.get() );
     }
@@ -1232,6 +1232,11 @@ void BinderVisitor::VisitNextStatement( NextStatement* nextStmt )
 
 void BinderVisitor::VisitNumberExpr( NumberExpr* numberExpr )
 {
+    assert( numberExpr->Value >= INT32_MIN );
+
+    if ( numberExpr->Value > INT32_MAX )
+        mRep.ThrowSemanticsError( numberExpr, "Number out of range" );
+
     numberExpr->Type = mIntType;
 }
 
@@ -1530,12 +1535,27 @@ void BinderVisitor::VisitTypeDecl( TypeDecl* typeDecl )
 
 void BinderVisitor::VisitUnaryExpr( UnaryExpr* unary )
 {
-    Visit( unary->Inner );
+    if ( unary->Inner->Kind == SyntaxKind::Number )
+    {
+        int64_t value = ((NumberExpr&) *unary->Inner).Value;
 
-    if ( unary->Inner->Type->GetKind() != TypeKind::Int )
-        mRep.ThrowSemanticsError( unary->Inner.get(), "Unary expression only supports integers" );
+        assert( value >= 0 && value <= (uint32_t) INT32_MAX + 1 );
 
-    unary->Type = unary->Inner->Type;
+        Unique<NumberExpr> number( new NumberExpr( -value ) );
+
+        number->Type = mIntType;
+
+        mReplacementNode = std::move( number );
+    }
+    else
+    {
+        Visit( unary->Inner );
+
+        if ( unary->Inner->Type->GetKind() != TypeKind::Int )
+            mRep.ThrowSemanticsError( unary->Inner.get(), "Unary expression only supports integers" );
+
+        unary->Type = unary->Inner->Type;
+    }
 }
 
 void BinderVisitor::VisitUnit( Unit* unit )
