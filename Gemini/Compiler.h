@@ -400,7 +400,7 @@ private:
     void EmitLocalRecordInitializer( LocalSize offset, RecordType* localType, RecordInitializer* recordInit );
     void EmitLocalAggregateCopyBlock( LocalSize offset, Type* localType, Syntax* valueElem );
 
-    void GenerateDopeVector( Syntax& node, ParamSpec& paramSpec );
+    void GenerateRef( Syntax& node, Type& siteType, bool writable );
     void GenerateArg( Syntax& node, ParamSpec& paramSpec );
     void GenerateCall( CallExpr* call, const GenConfig& config, GenStatus& status );
     void GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arguments, const GenConfig& config, GenStatus& status );

@@ -828,11 +828,7 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
         auto& leftArrayType = (ArrayType&) *assignment->Left->Type;
         auto& rightArrayType = (ArrayType&) *assignment->Right->Type;
 
-        if ( IsClosedArrayType( rightArrayType ) )
-            EmitLoadConstant( rightArrayType.Count );
-
-        // Value
-        Generate( assignment->Right.get() );
+        GenerateRef( *assignment->Right, leftArrayType, true );
 
         if ( config.discard )
         {
@@ -1153,13 +1149,20 @@ void Compiler::EmitLocalRecordInitializer( LocalSize offset, RecordType* localTy
     }
 }
 
-void Compiler::GenerateDopeVector( Syntax& node, ParamSpec& paramSpec )
+void Compiler::GenerateRef( Syntax& node, Type& siteType, bool writable )
 {
-    if ( paramSpec.Type->GetKind() == TypeKind::Array
-        && ((ArrayType&) *paramSpec.Type).Count == 0
-        && ((ArrayType&) *node.Type).Count != 0 )
-    {
+    if ( IsOpenArrayType( siteType ) && IsClosedArrayType( *node.Type ) )
         EmitCountofArray( &node );
+
+    auto addr = CalcAddress( &node, writable );
+
+    if ( !addr.spilled )
+    {
+        EmitLoadAddress( &node, addr.decl, addr.offset );
+    }
+    else if ( addr.offset > 0 )
+    {
+        EmitSpilledAddrOffset( addr.offset );
     }
 }
 
@@ -1174,20 +1177,7 @@ void Compiler::GenerateArg( Syntax& node, ParamSpec& paramSpec )
 
     case ParamMode::RefInOut:
     case ParamMode::RefIn:
-        {
-            GenerateDopeVector( node, paramSpec );
-
-            auto addr = CalcAddress( &node, (paramSpec.Mode == ParamMode::RefInOut) );
-
-            if ( !addr.spilled )
-            {
-                EmitLoadAddress( &node, addr.decl, addr.offset );
-            }
-            else if ( addr.offset > 0 )
-            {
-                EmitSpilledAddrOffset( addr.offset );
-            }
-        }
+        GenerateRef( node, *paramSpec.Type, (paramSpec.Mode == ParamMode::RefInOut) );
         break;
 
     default:
