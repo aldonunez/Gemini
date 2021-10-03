@@ -892,7 +892,7 @@ TEST_CASE( "Algoly: assign copy var open array param from const closed array", "
         "const AR1 = [1, 2, 3]\n"
         "var AR2: [3] := []\n"
         "def a\n"
-        "  B(AR2, AR1)\n"
+        "  B(@AR2, AR1)\n"
         "  AR2[0] + AR2[1] + AR2[2]\n"
         "end\n"
         "def B(var array1: [], const array2: [3])\n"
@@ -909,7 +909,7 @@ TEST_CASE( "Algoly: assign copy var open array param from const open array", "[a
         "const AR1 = [1, 2, 3]\n"
         "var AR2: [3] := []\n"
         "def a\n"
-        "  B(AR2, AR1)\n"
+        "  B(@AR2, @AR1)\n"
         "  AR2[0] + AR2[1] + AR2[2]\n"
         "end\n"
         "def B(var array1: [], const array2: [])\n"
@@ -1218,7 +1218,7 @@ TEST_CASE( "Algoly: pass var array to const param open array", "[algoly][ptr-con
     const char code[] =
         "var ar1 := [ 1, 2, 3 ]\n"
         "def a\n"
-        "  B(ar1)\n"
+        "  B(@ar1)\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] + ARRAY[2] end\n"
         ;
@@ -1231,7 +1231,7 @@ TEST_CASE( "Algoly: pass closed slice of var array to const param open array", "
     const char code[] =
         "var ar1 := [ 1, 2, 3 ]\n"
         "def a\n"
-        "  B(ar1[1..3])\n"
+        "  B(@ar1[1..3])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1257,7 +1257,7 @@ TEST_CASE( "Algoly: pass var array in array to const param open array", "[algoly
     const char code[] =
         "var ar1 := [[1, 2], [3, 4]]\n"
         "def a\n"
-        "  B(ar1[1])\n"
+        "  B(@ar1[1])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1270,7 +1270,7 @@ TEST_CASE( "Algoly: pass closed slice of var array in array to const param open 
     const char code[] =
         "var ar1 := [[1, 2, 3], [4, 5, 6]]\n"
         "def a\n"
-        "  B(ar1[1][1..3])\n"
+        "  B(@ar1[1][1..3])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1298,7 +1298,7 @@ TEST_CASE( "Algoly: pass var array in array to const param open array, var index
         "var ar1 := [[1, 2], [3, 4]]\n"
         "var i := 1\n"
         "def a\n"
-        "  B(ar1[i])\n"
+        "  B(@ar1[i])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1312,7 +1312,7 @@ TEST_CASE( "Algoly: pass closed slice of var array in array to const param open 
         "var ar1 := [[1, 2, 3], [4, 5, 6]]\n"
         "var i := 1\n"
         "def a\n"
-        "  B(ar1[i][1..3])\n"
+        "  B(@ar1[i][1..3])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1326,7 +1326,7 @@ TEST_CASE( "Algoly: pass var array in array to const param open array, var index
         "var ar1 := [[1, 2], [3, 4]]\n"
         "var zero := 0, one := 1\n"
         "def a\n"
-        "  B(ar1[one])\n"
+        "  B(@ar1[one])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[zero] + ARRAY[one] + countof(ARRAY) end\n"
         ;
@@ -1540,7 +1540,7 @@ TEST_CASE( "Algoly: pass const array to const param open array", "[algoly][ptr-c
     const char code[] =
         "const ar1 = [ 1, 2, 3 ]\n"
         "def a\n"
-        "  B(ar1)\n"
+        "  B(@ar1)\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] + ARRAY[2] end\n"
         ;
@@ -1553,7 +1553,7 @@ TEST_CASE( "Algoly: pass closed slice of const array to const param open array",
     const char code[] =
         "const ar1 = [ 1, 2, 3 ]\n"
         "def a\n"
-        "  B(ar1[1..3])\n"
+        "  B(@ar1[1..3])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1579,7 +1579,7 @@ TEST_CASE( "Algoly: pass const array in array to const param open array", "[algo
     const char code[] =
         "const ar1 = [[1, 2], [3, 4]]\n"
         "def a\n"
-        "  B(ar1[1])\n"
+        "  B(@ar1[1])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1592,7 +1592,7 @@ TEST_CASE( "Algoly: pass closed slice of const array in array to const param ope
     const char code[] =
         "const ar1 = [[1, 2, 3], [4, 5, 6]]\n"
         "def a\n"
-        "  B(ar1[1][1..3])\n"
+        "  B(@ar1[1][1..3])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1620,7 +1620,7 @@ TEST_CASE( "Algoly: pass const array in array to const param open array, var ind
         "const ar1 = [[1, 2], [3, 4]]\n"
         "var i := 1\n"
         "def a\n"
-        "  B(ar1[i])\n"
+        "  B(@ar1[i])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1634,7 +1634,7 @@ TEST_CASE( "Algoly: pass closed slice of const array in array to const param ope
         "const ar1 = [[1, 2, 3], [4, 5, 6]]\n"
         "var i := 1\n"
         "def a\n"
-        "  B(ar1[i][1..3])\n"
+        "  B(@ar1[i][1..3])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1648,7 +1648,7 @@ TEST_CASE( "Algoly: pass const array in array to const param open array, var ind
         "const ar1 = [[1, 2], [3, 4]]\n"
         "var zero := 0, one := 1\n"
         "def a\n"
-        "  B(ar1[one])\n"
+        "  B(@ar1[one])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[zero] + ARRAY[one] + countof(ARRAY) end\n"
         ;
@@ -1747,7 +1747,7 @@ TEST_CASE( "Algoly: pass local const array to const param open array", "[algoly]
     const char code[] =
         "def a\n"
         "  const ar1 = [ 1, 2, 3 ]\n"
-        "  B(ar1)\n"
+        "  B(@ar1)\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] + ARRAY[2] end\n"
         ;
@@ -1760,7 +1760,7 @@ TEST_CASE( "Algoly: pass closed slice of local const array to const param open a
     const char code[] =
         "def a\n"
         "  const ar1 = [ 1, 2, 3 ]\n"
-        "  B(ar1[1..3])\n"
+        "  B(@ar1[1..3])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1786,7 +1786,7 @@ TEST_CASE( "Algoly: pass local const array in array to const param open array", 
     const char code[] =
         "def a\n"
         "  const ar1 = [[1, 2], [3, 4]]\n"
-        "  B(ar1[1])\n"
+        "  B(@ar1[1])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1799,7 +1799,7 @@ TEST_CASE( "Algoly: pass closed slice of local const array in array to const par
     const char code[] =
         "def a\n"
         "  const ar1 = [[1, 2, 3], [4, 5, 6]]\n"
-        "  B(ar1[1][1..3])\n"
+        "  B(@ar1[1][1..3])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1827,7 +1827,7 @@ TEST_CASE( "Algoly: pass local const array in array to const param open array, v
         "var i := 1\n"
         "def a\n"
         "  const ar1 = [[1, 2], [3, 4]]\n"
-        "  B(ar1[i])\n"
+        "  B(@ar1[i])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1841,7 +1841,7 @@ TEST_CASE( "Algoly: pass closed slice of local const array in array to const par
         "var i := 1\n"
         "def a\n"
         "  const ar1 = [[1, 2, 3], [4, 5, 6]]\n"
-        "  B(ar1[i][1..3])\n"
+        "  B(@ar1[i][1..3])\n"
         "end\n"
         "def B(const ARRAY: []) ARRAY[0] + ARRAY[1] end\n"
         ;
@@ -1900,7 +1900,7 @@ TEST_CASE( "Algoly: pass const array to const param open array, assign slice to 
     const char code[] =
         "const ar1 = [ 1, 2, 3 ]\n"
         "def a\n"
-        "  B(ar1)\n"
+        "  B(@ar1)\n"
         "end\n"
         "def B(const ARRAY: []) var array := ARRAY[0..3]; array[0] + array[1] + array[2] end\n"
         ;

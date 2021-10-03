@@ -803,7 +803,10 @@ bool ArrayType::IsPassableFrom( Type* other, ParamMode mode ) const
 
 DataSize ArrayType::GetSize() const
 {
-    return Count * ElemType->GetSize();
+    if ( Count == 0 )
+        return 2;
+    else
+        return Count * ElemType->GetSize();
 }
 
 

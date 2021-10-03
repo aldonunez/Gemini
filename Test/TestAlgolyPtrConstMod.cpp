@@ -342,7 +342,7 @@ TEST_CASE( "Algoly: pass var array in array to const param open array, var index
         "import ModA\n"
         "var zero := 0, one := 1\n"
         "def a\n"
-        "  B(ModA.ar1[one])\n"
+        "  B(@ModA.ar1[one])\n"
         "end\n"
         "def B(const ARRAY: [] of @proc) (ARRAY[zero])() + (ARRAY[one])() + countof(ARRAY) end\n"
     };
@@ -406,7 +406,7 @@ TEST_CASE( "Algoly: pass const array in array to const param open array, var ind
         "import ModA\n"
         "var zero := 0, one := 1\n"
         "def a\n"
-        "  B(ModA.ar1[one])\n"
+        "  B(@ModA.ar1[one])\n"
         "end\n"
         "def B(const ARRAY: [] of @proc) (ARRAY[zero])() + (ARRAY[one])() + countof(ARRAY) end\n"
     };

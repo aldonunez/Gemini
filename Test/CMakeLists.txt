@@ -1,6 +1,7 @@
 add_executable(Test
     TestMain.cpp
     TestAlgoly.cpp
+    TestAlgolyCaptureArray.cpp
     TestAlgolyCopyArray.cpp
     TestAlgolyEnum.cpp
     TestAlgolyMultiArray.cpp

@@ -587,6 +587,13 @@ void Compiler::EmitCountofArray( Syntax* arrayNode )
             EmitU8( OP_LDARG, param->Offset + 1 );
             IncreaseExprDepth();
         }
+        else if ( addr.decl->Kind == DeclKind::Local )
+        {
+            auto local = (LocalStorage*) addr.decl;
+
+            EmitU8( OP_LDLOC, local->Offset - 1 );
+            IncreaseExprDepth();
+        }
         else if ( addr.decl->Kind == DeclKind::LoadedAddress )
         {
             Emit( OP_POP );
@@ -829,7 +836,12 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
         auto& leftArrayType = (ArrayType&) *assignment->Left->Type;
         auto& rightArrayType = (ArrayType&) *assignment->Right->Type;
 
-        GenerateRef( *assignment->Right, leftArrayType, false );
+        bool writableRight =
+            IsOpenArrayType( *assignment->Left->Type )
+            && assignment->Left->IsWritable
+            && assignment->Right->Kind == SyntaxKind::AddrOfExpr;
+
+        GenerateRef( *assignment->Right, leftArrayType, writableRight );
 
         if ( config.discard )
         {
@@ -845,15 +857,54 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
         if ( IsClosedArrayType( leftArrayType ) )
             EmitLoadConstant( leftArrayType.Count );
 
-        auto addr = CalcAddress( assignment->Left.get(), true );
+        if ( IsOpenArrayType( *assignment->Left->Type ) && assignment->Right->Kind == SyntaxKind::AddrOfExpr )
+        {
+            auto addr = CalcAddress( assignment->Left.get(), false );
 
-        EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
+            switch ( addr.decl->Kind )
+            {
+            case DeclKind::Param:
+                {
+                    auto param = (ParamStorage*) addr.decl;
 
-        EmitU24( OP_COPYARRAY, rightArrayType.ElemType->GetSize() );
+                    assert( addr.offset >= 0 && addr.offset < ParamSizeMax );
+                    assert( (addr.offset + 1) < (ParamSizeMax - param->Offset) );
 
-        DecreaseExprDepth( 4 );
+                    EmitU8( OP_STARG, static_cast<uint8_t>(param->Offset + addr.offset) );
+                    EmitU8( OP_STARG, static_cast<uint8_t>(param->Offset + addr.offset + 1) );
+                }
+                break;
 
-        // Generating a return value or argument value would need PUSHBLOCK
+            case DeclKind::Local:
+                {
+                    auto local = (LocalStorage*) addr.decl;
+
+                    assert( addr.offset >= 0 && addr.offset < LocalSizeMax );
+                    assert( (addr.offset + 1) < (LocalSizeMax - local->Offset) );
+
+                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + addr.offset) );
+                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + addr.offset + 1) );
+                }
+                break;
+
+            default:
+                THROW_INTERNAL_ERROR( "DeclKind" );
+            }
+
+            DecreaseExprDepth( 2 );
+        }
+        else
+        {
+            auto addr = CalcAddress( assignment->Left.get(), true );
+
+            EmitLoadAddress( assignment->Left.get(), addr.decl, addr.offset );
+
+            EmitU24( OP_COPYARRAY, rightArrayType.ElemType->GetSize() );
+
+            DecreaseExprDepth( 4 );
+
+            // Generating a return value or argument value would need PUSHBLOCK
+        }
     }
     else
     {
@@ -967,7 +1018,14 @@ void Compiler::EmitFuncAddress( Function* func, CodeRef funcRef )
 
 void Compiler::VisitAddrOfExpr( AddrOfExpr* addrOf )
 {
-    GenerateFunction( addrOf, Config(), Status() );
+    if ( addrOf->Inner->Type->GetKind() == TypeKind::Func )
+    {
+        GenerateFunction( addrOf, Config(), Status() );
+    }
+    else
+    {
+        Generate( addrOf->Inner.get(), Config(), Status() );
+    }
 }
 
 void Compiler::GenerateFuncall( CallExpr* call, const GenConfig& config, GenStatus& status )
@@ -1009,7 +1067,24 @@ void Compiler::GenerateLetBinding( DataDecl* binding )
 {
     auto local = (LocalStorage*) binding->GetDecl();
 
-    GenerateLocalInit( local->Offset, local->Type.get(), binding->Initializer.get() );
+    if ( IsOpenArrayType( *local->GetType() ) )
+    {
+        auto initArrayType = (ArrayType&) *binding->Initializer->Type;
+
+        if ( IsClosedArrayType( initArrayType ) )
+            EmitLoadConstant( initArrayType.Count );
+
+        Generate( binding->Initializer.get() );
+
+        EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset) );
+        EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset - 1) );
+
+        DecreaseExprDepth( 2 );
+    }
+    else
+    {
+        GenerateLocalInit( local->Offset, local->Type.get(), binding->Initializer.get() );
+    }
 }
 
 void Compiler::GenerateLocalInit( LocalSize offset, Type* localType, Syntax* initializer )
@@ -1930,11 +2005,24 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, int32_t off
             break;
 
         case DeclKind::Local:
-            assert( offset >= 0 && offset < LocalSizeMax );
-            assert( offset <= ((LocalStorage*) baseDecl)->Offset );
+            {
+                auto local = (LocalStorage*) baseDecl;
 
-            EmitU8( OP_LDLOCA, static_cast<uint8_t>(((LocalStorage*) baseDecl)->Offset - offset) );
-            IncreaseExprDepth();
+                assert( offset >= 0 && offset < LocalSizeMax );
+                assert( offset <= ((LocalStorage*) baseDecl)->Offset );
+
+                if ( IsOpenArrayType( *baseDecl->GetType() ) )
+                {
+                    EmitU8( OP_LDLOC, static_cast<uint8_t>(local->Offset - 1) );
+                    EmitU8( OP_LDLOC, static_cast<uint8_t>(local->Offset + 0) );
+                    IncreaseExprDepth( 2 );
+                }
+                else
+                {
+                    EmitU8( OP_LDLOCA, static_cast<uint8_t>(((LocalStorage*) baseDecl)->Offset - offset) );
+                    IncreaseExprDepth();
+                }
+            }
             break;
 
         case DeclKind::LoadedAddress:

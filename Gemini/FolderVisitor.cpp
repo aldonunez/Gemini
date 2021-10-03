@@ -48,12 +48,19 @@ void FolderVisitor::Fold( Syntax* node )
 
 void FolderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
 {
-    auto decl = addrOf->Inner->GetSharedDecl();
+    if ( addrOf->Type->GetKind() == TypeKind::Array )
+    {
+        mLastValue.reset();
+    }
+    else
+    {
+        auto decl = addrOf->Inner->GetSharedDecl();
 
-    if ( decl->Kind != DeclKind::Func )
-        mRep.ThrowSemanticsError( addrOf, "Expected function" );
+        if ( decl->Kind != DeclKind::Func )
+            mRep.ThrowSemanticsError( addrOf, "Expected function" );
 
-    mLastValue = std::static_pointer_cast<Function>(decl);
+        mLastValue = std::static_pointer_cast<Function>(decl);
+    }
 }
 
 void FolderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )

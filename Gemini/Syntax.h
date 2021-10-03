@@ -73,6 +73,8 @@ public:
 
     std::shared_ptr<Gemini::Type>   Type;
 
+    bool IsWritable = false;
+
     virtual ~Syntax() {}
     virtual void Accept( Visitor* visitor ) = 0;
     virtual Declaration* GetDecl();

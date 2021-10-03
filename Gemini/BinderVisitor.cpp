@@ -158,6 +158,7 @@ static bool IsAllowedConstType( Type& type )
 {
     return IsScalarType( type.GetKind() )
         || IsClosedArrayType( type )
+        || IsOpenArrayType( type )
         || type.GetKind() == TypeKind::Record
         ;
 }
@@ -179,6 +180,14 @@ static bool IsStorageType( Type& type )
 {
     return IsScalarType( type.GetKind() )
         || IsClosedArrayType( type )
+        || type.GetKind() == TypeKind::Record
+        ;
+}
+
+static bool IsAllowedLocalType( Type& type )
+{
+    return IsScalarType( type.GetKind() )
+        || type.GetKind() == TypeKind::Array
         || type.GetKind() == TypeKind::Record
         ;
 }
@@ -287,13 +296,21 @@ void BinderVisitor::VisitAddrOfExpr( AddrOfExpr* addrOf )
     const auto& innerType = addrOf->Inner->Type;
     auto decl = addrOf->Inner->GetDecl();
 
-    if ( !innerType || !IsAddressableType( innerType->GetKind() )
-        || decl == nullptr || !IsAddressableDeclaration( decl->Kind ) )
+    if ( innerType->GetKind() == TypeKind::Array )
     {
-        mRep.ThrowSemanticsError( addrOf->Inner.get(), "Expected a function" );
+        addrOf->Type = innerType;
+        addrOf->IsWritable = addrOf->Inner->IsWritable;
     }
+    else
+    {
+        if ( !innerType || !IsAddressableType( innerType->GetKind() )
+            || decl == nullptr || !IsAddressableDeclaration( decl->Kind ) )
+        {
+            mRep.ThrowSemanticsError( addrOf->Inner.get(), "Expected a function" );
+        }
 
-    addrOf->Type = Make<PointerType>( innerType );
+        addrOf->Type = Make<PointerType>( innerType );
+    }
 }
 
 void BinderVisitor::VisitArrayTypeRef( ArrayTypeRef* typeRef )
@@ -360,6 +377,14 @@ void BinderVisitor::VisitAssignmentExpr( AssignmentExpr* assignment )
         mRep.ThrowSemanticsError( assignment->Left.get(), "Left side cannot be assigned" );
 
     CheckType( assignment->Left->Type, assignment->Right->Type, assignment );
+
+    if ( IsClosedArrayType( *assignment->Left->Type )
+        && assignment->Right->Kind == SyntaxKind::AddrOfExpr )
+        mRep.ThrowSemanticsError( assignment->Left.get(), "Closed arrays can't capture arrays" );
+
+    if ( IsOpenArrayType( *assignment->Left->Type ) && assignment->Right->Kind == SyntaxKind::AddrOfExpr
+        && assignment->Left->IsWritable && !assignment->Right->IsWritable )
+        mRep.ThrowSemanticsError( assignment->Right.get(), "Constants can't be changed [assignment]" );
 
     assignment->Type = assignment->Left->Type;
 }
@@ -459,6 +484,7 @@ void BinderVisitor::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
     else
     {
         callOrSymbol->Type = decl->GetType();
+        callOrSymbol->IsWritable = !decl->IsReadOnly;
     }
 }
 
@@ -609,10 +635,6 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
         constDecl->TypeRef->Accept( this );
 
         type = constDecl->TypeRef->ReferentType;
-
-        CheckConstType( *type, constDecl->TypeRef.get() );
-
-        CheckInitializer( type, constDecl->Initializer );
     }
     else
     {
@@ -621,6 +643,41 @@ void BinderVisitor::VisitConstBinding( ConstDecl* constDecl, ScopeKind scopeKind
         type = constDecl->Initializer->Type;
 
         CheckMissingRecordInitializer( constDecl->Initializer );
+    }
+
+    if ( scopeKind == ScopeKind::Local && IsOpenArrayType( *type ) )
+    {
+        if ( constDecl->Initializer->Kind != SyntaxKind::AddrOfExpr )
+            mRep.ThrowSemanticsError( constDecl, "*** Capture init const ***" );
+
+        if ( constDecl->TypeRef )
+            Visit( constDecl->Initializer );
+
+        CheckType( type.get(), constDecl->Initializer->Type.get(), constDecl->Initializer.get() );
+
+        Unique<VarDecl> localDecl( new VarDecl() );
+
+        CopyBaseSyntax( *localDecl, *constDecl );
+
+        localDecl->Decl = AddLocal( constDecl, type, type->GetSize() );
+        localDecl->Decl->IsReadOnly = true;
+        localDecl->Type = type;
+        localDecl->TypeRef = std::move( constDecl->TypeRef );
+        localDecl->Initializer = std::move( constDecl->Initializer );
+        localDecl->Name = constDecl->Name;
+
+        mReplacementNode = std::move( localDecl );
+        return;
+    }
+
+    if ( constDecl->TypeRef )
+    {
+        CheckConstType( *type, constDecl->TypeRef.get() );
+
+        CheckInitializer( type, constDecl->Initializer );
+    }
+    else
+    {
         CheckConstType( *type, constDecl->Initializer.get() );
     }
 
@@ -713,6 +770,8 @@ void BinderVisitor::VisitDotExpr( DotExpr* dotExpr )
     {
         mRep.ThrowSemanticsError( dotExpr->Head.get(), "Can only access members of a module, enum, or record" );
     }
+
+    dotExpr->IsWritable = !dotExpr->Decl->IsReadOnly;
 }
 
 void BinderVisitor::VisitEnumTypeRef( EnumTypeRef* enumTypeRef )
@@ -850,6 +909,7 @@ void BinderVisitor::VisitIndexExpr( IndexExpr* indexExpr )
     }
 
     indexExpr->Type = arrayType->ElemType;
+    indexExpr->IsWritable = indexExpr->Head->IsWritable;
 }
 
 void BinderVisitor::VisitInitList( InitList* initList )
@@ -934,6 +994,11 @@ void BinderVisitor::VisitLetStatement( LetStatement* letStmt )
         {
             VisitConstBinding( (ConstDecl*) binding.get(), ScopeKind::Local );
         }
+
+        if ( mReplacementNode )
+        {
+            binding = Unique<DataDecl>( static_cast<DataDecl*>(mReplacementNode.release()) );
+        }
     }
 
     letStmt->Body.Accept( this );
@@ -968,7 +1033,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
         else
             type = varDecl->Initializer->Type;
 
-        CheckStorageType( type, varDecl );
+        CheckStorageType( type, declKind, varDecl );
     }
     else
     {
@@ -978,7 +1043,7 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
 
         type = varDecl->TypeRef->ReferentType;
 
-        CheckStorageType( type, varDecl->TypeRef.get() );
+        CheckStorageType( type, declKind, varDecl->TypeRef.get() );
 
         if ( varDecl->Initializer != nullptr )
             CheckInitializer( type, varDecl->Initializer );
@@ -994,15 +1059,23 @@ void BinderVisitor::VisitStorage( DataDecl* varDecl, DeclKind declKind )
     if ( declKind == DeclKind::Global )
         mInGlobalVarDef = false;
 
+    if ( IsOpenArrayType( *type ) && varDecl->Initializer->Kind != SyntaxKind::AddrOfExpr )
+        mRep.ThrowSemanticsError( varDecl, "*** Capture init ***" );
+
+    if ( IsOpenArrayType( *type ) && !varDecl->Initializer->IsWritable )
+        mRep.ThrowSemanticsError( varDecl->Initializer.get(), "Constants can't be changed [var init]" );
+
     varDecl->Decl = AddStorage( varDecl, type, size, declKind );
     varDecl->Type = type;
 }
 
 void BinderVisitor::CheckStorageType(
     const std::shared_ptr<Type>& type,
+    DeclKind declKind,
     Syntax* node )
 {
-    if ( !IsStorageType( *type ) )
+    if ( (declKind == DeclKind::Local && !IsAllowedLocalType( *type ))
+        || (declKind != DeclKind::Local && !IsStorageType( *type )) )
         mRep.ThrowSemanticsError( node, "Variables cannot take this type" );
 }
 
@@ -1186,6 +1259,7 @@ void BinderVisitor::VisitNameExpr( NameExpr* nameExpr )
     }
 
     nameExpr->Type = nameExpr->Decl->GetType();
+    nameExpr->IsWritable = !nameExpr->Decl->IsReadOnly;
 }
 
 void BinderVisitor::VisitNameTypeRef( NameTypeRef* nameTypeRef )
@@ -1534,6 +1608,8 @@ void BinderVisitor::VisitSliceExpr( SliceExpr* sliceExpr )
     {
         sliceExpr->Type = Make<ArrayType>( static_cast<DataSize>(0), arrayType->ElemType );
     }
+
+    sliceExpr->IsWritable = sliceExpr->Head->IsWritable;
 }
 
 void BinderVisitor::VisitStatementList( StatementList* stmtList )
@@ -1692,6 +1768,12 @@ void BinderVisitor::CheckArgument(
     {
         mRep.ThrowSemanticsError( argNode, "Incompatible argument type" );
     }
+
+    if ( IsOpenArrayType( *site ) && argNode->Kind != SyntaxKind::AddrOfExpr )
+        mRep.ThrowSemanticsError( argNode, "*** Capture argument ***" );
+
+    if ( IsOpenArrayType( *site ) && mode == ParamMode::RefInOut && !argNode->IsWritable )
+        mRep.ThrowSemanticsError( argNode, "Constants can't be changed [argument]" );
 
     // Let the code generator detect whether the expression has an address
 }
