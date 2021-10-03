@@ -754,6 +754,188 @@ TEST_CASE( "Algoly: init const array by array initializer and copying", "[algoly
 
 
 //----------------------------------------------------------------------------
+// Assignment
+//----------------------------------------------------------------------------
+
+TEST_CASE( "Algoly: assign const int from const", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const A = 3\n"
+        "const B = 1\n"
+        "def a\n"
+        "  B := A\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: assign const int from const record field", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "const R1: R = { a: 2, b: 3 }\n"
+        "const B = 1\n"
+        "def a\n"
+        "  B := R1.b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+TEST_CASE( "Algoly: assign const record from const", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const R1: R = { a: 1, b: 2, c: 3 }\n"
+        "const R2: R = { }\n"
+        "def a\n"
+        "  R2 := R1\n"
+        "  R2.a + R2.b + R2.c\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+//-------------
+
+TEST_CASE( "Algoly: assign const record from var", "[algoly][ptr-const][negative]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "var R1: R := { a: 1, b: 2, c: 3 }\n"
+        "const R2: R = { }\n"
+        "def a\n"
+        "  R2 := R1\n"
+        "  R2.a + R2.b + R2.c\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, CompilerErr::SEMANTICS );
+}
+
+//-----------
+
+TEST_CASE( "Algoly: assign var record from const", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b, c end\n"
+        "const R0 = [10, 20]\n"
+        "const R1: R = { a: 1, b: 2, c: 3 }\n"
+        "var n0 := 30\n"
+        "var R2: R := {}\n"
+        "def a\n"
+        "  R2 := R1\n"
+        "  R2.a + R2.b + R2.c\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: assign var record in record from const", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type R = record a, b end\n"
+        "type S = record c: R, r: R end\n"
+        "const R1: R = { a: 3, b: 4 }\n"
+        "var S1: S := { c: { a: 1, b: 2 }, r: {} }\n"
+        "def a\n"
+        "  S1.r := R1\n"
+        "  S1.c.a + S1.c.b + S1.r.a + S1.r.b\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: assign var record field from const record field", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "type Q = record a, b end\n"
+        "type R = record a, f: @proc end\n"
+        "type S = record c: Q, r: R end\n"
+        "const C0 = [10, 20]\n"
+        "const S0: S = { c: { a: 5, b: 6 }, r: { a: 3, f: @C } }\n"
+        "var N0 := 30\n"
+        "var S1: S := { c: { a: 1, b: 2 }, r: { a: 7, f: @D } }\n"
+        "def a\n"
+        "  S1.r := S0.r\n"
+        "  S1.c.a + S1.c.b + S1.r.a + (S1.r.f)()\n"
+        "end\n"
+        "def C 4 end\n"
+        "def D 99 end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+TEST_CASE( "Algoly: assign var array from const", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2, 3]\n"
+        "var AR2: [3] := []\n"
+        "def a\n"
+        "  AR2 := AR1\n"
+        "  AR2[0] + AR2[1] + AR2[2]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: assign copy var open array param from const closed array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2, 3]\n"
+        "var AR2: [3] := []\n"
+        "def a\n"
+        "  B(AR2, AR1)\n"
+        "  AR2[0] + AR2[1] + AR2[2]\n"
+        "end\n"
+        "def B(var array1: [], const array2: [3])\n"
+        "  array1 := array2\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: assign copy var open array param from const open array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [1, 2, 3]\n"
+        "var AR2: [3] := []\n"
+        "def a\n"
+        "  B(AR2, AR1)\n"
+        "  AR2[0] + AR2[1] + AR2[2]\n"
+        "end\n"
+        "def B(var array1: [], const array2: [])\n"
+        "  array1 := array2\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 6 );
+}
+
+TEST_CASE( "Algoly: assign var array element array from const array element array", "[algoly][ptr-const]" )
+{
+    const char code[] =
+        "const AR1 = [[5, 6], [3, 4]]\n"
+        "var AR2 := [[1, 2], []]\n"
+        "def a\n"
+        "  AR2[1] := AR1[1]\n"
+        "  AR2[0][0] + AR2[0][1] + AR2[1][0] + AR2[1][1]\n"
+        "end\n"
+        ;
+
+    TestCompileAndRunAlgoly( code, 10 );
+}
+
+
+//----------------------------------------------------------------------------
 // Const arguments to var parameters
 //----------------------------------------------------------------------------
 

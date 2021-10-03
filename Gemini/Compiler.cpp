@@ -828,7 +828,7 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
         auto& leftArrayType = (ArrayType&) *assignment->Left->Type;
         auto& rightArrayType = (ArrayType&) *assignment->Right->Type;
 
-        GenerateRef( *assignment->Right, leftArrayType, true );
+        GenerateRef( *assignment->Right, leftArrayType, false );
 
         if ( config.discard )
         {

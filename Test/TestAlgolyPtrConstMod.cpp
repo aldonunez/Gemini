@@ -4,7 +4,7 @@
 using namespace Gemini;
 
 
-TEST_CASE( "Algoly: init const record by copying, modules (var : var, fail)", "[algoly][ptr-const][x]" )
+TEST_CASE( "Algoly: init const record by copying, modules (var : var, fail)", "[algoly][ptr-const]" )
 {
     const char* modeCodeA[] =
     {
