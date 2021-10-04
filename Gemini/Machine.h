@@ -7,9 +7,11 @@
 #pragma once
 
 #include "VmCommon.h"
-
 #include <utility>
 
+
+namespace Gemini
+{
 
 enum VmError
 {
@@ -32,8 +34,8 @@ enum VmError
 };
 
 
-typedef I32 CELL;
-typedef U32 UCELL;
+typedef int32_t   CELL;
+typedef uint32_t  UCELL;
 typedef uintptr_t UserContext;
 
 struct Module
@@ -48,8 +50,8 @@ struct Module
 
 struct ByteCode
 {
-    const ::Module* Module;
-    U32             Address;
+    const Gemini::Module*   Module;
+    U32                     Address;
 };
 
 class Machine;
@@ -159,3 +161,5 @@ private:
 
 
 int VerifyModule( const Module* mod );
+
+}

@@ -9,6 +9,9 @@
 #include "OpCodes.h"
 
 
+namespace Gemini
+{
+
 int VerifyModule( const Module* mod )
 {
     if ( mod == nullptr )
@@ -33,4 +36,6 @@ int VerifyModule( const Module* mod )
     }
 
     return ERR_NONE;
+}
+
 }

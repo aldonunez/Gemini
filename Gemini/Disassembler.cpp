@@ -67,6 +67,9 @@ static const char* gPrimitives[] =
 };
 
 
+namespace Gemini
+{
+
 Disassembler::Disassembler( const U8* code, bool showInstAddr, ConstFormat constFormat )
     :   mCodeBin( code ),
         mCodePtr( code ),
@@ -284,4 +287,6 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     totalCharsWritten += charsWritten;
 
     return static_cast<int32_t>(mCodePtr - origCodePtr);
+}
+
 }

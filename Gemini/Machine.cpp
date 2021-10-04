@@ -36,6 +36,9 @@ callm <uint8> <uint8> <uint24>
 */
 
 
+namespace Gemini
+{
+
 static_assert( FRAME_WORDS == (sizeof( StackFrame ) + sizeof( CELL ) - 1) / sizeof( CELL ) );
 
 
@@ -1191,4 +1194,6 @@ bool Machine::FindNativeCode( U32 id, NativeCode* nativeCode )
 const Module* Machine::FindModule( U8 index )
 {
     return index == mModIndex ? mMod : nullptr;
+}
+
 }

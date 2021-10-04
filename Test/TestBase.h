@@ -67,8 +67,8 @@ struct ModuleSource
 
 struct NativePair
 {
-    int32_t     Id;
-    NativeFunc  Func;
+    int32_t             Id;
+    Gemini::NativeFunc  Func;
 };
 
 
@@ -127,7 +127,7 @@ void TestCompileAndRunAlgoly( const char* code, int result, int param = DefaultP
 void TestCompileAndRunAlgoly( const char* code, int result, const std::initializer_list<int>& params, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, int result, ParamSpan params, int expectedStack = 0 );
 void TestCompileAndRunAlgoly( const char* code, Gemini::CompilerErr result );
-void TestCompileAndRunAlgoly( const char* code, VmError result );
+void TestCompileAndRunAlgoly( const char* code, Gemini::VmError result );
 
 void TestCompileAndRunLispy( const char* code, int result, int param = DefaultParam, int expectedStack = 0 );
 
@@ -154,7 +154,7 @@ void TestCompileAndRun( const TestConfig& config );
 
 // Sample natives
 
-int NatAdd( Machine* machine, U8 argc, CELL* args, UserContext context );
-int NatMul( Machine* machine, U8 argc, CELL* args, UserContext context );
+int NatAdd( Gemini::Machine* machine, Gemini::U8 argc, Gemini::CELL* args, Gemini::UserContext context );
+int NatMul( Gemini::Machine* machine, Gemini::U8 argc, Gemini::CELL* args, Gemini::UserContext context );
 
 extern NativePair gNatives[];

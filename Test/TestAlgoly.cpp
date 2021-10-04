@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "TestBase.h"
 
+using namespace Gemini;
+
 
 /*
 * TODO: test:

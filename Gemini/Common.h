@@ -6,6 +6,9 @@
 
 #pragma once
 
+namespace Gemini
+{
+
 using CodeSize      = uint_least32_t;
 using GlobalSize    = uint_least16_t;
 using LocalSize     = uint_least8_t;
@@ -20,3 +23,4 @@ constexpr ParamSize     ParamSizeMax = 127;
 constexpr DataSize      DataSizeMax = GlobalSizeMax;
 constexpr ModSize       ModSizeMax = 126;
 
+}

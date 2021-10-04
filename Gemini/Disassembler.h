@@ -9,6 +9,9 @@
 #include "VmCommon.h"
 
 
+namespace Gemini
+{
+
 class Disassembler
 {
 public:
@@ -29,3 +32,5 @@ public:
 
     int32_t Disassemble( char* disassembly, size_t capacity );
 };
+
+}

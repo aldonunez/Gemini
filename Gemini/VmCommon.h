@@ -12,6 +12,9 @@
 #include <limits.h>
 
 
+namespace Gemini
+{
+
 typedef uint8_t U8;
 typedef uint16_t U16;
 typedef uint32_t U32;
@@ -246,3 +249,5 @@ struct CodeAddr
         return addrWord | 0xFFFFFF;
     }
 };
+
+}
