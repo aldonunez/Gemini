@@ -2326,7 +2326,7 @@ void Compiler::VisitConstDecl( ConstDecl* constDecl )
     // Scalar constants are skipped, because their addresses are never needed:
     // Scalar parameters with RefIn mode are changed to ValueIn mode.
 
-    if ( !IsScalarType( constDecl->Decl->GetType()->GetKind() ) )
+    if ( IsSerializableConstType( *constDecl->Decl->GetType() ) )
         SerializeConstant( (Constant*) constDecl->GetDecl() );
 }
 

@@ -199,6 +199,11 @@ bool IsPtrFuncType( Type& type )
         && ((PointerType&) type).TargetType->GetKind() == TypeKind::Func;
 }
 
+bool IsSerializableConstType( Type& type )
+{
+    return !IsScalarType( type.GetKind() );
+}
+
 static bool IsLValue( const Syntax& node )
 {
     if ( node.Kind != SyntaxKind::Name
@@ -1304,7 +1309,7 @@ ParamSpec BinderVisitor::VisitParamTypeRef( Unique<TypeRef>& typeRef, ParamModif
         break;
 
     case ParamModifier::Const:
-        if ( IsScalarType( paramSpec.Type->GetKind() ) )
+        if ( !IsSerializableConstType( *paramSpec.Type ) )
             paramSpec.Mode = ParamMode::ValueIn;
         else
             paramSpec.Mode = ParamMode::RefIn;
@@ -1908,7 +1913,7 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::sh
 {
     CheckDuplicateSymbol( declNode, table );
 
-    if ( !IsScalarType( type->GetKind() ) )
+    if ( IsSerializableConstType( *type ) )
     {
         if ( type->GetSize() > static_cast<size_t>(GlobalSizeMax - mConstSize) )
             mRep.ThrowSemanticsError( declNode, "Const exceeds capacity" );
@@ -1920,7 +1925,7 @@ std::shared_ptr<Constant> BinderVisitor::AddConst( DeclSyntax* declNode, std::sh
     constant->ModIndex = mModIndex;
     table.insert( SymTable::value_type( declNode->Name, constant ) );
 
-    if ( !IsScalarType( type->GetKind() ) )
+    if ( IsSerializableConstType( *type ) )
         mConstSize += static_cast<GlobalSize>(type->GetSize());
 
     return constant;

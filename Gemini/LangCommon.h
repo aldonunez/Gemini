@@ -171,5 +171,6 @@ bool IsIntegralType( TypeKind kind );
 bool IsClosedArrayType( Type& type );
 bool IsOpenArrayType( Type& type );
 bool IsPtrFuncType( Type& type );
+bool IsSerializableConstType( Type& type );
 
 }
