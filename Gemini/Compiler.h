@@ -363,8 +363,8 @@ private:
     void GenerateFieldAccess( DotExpr* dotExpr, const GenConfig& config, GenStatus& status );
     void GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenStatus& status );
 
-    void SpillConstant( Constant* constant );
-    void SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcOffset, GlobalVec& dstBuffer, GlobalSize dstOffset );
+    void SerializeConstant( Constant* constant );
+    void SerializeConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcOffset, GlobalVec& dstBuffer, GlobalSize dstOffset );
 
     CalculatedAddress CalcAddress( Syntax* expr, bool writable = false );
 

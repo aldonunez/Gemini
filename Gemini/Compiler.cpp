@@ -1986,8 +1986,8 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset 
                 assert( offset >= 0 && offset < GlobalSizeMax );
                 assert( offset < (GlobalSizeMax - constant->Offset) );
 
-                if ( !constant->Spilled )
-                    SpillConstant( constant );
+                if ( !constant->Serialized )
+                    SerializeConstant( constant );
 
                 addrWord = CodeAddr::Build(
                     constant->Offset + offset,
@@ -2300,7 +2300,7 @@ void Compiler::CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode )
     }
     else if ( srcAddr.decl->Kind == DeclKind::Const )
     {
-        assert( ((Constant*) srcAddr.decl)->Spilled );
+        assert( ((Constant*) srcAddr.decl)->Serialized );
         assert( ((Constant*) srcAddr.decl)->Value.Is( ValueKind::Aggregate ) );
 
         auto       constant  = (Constant*) srcAddr.decl;
@@ -2316,7 +2316,7 @@ void Compiler::CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode )
 
 void Compiler::VisitConstDecl( ConstDecl* constDecl )
 {
-    // Constants inside functions are spilled on demand
+    // Constants inside functions are serialized on demand
     if ( mInFunc )
         return;
 
@@ -2327,20 +2327,20 @@ void Compiler::VisitConstDecl( ConstDecl* constDecl )
     // Scalar parameters with RefIn mode are changed to ValueIn mode.
 
     if ( !IsScalarType( constDecl->Decl->GetType()->GetKind() ) )
-        SpillConstant( (Constant*) constDecl->GetDecl() );
+        SerializeConstant( (Constant*) constDecl->GetDecl() );
 }
 
-void Compiler::SpillConstant( Constant* constant )
+void Compiler::SerializeConstant( Constant* constant )
 {
-    // Constants in other modules would have been spilled already
+    // Constants in other modules would have been serialized already
     assert( constant->ModIndex == mModIndex );
-    assert( !constant->Spilled );
+    assert( !constant->Serialized );
 
     auto type = constant->GetType();
 
     assert( type->GetSize() <= (mConsts.size() - mTotalConst) );
 
-    constant->Spilled = true;
+    constant->Serialized = true;
     constant->Offset = mTotalConst;
 
     // Scalar constants are not serialized
@@ -2349,17 +2349,17 @@ void Compiler::SpillConstant( Constant* constant )
     {
         auto& aggregate = constant->Value.GetAggregate();
 
-        SpillConstPart( type.get(), aggregate.Module->GetConsts(), aggregate.Offset, mConsts, mTotalConst );
+        SerializeConstPart( type.get(), aggregate.Module->GetConsts(), aggregate.Offset, mConsts, mTotalConst );
     }
     else
     {
-        THROW_INTERNAL_ERROR( "SpillConstant: ValueKind" );
+        THROW_INTERNAL_ERROR( "SerializeConstant: ValueKind" );
     }
 
     mTotalConst += type->GetSize();
 }
 
-void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcOffset, GlobalVec& dstBuffer, GlobalSize dstOffset )
+void Compiler::SerializeConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcOffset, GlobalVec& dstBuffer, GlobalSize dstOffset )
 {
     if ( IsIntegralType( type->GetKind() ) )
     {
@@ -2378,7 +2378,7 @@ void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcO
 
         for ( GlobalSize i = 0; i < arrayType->Count; i++ )
         {
-            SpillConstPart( elemType, srcBuffer, srcOffset, dstBuffer, dstOffset );
+            SerializeConstPart( elemType, srcBuffer, srcOffset, dstBuffer, dstOffset );
 
             srcOffset += elemType->GetSize();
             dstOffset += elemType->GetSize();
@@ -2390,12 +2390,12 @@ void Compiler::SpillConstPart( Type* type, GlobalVec& srcBuffer, GlobalSize srcO
 
         for ( auto& f : recordType->GetOrderedFields() )
         {
-            SpillConstPart( f->GetType().get(), srcBuffer, srcOffset + f->Offset, dstBuffer, dstOffset + f->Offset );
+            SerializeConstPart( f->GetType().get(), srcBuffer, srcOffset + f->Offset, dstBuffer, dstOffset + f->Offset );
         }
     }
     else
     {
-        THROW_INTERNAL_ERROR( "SpillConstPart: TypeKind" );
+        THROW_INTERNAL_ERROR( "SerializeConstPart: TypeKind" );
     }
 }
 
@@ -2556,7 +2556,7 @@ void Compiler::FinalizeConstData()
 
             if ( constant.Value.Is( ValueKind::Aggregate ) )
             {
-                assert( constant.Spilled );
+                assert( constant.Serialized );
 
                 constant.Value.GetAggregate().Offset = constant.Offset;
             }

@@ -798,7 +798,7 @@ struct Constant : public Declaration
     ValueVariant    Value;
     GlobalSize      Offset = 0;
     ModSize         ModIndex = 0;
-    bool            Spilled = false;
+    bool            Serialized = false;
 
     std::shared_ptr<Gemini::Type>   Type;
 
