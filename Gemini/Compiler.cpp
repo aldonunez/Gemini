@@ -2245,77 +2245,9 @@ void Compiler::GenerateDefvar( VarDecl* varDecl, const GenConfig& config, GenSta
     mGlobalDataGenerator.GenerateGlobalInit( global->Offset, varDecl->Initializer.get() );
 }
 
-GlobalDataGenerator::GlobalDataGenerator(
-    std::vector<int32_t>& globals,
-    EmitFuncAddressFunctor emitFuncAddressFunctor,
-    CopyAggregateFunctor copyAggregateFunctor,
-    ModuleAttrs& mModuleAttrs,
-    Reporter& reporter )
-    :
-    mGlobals( globals ),
-    mEmitFuncAddressFunctor( emitFuncAddressFunctor ),
-    mCopyAggregateFunctor( copyAggregateFunctor ),
-    mModuleAttrs( mModuleAttrs ),
-    mRep( reporter )
-{
-}
-
-void GlobalDataGenerator::GenerateGlobalInit( GlobalSize offset, Syntax* initializer )
-{
-    if ( initializer == nullptr )
-        return;
-
-    auto type = initializer->Type.get();
-
-    if ( IsScalarType( type->GetKind() ) )
-    {
-        EmitGlobalScalar( offset, initializer );
-    }
-    else if ( initializer->Kind == SyntaxKind::ArrayInitializer )
-    {
-        auto arrayType = (ArrayType*) type;
-
-        EmitGlobalArrayInitializer( offset, (InitList*) initializer, arrayType->Count );
-    }
-    else if ( initializer->Kind == SyntaxKind::RecordInitializer )
-    {
-        EmitGlobalRecordInitializer( offset, (RecordInitializer*) initializer );
-    }
-    else
-    {
-        mCopyAggregateFunctor( offset, mGlobals.data(), initializer );
-    }
-}
-
 void Compiler::VisitVarDecl( VarDecl* varDecl )
 {
     GenerateDefvar( varDecl, Config(), Status() );
-}
-
-void GlobalDataGenerator::EmitGlobalScalar( GlobalSize offset, Syntax* valueElem )
-{
-    FolderVisitor folder( mRep.GetLog() );
-
-    auto optVal = folder.Evaluate( valueElem );
-
-    std::optional<std::shared_ptr<Function>> optFunc;
-
-    if ( optVal.has_value() )
-    {
-        if ( optVal.value().Is( ValueKind::Integer ) )
-        {
-            mGlobals[offset] = optVal.value().GetInteger();
-            return;
-        }
-        else
-        {
-            assert( optVal.value().Is( ValueKind::Function ) );
-
-            optFunc = optVal.value().GetFunction();
-        }
-    }
-
-    mEmitFuncAddressFunctor( optFunc, offset, mGlobals.data(), valueElem );
 }
 
 void Compiler::EmitGlobalFuncAddress( std::optional<std::shared_ptr<Function>> optFunc, GlobalSize offset, int32_t* buffer, Syntax* initializer )
@@ -2379,63 +2311,6 @@ void Compiler::CopyGlobalAggregateBlock( GlobalSize offset, Syntax* valueNode )
     else
     {
         THROW_INTERNAL_ERROR( "CopyGlobalAggregateBlock: DeclKind" );
-    }
-}
-
-void GlobalDataGenerator::EmitGlobalArrayInitializer( GlobalSize offset, InitList* initList, size_t size )
-{
-    GlobalSize  i = 0;
-    GlobalSize  globalIndex = offset;
-
-    if ( initList->Values.size() > size )
-        mRep.ThrowSemanticsError( initList, "Array has too many initializers" );
-
-    for ( auto& entry : initList->Values )
-    {
-        GenerateGlobalInit( globalIndex, entry.get() );
-        i++;
-        globalIndex += entry->Type->GetSize();
-    }
-
-    if ( initList->Fill == ArrayFill::Extrapolate && i >= 1 )
-    {
-        // Use unsigned values for well defined overflow
-
-        U32 prevValue = mGlobals[offset + i - 1];
-        U32 step = 0;
-
-        if ( i >= 2 )
-        {
-            step = VmSub( prevValue, mGlobals[offset + i - 2] );
-        }
-
-        for ( ; i < size; i++ )
-        {
-            U32 newValue = VmAdd( prevValue, step );
-
-            mGlobals[offset + i] = newValue;
-            prevValue = newValue;
-        }
-    }
-    else if ( initList->Fill == ArrayFill::Repeat && i >= 1 )
-    {
-        Syntax* lastNode = initList->Values.back().get();
-
-        for ( ; i < size; i++ )
-        {
-            GenerateGlobalInit( globalIndex, lastNode );
-            globalIndex += lastNode->Type->GetSize();
-        }
-    }
-}
-
-void GlobalDataGenerator::EmitGlobalRecordInitializer( GlobalSize offset, RecordInitializer* recordInit )
-{
-    for ( auto& fieldInit : recordInit->Fields )
-    {
-        auto fieldDecl = (FieldStorage*) fieldInit->GetDecl();
-
-        GenerateGlobalInit( offset + fieldDecl->Offset, fieldInit->Initializer.get() );
     }
 }
 
