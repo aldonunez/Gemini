@@ -33,8 +33,8 @@ namespace Gemini
 Compiler::Compiler( ICompilerEnv* env, ICompilerLog* log, CompilerAttrs& globalAttrs, ModSize modIndex ) :
     mEnv( env ),
     mRep( log ),
-    mGlobalAttrs( globalAttrs ),
-    mModIndex( modIndex )
+    mModIndex( modIndex ),
+    mGlobalAttrs( globalAttrs )
 {
     if ( env == nullptr )
         throw std::invalid_argument( "env" );

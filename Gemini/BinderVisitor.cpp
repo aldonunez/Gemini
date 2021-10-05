@@ -236,9 +236,9 @@ BinderVisitor::BinderVisitor(
     mGlobalTable( globalTable ),
     mModuleTable( moduleTable ),
     mPublicTable( publicTable ),
-    mGlobalAttrs( globalAttrs ),
     mRep( log ),
-    mModIndex( modIndex )
+    mModIndex( modIndex ),
+    mGlobalAttrs( globalAttrs )
 {
     mSymStack.push_back( &mGlobalTable );
 

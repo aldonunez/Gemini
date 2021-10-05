@@ -285,9 +285,6 @@ private:
     AddrRefVec      mLocalAddrRefs;
     MemTransferVec  mDeferredGlobals;
 
-    CompilerAttrs&                  mGlobalAttrs;
-    std::shared_ptr<ModuleAttrs>    mModuleAttrs;
-
     GlobalDataGenerator mGlobalDataGenerator
     {
         mGlobals,
@@ -305,6 +302,9 @@ private:
     ICompilerEnv*   mEnv = nullptr;
     Reporter        mRep;
     ModSize         mModIndex = 0;
+
+    CompilerAttrs& mGlobalAttrs;
+    std::shared_ptr<ModuleAttrs>    mModuleAttrs;
 
     std::vector<GenParams> mGenStack;
 
