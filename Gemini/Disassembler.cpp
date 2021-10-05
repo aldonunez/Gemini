@@ -7,6 +7,7 @@
 #include "pch.h"
 #include "Disassembler.h"
 #include "OpCodes.h"
+#include "VmCommon.h"
 #include <stdexcept>
 #include <stdio.h>
 
@@ -70,7 +71,7 @@ static const char* gPrimitives[] =
 namespace Gemini
 {
 
-Disassembler::Disassembler( const U8* code, bool showInstAddr, ConstFormat constFormat )
+Disassembler::Disassembler( const uint8_t* code, bool showInstAddr, ConstFormat constFormat )
     :   mCodeBin( code ),
         mCodePtr( code ),
         mShowInstAddr( showInstAddr ),
@@ -85,10 +86,10 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     if ( disassembly == nullptr )
         throw std::invalid_argument( "disassembly" );
 
-    U32 addr = static_cast<int32_t>(mCodePtr - mCodeBin);
+    uint32_t addr = static_cast<int32_t>(mCodePtr - mCodeBin);
 
-    const U8* origCodePtr = mCodePtr;
-    U8 op = *mCodePtr++;
+    const uint8_t* origCodePtr = mCodePtr;
+    uint8_t op = *mCodePtr++;
 
     const char* opName = nullptr;
     int charsWritten = 0;
@@ -140,14 +141,14 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_LDLOC:
     case OP_STLOC:
         {
-            int value = *(U8*) mCodePtr++;
+            int value = *(uint8_t*) mCodePtr++;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " %u", value );
         }
         break;
 
     case OP_LDC_S:
         {
-            int value = *(I8*) mCodePtr++;
+            int value = *(int8_t*) mCodePtr++;
             char valueStr[ sizeof "-128" ] = "";
             const char* Format = (mConstFormat == HexConst) ? "$%X" : "%d";
             snprintf( valueStr, sizeof valueStr, Format, value );
@@ -159,7 +160,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
     case OP_STMOD:
         {
             int iMod = ReadU8( mCodePtr );
-            U16 dataAddr = ReadU16( mCodePtr );
+            uint16_t dataAddr = ReadU16( mCodePtr );
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten), " $%02X:%04X", iMod, dataAddr );
         }
         break;
@@ -188,8 +189,8 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 
     case OP_CALL:
         {
-            U8 callFlags = *mCodePtr++;
-            U32 funcAddr = ReadU24( mCodePtr );
+            uint8_t callFlags = *mCodePtr++;
+            uint32_t funcAddr = ReadU24( mCodePtr );
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),
                 "%s(%d) $%06X",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),
@@ -199,7 +200,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 
     case OP_CALLI:
         {
-            U8 callFlags = *mCodePtr++;
+            uint8_t callFlags = *mCodePtr++;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),
                 "%s(%d)",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),
@@ -209,7 +210,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 
     case OP_PRIM:
         {
-            int primitive = *(U8*) mCodePtr++;
+            int primitive = *(uint8_t*) mCodePtr++;
             if ( primitive >= PRIM_MAXPRIMITIVE )
                 return -1;
             const char* primitiveName = gPrimitives[primitive];
@@ -221,9 +222,9 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 
     case OP_CALLM:
         {
-            U8  callFlags = *mCodePtr++;
-            U8  iMod = ReadU8( mCodePtr );
-            U32 offs = ReadU24( mCodePtr );
+            uint8_t  callFlags = *mCodePtr++;
+            uint8_t  iMod = ReadU8( mCodePtr );
+            uint32_t offs = ReadU24( mCodePtr );
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),
                 "%s(%d) $%02X:%06X",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),
@@ -233,8 +234,8 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 
     case OP_CALLNATIVE:
         {
-            U8 callFlags = *mCodePtr++;
-            U32 id = ReadU32( mCodePtr );
+            uint8_t callFlags = *mCodePtr++;
+            uint32_t id = ReadU32( mCodePtr );
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),
                 "%s(%d) $%08X",
                 (CallFlags::GetAutoPop( callFlags ) ? ".POP" : ""),
@@ -244,7 +245,7 @@ int32_t Disassembler::Disassemble( char* disassembly, size_t capacity )
 
     case OP_CALLNATIVE_S:
         {
-            U8 callFlags = *mCodePtr++;
+            uint8_t callFlags = *mCodePtr++;
             int id = *mCodePtr;
             mCodePtr += 1;
             charsWritten = snprintf( disassembly, (capacity - totalCharsWritten),

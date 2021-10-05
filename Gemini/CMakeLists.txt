@@ -21,7 +21,6 @@ set(GEMINI_PUBLIC_HEADERS
     LispyParser.h
     Machine.h
     Syntax.h
-    VmCommon.h
 )
 
 set_target_properties(geminivm PROPERTIES PUBLIC_HEADER "${GEMINI_PUBLIC_HEADERS}")

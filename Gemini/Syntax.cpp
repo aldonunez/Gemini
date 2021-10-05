@@ -20,7 +20,7 @@ Declaration* Syntax::GetDecl()
 
 std::shared_ptr<Declaration> Syntax::GetSharedDecl()
 {
-    return std::shared_ptr<Declaration>();
+    return {};
 }
 
 NameExpr::NameExpr()

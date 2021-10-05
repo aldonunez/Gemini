@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include "VmCommon.h"
-
 
 namespace Gemini
 {
@@ -22,13 +20,13 @@ public:
     };
 
 private:
-    const U8*   mCodeBin;
-    const U8*   mCodePtr;
-    bool        mShowInstAddr;
-    ConstFormat mConstFormat;
+    const uint8_t*  mCodeBin;
+    const uint8_t*  mCodePtr;
+    bool            mShowInstAddr;
+    ConstFormat     mConstFormat;
 
 public:
-    Disassembler( const U8* code, bool showInstAddr = true, ConstFormat constFormat = DecimalConst );
+    Disassembler( const uint8_t* code, bool showInstAddr = true, ConstFormat constFormat = DecimalConst );
 
     int32_t Disassemble( char* disassembly, size_t capacity );
 };

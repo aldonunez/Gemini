@@ -23,4 +23,12 @@ constexpr ParamSize     ParamSizeMax = 127;
 constexpr DataSize      DataSizeMax = GlobalSizeMax;
 constexpr ModSize       ModSizeMax = 126;
 
+constexpr uint8_t       SENTINEL_SIZE = 7;
+constexpr uint8_t       MODULE_CODE_ALIGNMENT = 4;
+constexpr uint8_t       FRAME_WORDS = 2;
+
+constexpr uint32_t      MAX_MODULE_CODE_SIZE = (CodeSizeMax - MODULE_CODE_ALIGNMENT);
+constexpr uint16_t      MAX_MODULE_DATA_SIZE = GlobalSizeMax;
+constexpr uint8_t       MAX_NATIVE_NESTING = 32;
+
 }

@@ -5,6 +5,7 @@
 // See the LICENSE.txt file for details.
 
 #include "pch.h"
+#include "Common.h"
 #include "Machine.h"
 #include "OpCodes.h"
 

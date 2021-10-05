@@ -15,25 +15,6 @@
 namespace Gemini
 {
 
-typedef uint8_t U8;
-typedef uint16_t U16;
-typedef uint32_t U32;
-typedef uint64_t U64;
-
-typedef int8_t I8;
-typedef int16_t I16;
-typedef int32_t I32;
-
-
-constexpr uint8_t SENTINEL_SIZE = 7;
-constexpr uint8_t MODULE_CODE_ALIGNMENT = 4;
-constexpr uint8_t FRAME_WORDS = 2;
-
-constexpr uint32_t MAX_MODULE_CODE_SIZE = (CodeSizeMax - MODULE_CODE_ALIGNMENT);
-constexpr uint16_t MAX_MODULE_DATA_SIZE = GlobalSizeMax;
-constexpr uint8_t  MAX_NATIVE_NESTING = 32;
-
-
 template <typename T, size_t Size = sizeof( T )>
 T ReadPacked( const uint8_t*& p )
 {
@@ -178,11 +159,11 @@ class CallFlags
     };
 
 public:
-    static U8 Build( U8 count, bool autoPop )
+    static uint8_t Build( uint8_t count, bool autoPop )
     {
         assert( (count & CountMask) == count );
 
-        U8 flags = count;
+        uint8_t flags = count;
 
         if ( autoPop )
             flags |= AutoPop;
@@ -190,12 +171,12 @@ public:
         return flags;
     }
 
-    static bool GetAutoPop( U8 flags )
+    static bool GetAutoPop( uint8_t flags )
     {
         return flags & AutoPop;
     }
 
-    static U8 GetCount( U8 flags )
+    static uint8_t GetCount( uint8_t flags )
     {
         return flags & CountMask;
     }

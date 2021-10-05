@@ -8,7 +8,6 @@
 
 #include "LangCommon.h"
 #include "Syntax.h"
-#include "VmCommon.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -255,8 +254,8 @@ private:
     typedef std::vector<Unique<Unit>> UnitVec;
     typedef std::map<int32_t, std::shared_ptr<ModuleDeclaration>> ModIdMap;
 
-    using CodeVec           = std::vector<U8>;
-    using GlobalVec         = std::vector<I32>;
+    using CodeVec           = std::vector<uint8_t>;
+    using GlobalVec         = std::vector<int32_t>;
     using MemTransferVec    = std::vector<MemTransfer>;
 
     struct GenParams
@@ -327,12 +326,12 @@ public:
     CompilerErr Compile();
 
     void GetStats( CompilerStats& stats );
-    U8* GetCode();
-    size_t GetCodeSize();
-    I32* GetData();
-    size_t GetDataSize();
-    I32* GetConst();
-    size_t GetConstSize();
+    uint8_t* GetCode();
+    size_t   GetCodeSize();
+    int32_t* GetData();
+    size_t   GetDataSize();
+    int32_t* GetConst();
+    size_t   GetConstSize();
     std::shared_ptr<ModuleDeclaration> GetMetadata( const char* modName );
 
 private:
@@ -373,7 +372,7 @@ private:
     void PushDeferredGlobal( Type& type, ModuleSection srcSection, ModSize srcModIndex, GlobalSize srcOffset, GlobalSize dstOffset );
 
     void EmitLoadConstant( int32_t value );
-    void EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset );
+    void EmitLoadAddress( Syntax* node, Declaration* baseDecl, int32_t offset );
     void EmitLoadFuncAddress( Function* func );
     void EmitFuncAddress( Function* func, CodeRef funcRef );
     void EmitLoadScalar( Syntax* node, Declaration* decl, int32_t offset );
@@ -414,7 +413,7 @@ private:
     void GenerateGeneralCase( CaseExpr* caseExpr, const GenConfig& config, GenStatus& status );
 
     void GenerateUnaryPrimitive( Syntax* elem, const GenConfig& config, GenStatus& status );
-    void GenerateBinaryPrimitive( BinaryExpr* binary, U8 primitive, const GenConfig& config, GenStatus& status );
+    void GenerateBinaryPrimitive( BinaryExpr* binary, uint8_t primitive, const GenConfig& config, GenStatus& status );
 
     void GenerateProc( ProcDecl* procDecl, Function* func );
     void GenerateImplicitProgn( StatementList* stmtList, const GenConfig& config, GenStatus& status );
@@ -433,7 +432,7 @@ private:
     // And and Or plumbing
     void ElideTrue( PatchChain* trueChain, PatchChain* falseChain );
     void ElideFalse( PatchChain* trueChain, PatchChain* falseChain );
-    U8 InvertJump( U8 opCode );
+    uint8_t InvertJump( uint8_t opCode );
 
     // Backpatching
     void Patch( PatchChain* chain, int32_t targetIndex = -1 );
@@ -442,12 +441,12 @@ private:
     void PushPatch( PatchChain* chain, int32_t patchLoc );
     void PushPatch( PatchChain* chain );
     void PopPatch( PatchChain* chain );
-    void PatchCalls( FuncPatchChain* chain, U32 addr );
+    void PatchCalls( FuncPatchChain* chain, uint32_t addr );
     void PushFuncPatch( const std::string& name, CodeRef ref );
     void CopyDeferredGlobals();
 
-    I32 GetSyntaxValue( Syntax* node, const char* message = nullptr );
-    std::optional<I32> GetFinalOptionalSyntaxValue( Syntax* node );
+    int32_t GetSyntaxValue( Syntax* node, const char* message = nullptr );
+    std::optional<int32_t> GetFinalOptionalSyntaxValue( Syntax* node );
 
     // Stack usage
     void IncreaseExprDepth( LocalSize amount = 1 );
@@ -462,12 +461,12 @@ private:
     void DeleteCode( size_t start, size_t size );
     void EmitBranch( OpCode opcode, PatchChain* chain );
     void Emit( OpCode opcode );
-    void EmitU8( OpCode opcode, U8 operand );
-    void EmitU16( OpCode opcode, U16 operand );
-    void EmitU24( OpCode opcode, U32 operand );
-    void EmitU32( OpCode opcode, U32 operand );
-    void EmitOpenIndex( OpCode opcode, U32 stride, U32 bound );
-    void EmitModAccess( OpCode opcode, U8 mod, U16 addr );
+    void EmitU8( OpCode opcode, uint8_t operand );
+    void EmitU16( OpCode opcode, uint16_t operand );
+    void EmitU24( OpCode opcode, uint32_t operand );
+    void EmitU32( OpCode opcode, uint32_t operand );
+    void EmitOpenIndex( OpCode opcode, uint32_t stride, uint32_t bound );
+    void EmitModAccess( OpCode opcode, uint8_t mod, uint16_t addr );
 
 
     // Visitor

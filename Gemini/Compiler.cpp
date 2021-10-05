@@ -10,6 +10,7 @@
 #include "Disassembler.h"
 #include "FolderVisitor.h"
 #include "OpCodes.h"
+#include "VmCommon.h"
 #include <algorithm>
 #include <stdarg.h>
 #include <stdexcept>
@@ -117,7 +118,7 @@ void Compiler::GetStats( CompilerStats& stats )
     stats = mStats;
 }
 
-U8* Compiler::GetCode()
+uint8_t* Compiler::GetCode()
 {
     return mCodeBin.data();
 }
@@ -127,7 +128,7 @@ size_t Compiler::GetCodeSize()
     return mCodeBin.size();
 }
 
-I32* Compiler::GetData()
+int32_t* Compiler::GetData()
 {
     return mGlobals.data();
 }
@@ -137,7 +138,7 @@ size_t Compiler::GetDataSize()
     return mGlobals.size();
 }
 
-I32* Compiler::GetConst()
+int32_t* Compiler::GetConst()
 {
     return mConsts.data();
 }
@@ -297,7 +298,7 @@ void Compiler::EmitLoadConstant( int32_t value )
 {
     if ( (value >= INT8_MIN) && (value <= INT8_MAX) )
     {
-        EmitU8( OP_LDC_S, (U8) value );
+        EmitU8( OP_LDC_S, static_cast<uint8_t>(value) );
     }
     else
     {
@@ -489,7 +490,7 @@ void Compiler::VisitCallOrSymbolExpr( CallOrSymbolExpr* callOrSymbol )
 void Compiler::GenerateArithmetic( BinaryExpr* binary, const GenConfig& config, GenStatus& status )
 {
     auto&   op = binary->Op;
-    U8      primitive;
+    uint8_t primitive;
 
     if ( op == "+" )
         primitive = PRIM_ADD;
@@ -889,7 +890,7 @@ void Compiler::VisitAssignmentExpr( AssignmentExpr* assignment )
 
 void Compiler::VisitProcDecl( ProcDecl* procDecl )
 {
-    U32 addr = static_cast<CodeSize>( mCodeBin.size() );
+    uint32_t addr = static_cast<CodeSize>( mCodeBin.size() );
 
     auto func = (Function*) procDecl->Decl.get();
 
@@ -943,7 +944,7 @@ void Compiler::EmitFuncAddress( Function* func, CodeRef funcRef )
         PushFuncPatch( func->Name, funcRef );
     }
 
-    U32 addrWord = CodeAddr::Build( func->Address, func->ModIndex );
+    uint32_t addrWord = CodeAddr::Build( func->Address, func->ModIndex );
 
     switch ( funcRef.Kind )
     {
@@ -1095,9 +1096,9 @@ void Compiler::EmitLocalArrayInitializer( LocalSize offset, ArrayType* localType
     {
         // Use unsigned values for well defined overflow
 
-        size_t count = initList->Values.size();
-        U32 prevValue = 0;
-        U32 step = 0;
+        size_t   count = initList->Values.size();
+        uint32_t prevValue = 0;
+        uint32_t step = 0;
 
         prevValue = GetSyntaxValue( initList->Values.back().get(), "Array initializer extrapolation requires a constant" );
 
@@ -1110,10 +1111,10 @@ void Compiler::EmitLocalArrayInitializer( LocalSize offset, ArrayType* localType
 
         for ( ; i < size; i++ )
         {
-            U32 newValue = VmAdd( prevValue, step );
+            uint32_t newValue = VmAdd( prevValue, step );
 
             EmitLoadConstant( newValue );
-            EmitU8( OP_STLOC, (U8) locIndex );
+            EmitU8( OP_STLOC, static_cast<uint8_t>(locIndex) );
             locIndex--;
             DecreaseExprDepth();
 
@@ -1212,7 +1213,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
 
     ParamSize argCount = GenerateCallArgs( arguments, funcType );
 
-    U8 callFlags = CallFlags::Build( argCount, config.discard );
+    uint8_t callFlags = CallFlags::Build( argCount, config.discard );
 
     if ( decl == nullptr )
     {
@@ -1241,8 +1242,8 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
     }
     else
     {
-        U8  opCode = 0;
-        I32 id = 0;
+        uint8_t opCode = 0;
+        int32_t id = 0;
 
         if ( decl->Kind == DeclKind::Func )
         {
@@ -1272,7 +1273,7 @@ void Compiler::GenerateCall( Declaration* decl, std::vector<Unique<Syntax>>& arg
             size_t curIndex = ReserveCode( 3 );
             mCodeBin[curIndex + 0] = opCode;
             mCodeBin[curIndex + 1] = callFlags;
-            mCodeBin[curIndex + 2] = (U8) id;
+            mCodeBin[curIndex + 2] = static_cast<uint8_t>(id);
 
             DISASSEMBLE( &mCodeBin[curIndex], 3 );
         }
@@ -1313,7 +1314,7 @@ void Compiler::GenerateFor( ForStatement* forStmt, const GenConfig& config, GenS
 
     auto local = (LocalStorage*) forStmt->IndexDecl.get();
 
-    U8      primitive;
+    uint8_t primitive;
     int32_t step;
 
     if ( forStmt->Comparison == ForComparison::Below )
@@ -1601,9 +1602,9 @@ void Compiler::VisitUnaryExpr( UnaryExpr* unary )
 
 void Compiler::GenerateComparison( BinaryExpr* binary, const GenConfig& config, GenStatus& status )
 {
-    auto& op = binary->Op;
-    U8  positivePrimitive;
-    U8  negativePrimitive;
+    auto&   op = binary->Op;
+    uint8_t positivePrimitive;
+    uint8_t negativePrimitive;
 
     if ( op == "=" )
     {
@@ -1731,7 +1732,7 @@ void Compiler::Atomize( ConjSpec* spec, BinaryExpr* binary, bool invert, bool di
     }
 }
 
-U8 Compiler::InvertJump( U8 opCode )
+uint8_t Compiler::InvertJump( uint8_t opCode )
 {
     switch ( opCode )
     {
@@ -1848,7 +1849,7 @@ void Compiler::Patch( PatchChain* chain, int32_t targetIndex )
     chain->PatchedInstIndex = target;
 }
 
-void Compiler::PatchCalls( FuncPatchChain* chain, U32 addr )
+void Compiler::PatchCalls( FuncPatchChain* chain, uint32_t addr )
 {
     for ( FuncInstPatch* link = chain->First; link != nullptr; link = link->Next )
     {
@@ -1886,7 +1887,7 @@ void Compiler::GenerateUnaryPrimitive( Syntax* elem, const GenConfig& config, Ge
     }
 }
 
-void Compiler::GenerateBinaryPrimitive( BinaryExpr* binary, U8 primitive, const GenConfig& config, GenStatus& status )
+void Compiler::GenerateBinaryPrimitive( BinaryExpr* binary, uint8_t primitive, const GenConfig& config, GenStatus& status )
 {
     if ( config.discard )
     {
@@ -1905,7 +1906,7 @@ void Compiler::GenerateBinaryPrimitive( BinaryExpr* binary, U8 primitive, const 
     }
 }
 
-void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, I32 offset )
+void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, int32_t offset )
 {
     if ( baseDecl == nullptr )
     {
@@ -2564,7 +2565,7 @@ void Compiler::FinalizeConstData()
     }
 }
 
-I32 Compiler::GetSyntaxValue( Syntax* node, const char* message )
+int32_t Compiler::GetSyntaxValue( Syntax* node, const char* message )
 {
     auto optValue = GetFinalOptionalSyntaxValue( node );
 
@@ -2797,7 +2798,7 @@ void Compiler::Emit( OpCode opcode )
     DISASSEMBLE( &mCodeBin[curIndex], 1 );
 }
 
-void Compiler::EmitU8( OpCode opcode, U8 operand )
+void Compiler::EmitU8( OpCode opcode, uint8_t operand )
 {
     size_t curIndex = ReserveCode( 2 );
 
@@ -2807,7 +2808,7 @@ void Compiler::EmitU8( OpCode opcode, U8 operand )
     DISASSEMBLE( &mCodeBin[curIndex], 2 );
 }
 
-void Compiler::EmitU16( OpCode opcode, U16 operand )
+void Compiler::EmitU16( OpCode opcode, uint16_t operand )
 {
     size_t curIndex = ReserveCode( 3 );
 
@@ -2818,7 +2819,7 @@ void Compiler::EmitU16( OpCode opcode, U16 operand )
     DISASSEMBLE( &mCodeBin[curIndex], 3 );
 }
 
-void Compiler::EmitU24( OpCode opcode, U32 operand )
+void Compiler::EmitU24( OpCode opcode, uint32_t operand )
 {
     size_t curIndex = ReserveCode( 4 );
 
@@ -2829,7 +2830,7 @@ void Compiler::EmitU24( OpCode opcode, U32 operand )
     DISASSEMBLE( &mCodeBin[curIndex], 4 );
 }
 
-void Compiler::EmitU32( OpCode opcode, U32 operand )
+void Compiler::EmitU32( OpCode opcode, uint32_t operand )
 {
     size_t curIndex = ReserveCode( 5 );
 
@@ -2840,7 +2841,7 @@ void Compiler::EmitU32( OpCode opcode, U32 operand )
     DISASSEMBLE( &mCodeBin[curIndex], 5 );
 }
 
-void Compiler::EmitOpenIndex( OpCode opcode, U32 stride, U32 bound )
+void Compiler::EmitOpenIndex( OpCode opcode, uint32_t stride, uint32_t bound )
 {
     size_t curIndex = ReserveCode( 7 );
 
@@ -2852,7 +2853,7 @@ void Compiler::EmitOpenIndex( OpCode opcode, U32 stride, U32 bound )
     DISASSEMBLE( &mCodeBin[curIndex], 7 );
 }
 
-void Compiler::EmitModAccess( OpCode opcode, U8 mod, U16 addr )
+void Compiler::EmitModAccess( OpCode opcode, uint8_t mod, uint16_t addr )
 {
     size_t curIndex = ReserveCode( 4 );
 

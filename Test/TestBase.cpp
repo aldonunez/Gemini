@@ -6,6 +6,7 @@
 #include "../Gemini/Compiler.h"
 #include "../Gemini/Disassembler.h"
 #include "../Gemini/Machine.h"
+#include <limits.h>
 #include <string.h>
 
 #define ENABLE_DISASSEMBLY 0
@@ -15,8 +16,7 @@ using namespace Gemini;
 
 int NatAdd( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( machine == nullptr || argc != 2 || args == nullptr )
-        return ERR_BAD_ARG;
+    REQUIRE( (machine != nullptr && argc == 2 && args != nullptr) );
 
     machine->PushCell( args[0] + args[1] );
     return ERR_NONE;
@@ -24,8 +24,7 @@ int NatAdd( Machine* machine, U8 argc, CELL* args, UserContext context )
 
 int NatMul( Machine* machine, U8 argc, CELL* args, UserContext context )
 {
-    if ( machine == nullptr || argc != 2 || args == nullptr )
-        return ERR_BAD_ARG;
+    REQUIRE( (machine != nullptr && argc == 2 && args != nullptr) );
 
     machine->PushCell( args[0] * args[1] );
     return ERR_NONE;

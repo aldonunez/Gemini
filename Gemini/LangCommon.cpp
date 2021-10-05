@@ -276,8 +276,8 @@ void GlobalDataGenerator::EmitGlobalArrayInitializer( GlobalSize offset, InitLis
     {
         // Use unsigned values for well defined overflow
 
-        U32 prevValue = mGlobals[offset + i - 1];
-        U32 step = 0;
+        uint32_t prevValue = mGlobals[offset + i - 1];
+        uint32_t step = 0;
 
         if ( i >= 2 )
         {
@@ -286,7 +286,7 @@ void GlobalDataGenerator::EmitGlobalArrayInitializer( GlobalSize offset, InitLis
 
         for ( ; i < size; i++ )
         {
-            U32 newValue = VmAdd( prevValue, step );
+            uint32_t newValue = VmAdd( prevValue, step );
 
             mGlobals[offset + i] = newValue;
             prevValue = newValue;
