@@ -117,6 +117,10 @@ private:
     const Module*   mMod;
     Module          mStackMod;
 
+#if defined( GEMINIVM_TRACK_MAX_STACK_USE )
+    CELL*           mMinSP = nullptr;
+#endif
+
 public:
     Machine();
 
@@ -125,8 +129,9 @@ public:
 
     bool IsRunning() const;
     UserContext GetScriptContext() const;
-    U32 GetPC() const;
     U8 GetModIndex() const;
+    U32 GetPC() const;
+    U16 GetMaxStackUsed() const;
 
     CELL* Start( U8 modIndex, U32 address, U8 argCount );
     CELL* Start( CELL addrWord, U8 argCount );
@@ -144,6 +149,8 @@ private:
     int CallNative( NativeFunc proc, U8 argCount, UserContext context );
 
     int SwitchModule( U8 newModIndex );
+
+    void DecrementSP( U16 count );
 
     void Push( CELL word );
     CELL Pop();

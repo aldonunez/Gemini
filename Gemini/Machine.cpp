@@ -98,14 +98,23 @@ UserContext Machine::GetScriptContext() const
     return mScriptCtx;
 }
 
+U8 Machine::GetModIndex() const
+{
+    return mModIndex;
+}
+
 U32 Machine::GetPC() const
 {
     return mPC;
 }
 
-U8 Machine::GetModIndex() const
+U16 Machine::GetMaxStackUsed() const
 {
-    return mModIndex;
+#if defined( GEMINIVM_TRACK_MAX_STACK_USE )
+    return static_cast<U16>(&mStack[mStackSize] - mMinSP);
+#else
+    return 0;
+#endif
 }
 
 CELL* Machine::Start( U8 modIndex, U32 address, U8 argCount )
@@ -120,10 +129,10 @@ CELL* Machine::Start( U8 modIndex, U32 address, U8 argCount )
         || address >= module->CodeSize - SENTINEL_SIZE )
         return nullptr;
 
-    if ( mSP - mStack < argCount )
+    if ( WouldOverflow( argCount ) )
         return nullptr;
 
-    mSP -= argCount;
+    DecrementSP( argCount );
 
     CELL* args = mSP;
 
@@ -155,6 +164,10 @@ void Machine::Reset()
 {
     mSP = &mStack[mStackSize];
     mFramePtr = mStackSize;
+
+#if defined( GEMINIVM_TRACK_MAX_STACK_USE )
+    mMinSP = mSP;
+#endif
 
     mNativeContinuation = nullptr;
     mNativeContinuationContext = 0;
@@ -261,8 +274,8 @@ int Machine::Run()
                 if ( WouldUnderflow() )
                     return ERR_STACK_UNDERFLOW;
 
-                mSP--;
-                *mSP = *(mSP + 1);
+                DecrementSP( 1 );
+                *mSP = mSP[1];
             }
             break;
 
@@ -274,7 +287,7 @@ int Machine::Run()
                 if ( WouldUnderflow( 2 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                mSP--;
+                DecrementSP( 1 );
                 *mSP = mSP[2];
             }
             break;
@@ -286,7 +299,7 @@ int Machine::Run()
                 if ( WouldOverflow( count ) )
                     return ERR_STACK_OVERFLOW;
 
-                mSP -= count;
+                DecrementSP( count );
 
                 std::fill( mSP, mSP + count, 0 );
             }
@@ -645,8 +658,8 @@ int Machine::Run()
                     return ERR_STACK_UNDERFLOW;
 
                 CELL source = mSP[1];
-                CELL dest = mSP[0];
-                U32  size = ReadU24( codePtr );
+                CELL dest   = mSP[0];
+                U32  size   = ReadU24( codePtr );
 
                 mSP += 2;
 
@@ -668,9 +681,9 @@ int Machine::Run()
                     return ERR_STACK_UNDERFLOW;
 
                 CELL srcCount = mSP[3];
-                CELL srcAddr = mSP[2];
+                CELL srcAddr  = mSP[2];
                 CELL dstCount = mSP[1];
-                CELL dstAddr = mSP[0];
+                CELL dstAddr  = mSP[0];
                 U32  elemSize = ReadU24( codePtr );
 
                 mSP += 4;
@@ -702,10 +715,10 @@ int Machine::Run()
                 if ( WouldUnderflow( 2 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                U32  base = mSP[1];
-                CELL index = mSP[0];
+                U32  base   = mSP[1];
+                CELL index  = mSP[0];
                 U32  stride = ReadU24( codePtr );
-                U32  bound = ReadU24( codePtr );
+                U32  bound  = ReadU24( codePtr );
 
                 if ( index < 0 || static_cast<U32>(index) >= bound )
                     return ERR_BOUND;
@@ -725,9 +738,9 @@ int Machine::Run()
                 if ( WouldUnderflow( 3 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                CELL bound = mSP[2];
-                U32  base = mSP[1];
-                CELL index = mSP[0];
+                CELL bound  = mSP[2];
+                U32  base   = mSP[1];
+                CELL index  = mSP[0];
                 U32  stride = ReadU24( codePtr );
 
                 if ( index < 0 || index >= bound || bound < 0 )
@@ -748,10 +761,10 @@ int Machine::Run()
                 if ( WouldUnderflow( 4 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                CELL bound = mSP[3];
-                U32  base = mSP[2];
-                CELL index = mSP[1];
-                CELL end = mSP[0];
+                CELL bound  = mSP[3];
+                U32  base   = mSP[2];
+                CELL index  = mSP[1];
+                CELL end    = mSP[0];
                 U32  stride = ReadU24( codePtr );
 
                 if ( end == -1 )
@@ -777,10 +790,10 @@ int Machine::Run()
                 if ( WouldUnderflow( 4 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                CELL bound = mSP[3];
-                U32  base = mSP[2];
-                CELL index = mSP[1];
-                CELL end = mSP[0];
+                CELL bound  = mSP[3];
+                U32  base   = mSP[2];
+                CELL index  = mSP[1];
+                CELL end    = mSP[0];
                 U32  stride = ReadU24( codePtr );
 
                 if ( end == -1 )
@@ -805,11 +818,11 @@ int Machine::Run()
                 if ( WouldUnderflow( 3 ) )
                     return ERR_STACK_UNDERFLOW;
 
-                U32  base = mSP[2];
-                CELL index = mSP[1];
-                CELL end = mSP[0];
+                U32  base   = mSP[2];
+                CELL index  = mSP[1];
+                CELL end    = mSP[0];
                 U32  stride = ReadU24( codePtr );
-                U32  bound = ReadU24( codePtr );
+                U32  bound  = ReadU24( codePtr );
 
                 if ( end == -1 )
                     end = bound;
@@ -834,7 +847,7 @@ int Machine::Run()
                 if ( WouldUnderflow() )
                     return ERR_STACK_UNDERFLOW;
 
-                U32  base = mSP[0];
+                U32  base   = mSP[0];
                 U32  offset = ReadU24( codePtr );
 
                 auto newAddr = base + static_cast<U64>(offset);
@@ -868,15 +881,15 @@ Done:
 
 StackFrame* Machine::PushFrame( const U8* curCodePtr, U8 callFlags )
 {
-    if ( (mSP - mStack) < FRAME_WORDS )
+    if ( WouldOverflow( FRAME_WORDS ) )
         return nullptr;
 
     if ( WouldUnderflow( CallFlags::GetCount( callFlags ) ) )
         return nullptr;
 
-    mSP -= FRAME_WORDS;
-    auto frame = (StackFrame*) mSP;
+    DecrementSP( FRAME_WORDS );
 
+    auto frame = reinterpret_cast<StackFrame*>( mSP );
     U32 retAddr = static_cast<U32>( curCodePtr - mMod->CodeBase );
 
     frame->RetAddrWord = CodeAddr::Build( retAddr, mModIndex );
@@ -895,7 +908,7 @@ int Machine::PopFrame()
     if ( (mFramePtr + FRAME_WORDS) > mStackSize )
         return ERR_STACK_UNDERFLOW;
 
-    auto  curFrame = (StackFrame*) &mStack[mFramePtr];
+    auto  curFrame = reinterpret_cast<StackFrame*>( &mStack[mFramePtr] );
     bool  autoPop = CallFlags::GetAutoPop( curFrame->CallFlags );
     U8    argCount = CallFlags::GetCount( curFrame->CallFlags );
 
@@ -1070,9 +1083,21 @@ int Machine::SwitchModule( U8 newModIndex )
     return ERR_NONE;
 }
 
+void Machine::DecrementSP( U16 count )
+{
+    assert( count <= (mSP - mStack) );
+
+    mSP -= count;
+
+#if defined( GEMINIVM_TRACK_MAX_STACK_USE )
+    if ( mSP < mMinSP )
+        mMinSP = mSP;
+#endif
+}
+
 void Machine::Push( CELL word )
 {
-    mSP--;
+    DecrementSP( 1 );
     *mSP = word;
 }
 
