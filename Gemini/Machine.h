@@ -33,18 +33,19 @@ enum VmError
 };
 
 
-typedef uint8_t  U8;
-typedef uint16_t U16;
-typedef uint32_t U32;
-typedef uint64_t U64;
+typedef uint8_t     U8;
+typedef uint16_t    U16;
+typedef uint32_t    U32;
+typedef uint64_t    U64;
 
-typedef int8_t  I8;
-typedef int16_t I16;
-typedef int32_t I32;
+typedef int8_t      I8;
+typedef int16_t     I16;
+typedef int32_t     I32;
 
-typedef int32_t   CELL;
-typedef uint32_t  UCELL;
-typedef uintptr_t UserContext;
+typedef int32_t     CELL;
+typedef uint32_t    UCELL;
+typedef uintptr_t   UserContext;
+
 
 struct Module
 {
@@ -84,6 +85,7 @@ struct StackFrame
     U8              CallFlags;
     U32             RetAddrWord;
 };
+
 
 class Machine : private IEnvironment
 {
@@ -125,8 +127,8 @@ public:
 
     bool IsRunning() const;
     UserContext GetScriptContext() const;
-    U32 GetPC() const;
     U8 GetModIndex() const;
+    U32 GetPC() const;
 
     CELL* Start( U8 modIndex, U32 address, U8 argCount );
     CELL* Start( CELL addrWord, U8 argCount );
@@ -144,6 +146,8 @@ private:
     int CallNative( NativeFunc proc, U8 argCount, UserContext context );
 
     int SwitchModule( U8 newModIndex );
+
+    void DecrementSP( U16 count );
 
     void Push( CELL word );
     CELL Pop();
