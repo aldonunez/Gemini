@@ -49,21 +49,24 @@ TEST_CASE( "Algoly: CopyArray: local capture open param, init", "[algoly][open-a
 TEST_CASE( "Algoly: CopyArray: local capture open param, assignment", "[algoly][open-array-value]" )
 {
     const char code[] =
+        "var _0 := 10\n"
         "var ar1: [2] := [1, 2]\n"
         "var ar2: [2] := [5, 6]\n"
         "def a\n"
-        "  B( @ar1, @ar2 )\n"
-        "  ar1[0] + ar1[1] + ar2[0] + ar2[1]\n"
+        "  var q := B( @ar1, @ar2 )\n"
+        "  ar1[0] + ar1[1] + ar2[0] + ar2[1] + q\n"
         "end\n"
         "def B(var array1: [], var array2: [])\n"
         "  var array3: [] := @array1\n"
+        "  var p := 9\n"
         "  array3 := @array2\n"
         "  array3[0] := 3\n"
         "  array3[1] := 4\n"
+        "  p\n"
         "end\n"
         ;
 
-    TestCompileAndRunAlgoly( code, 10 );
+    TestCompileAndRunAlgoly( code, 10+9 );
 }
 
 TEST_CASE( "Algoly: CopyArray: local capture open local, init", "[algoly][open-array-value]" )

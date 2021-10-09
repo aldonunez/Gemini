@@ -879,11 +879,10 @@ void Compiler::GenerateSetAggregate( AssignmentExpr* assignment, const GenConfig
                 {
                     auto local = (LocalStorage*) addr.decl;
 
-                    assert( addr.offset >= 0 && addr.offset < LocalSizeMax );
-                    assert( (addr.offset + 1) < (LocalSizeMax - local->Offset) );
+                    assert( addr.offset == 0 );
 
                     EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + addr.offset) );
-                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + addr.offset + 1) );
+                    EmitU8( OP_STLOC, static_cast<uint8_t>(local->Offset + addr.offset - 1) );
                 }
                 break;
 
@@ -2008,17 +2007,19 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, int32_t off
             {
                 auto local = (LocalStorage*) baseDecl;
 
-                assert( offset >= 0 && offset < LocalSizeMax );
-                assert( offset <= ((LocalStorage*) baseDecl)->Offset );
-
                 if ( IsOpenArrayType( *baseDecl->GetType() ) )
                 {
+                    assert( offset == 0 );
+
                     EmitU8( OP_LDLOC, static_cast<uint8_t>(local->Offset - 1) );
                     EmitU8( OP_LDLOC, static_cast<uint8_t>(local->Offset + 0) );
                     IncreaseExprDepth( 2 );
                 }
                 else
                 {
+                    assert( offset >= 0 && offset < LocalSizeMax );
+                    assert( offset <= ((LocalStorage*) baseDecl)->Offset );
+
                     EmitU8( OP_LDLOCA, static_cast<uint8_t>(((LocalStorage*) baseDecl)->Offset - offset) );
                     IncreaseExprDepth();
                 }
@@ -2038,6 +2039,8 @@ void Compiler::EmitLoadAddress( Syntax* node, Declaration* baseDecl, int32_t off
 
                 if ( IsOpenArrayType( *param->Type ) )
                 {
+                    assert( offset == 0 );
+
                     EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + 1) );
                     EmitU8( OP_LDARG, static_cast<uint8_t>(param->Offset + 0) );
                     IncreaseExprDepth( 2 );
